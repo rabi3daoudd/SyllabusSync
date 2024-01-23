@@ -1,3 +1,6 @@
+![CI-CD-pipeline](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg?branch=master)
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
