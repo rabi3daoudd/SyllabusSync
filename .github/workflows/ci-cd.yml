@@ -24,6 +24,8 @@ jobs:
         run: npm test
       - name: Build Project
         run: npm run build
+      - name: Copy CNAME
+        run: cp CNAME ./dist/  # Adjust the source path if CNAME is located elsewhere
       - name: Upload artifact to enable deployment
         uses: actions/upload-artifact@v3
         with:
@@ -33,7 +35,7 @@ jobs:
   # Deploy Job
   deploy:
     needs: build
-    # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
@@ -41,17 +43,8 @@ jobs:
         with:
           name: production-files
           path: ./dist
-
-      # Step to save the CNAME file temporarily
-      - name: Preserve CNAME file
-        run: cp ./dist/CNAME /tmp/CNAME
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.SyllabusSync_2 }}
           publish_dir: ./dist
-
-      # Step to restore the CNAME file after deployment
-      - name: Restore CNAME file
-        run: cp /tmp/CNAME ./dist/CNAME
