@@ -24,8 +24,6 @@ jobs:
         run: npm test
       - name: Build Project
         run: npm run build
-      - name: Copy CNAME
-        run: cp CNAME ./dist/  # Adjust the source path if CNAME is located elsewhere
       - name: Upload artifact to enable deployment
         uses: actions/upload-artifact@v3
         with:
@@ -48,3 +46,4 @@ jobs:
         with:
           github_token: ${{ secrets.SyllabusSync_2 }}
           publish_dir: ./dist
+          cname: www.syllabussync.com
