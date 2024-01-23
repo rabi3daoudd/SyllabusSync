@@ -23,6 +23,8 @@ jobs:
         run: npm test
       - name: Build Project
         run: npm run build
+      - name: Copy CNAME
+        run: cp CNAME ./dist/
       - name: Upload artifact to enable deployment
         uses: actions/upload-artifact@v3
         with:
