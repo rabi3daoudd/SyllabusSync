@@ -6,7 +6,6 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
 jobs:
   # Build Job
   build:
@@ -33,7 +32,7 @@ jobs:
   # Deploy Job
   deploy:
     needs: build
-    # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
