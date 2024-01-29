@@ -1,13 +1,16 @@
 import express from 'express';
 import OpenAI from 'openai';
+import * as dotenv from "dotenv";
+
+dotenv.config({path:'../../.env'});
 
 const app = express();
-const openai = new OpenAI({ apiKey: "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" });
+const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY});
 
 
 app.get('/fetch-assistant', async (req, res) => {
   try {
-    const assistant = await openai.beta.assistants.retrieve("asst_oeqE5i6LVUou8dos9DXuuJnA");
+    const assistant = await openai.beta.assistants.retrieve(process.env.ASSISTANT_ID);
     res.json(assistant);
   } catch (error) {
     console.error('Server error:', error);
