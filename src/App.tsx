@@ -1,5 +1,5 @@
 import './App.css'
-import Test from "./components/OpenAPITest"
+import Test from "./components/OpenAITest"
 
 function App() {
 
