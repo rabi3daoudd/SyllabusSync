@@ -4,7 +4,7 @@ import express from 'express';
 const app = express();
 const port = 3001;
 
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
 
 app.get('/helloWorld', (req, res) => {
   res.send('Hello World');
