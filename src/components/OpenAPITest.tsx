@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-function Test() {
+function OpenAPITest() {
   useEffect(() => {
     const fetchData = async () => {
       const endpoint = 'http://localhost:3001/fetch-assistant';
@@ -13,7 +13,7 @@ function Test() {
           console.error(`HTTP Error: ${response.status} at ${endpoint}`);
           return;
         }
-        
+
         try {
           const data = await response.json();
           console.log('Data received:', data);
@@ -28,7 +28,10 @@ function Test() {
     fetchData();
   }, []);
 
-  return <div>Test Section</div>;
+  return(
+    <div>Test Page</div>
+  )
+
 }
 
-export default Test;
+export default OpenAPITest;
