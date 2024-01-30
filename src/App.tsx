@@ -1,10 +1,15 @@
 import './App.css'
-import Test from "./components/OpenAITest"
+// import Test from "./components/OpenAITest"
+import MyComponent from './components/MyComponent'
 
 function App() {
 
   return (
-    <Test />
+    <>
+      <MyComponent />
+      {/* <Test /> */}
+    </>
+
   )
 }
 
