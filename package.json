@@ -16,6 +16,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.5",
     "@mui/material": "^5.15.5",
+    "axios": "^1.6.7",
     "firebase": "^10.7.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
@@ -44,5 +45,10 @@
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
   },
-  "homepage": "https://syllabussync.com/"
+  "homepage": "https://syllabussync.com/",
+  "description": "![CI-CD-pipeline](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg?branch=master)",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
