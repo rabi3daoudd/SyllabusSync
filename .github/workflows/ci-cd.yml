@@ -55,7 +55,9 @@ jobs:
           git checkout -b preview
           git add ./dist -f
           git commit -m "Deploying preview to 'preview' branch"
-          git push origin preview
+          git push origin preview --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.RD_TOKEN }}
 
 
   # Deploy Production Job
