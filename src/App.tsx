@@ -6,7 +6,7 @@ function App() {
 
   return (
     <>
-      <h1>you are a bitch</h1>
+      <h1>This is a preview page</h1>
       <MyComponent />
       {/* <Test /> */}
     </>
