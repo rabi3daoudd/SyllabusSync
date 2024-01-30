@@ -48,12 +48,11 @@ jobs:
           path: ./dist
       - name: Commit and Push to Preview Branch
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
           git checkout -b preview
-          git add ./dist
+          git add ./dist -f
           git commit -m "Deploying preview to 'preview' branch"
           git push origin preview
+
 
   # Deploy Production Job
   deploy-production:
