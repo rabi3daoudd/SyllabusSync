@@ -46,6 +46,10 @@ jobs:
         with:
           name: production-files
           path: ./dist
+      - name: Set up Git user
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
       - name: Commit and Push to Preview Branch
         run: |
           git checkout -b preview
