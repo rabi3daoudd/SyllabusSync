@@ -1,11 +1,13 @@
 name: CI-CD-pipeline
+
 on:
   push:
     branches:
       - master
   pull_request:
     branches:
-      - master
+      - '*'
+
 jobs:
   # Build Job
   build:
@@ -21,16 +23,40 @@ jobs:
         run: npm install
       - name: Run Unit Tests
         run: npm test
+      - name: Run Additional Tests
+        run: npm test
       - name: Build Project
         run: npm run build
-      - name: Upload artifact to enable deployment
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: production-files
           path: ./dist
 
-  # Deploy Job
-  deploy:
+  # Deploy Preview Job
+  deploy-preview:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: production-files
+          path: ./dist
+      - name: Commit and Push to Preview Branch
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+          git checkout -b preview
+          git add ./dist
+          git commit -m "Deploying preview to 'preview' branch"
+          git push origin preview
+
+  # Deploy Production Job
+  deploy-production:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
@@ -40,9 +66,10 @@ jobs:
         with:
           name: production-files
           path: ./dist
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.SyllabusSync_2 }}
-          publish_dir: ./dist
-          cname: www.syllabussync.com
+      - name: Install Vercel CLI
+        run: npm i -g vercel
+      - name: Deploy to Vercel
+        run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
