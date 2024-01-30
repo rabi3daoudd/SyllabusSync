@@ -36,7 +36,7 @@ jobs:
   # Deploy Preview Job
   deploy-preview:
     needs: build
-    if: github.event_name == 'push' 
+    if: github.event_name == 'pull_request' 
     runs-on: ubuntu-latest
     steps: 
       - name: Download artifact
