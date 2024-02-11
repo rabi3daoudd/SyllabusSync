@@ -9,10 +9,9 @@ on:
   push:
     # this will deploy data files only when no release is created
     branches:
-      - main
+      - master
     paths:
-      - "data/**"
-      - "pages/docs/**"
+      - "./dist"
 
 jobs:
   deploy:
