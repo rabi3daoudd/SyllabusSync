@@ -1,7 +1,9 @@
 name: Deploy to Vercel Preview
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
 on:
   workflow_dispatch:
   push:
@@ -9,17 +11,45 @@ on:
       - feat-reload-pwa
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: install Vercel CLI
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # or any other version you prefer
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the project
+        run: npm run build # Assuming this command builds your project into ./dist
+
+      - name: Push to preview branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b preview
+          git add dist -f
+          git commit -m "Deploy to preview branch"
+          git push origin preview --force
+
+  deploy-to-vercel:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'preview' # Checkout the preview branch
+
+      - name: Install Vercel CLI
         run: npm install --global vercel@latest
-      - name: pull Vercel environment information
+
+      - name: Pull Vercel environment information
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-      - name: build project artifacts
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-      - name: deploy preview + assign beta domain
+
+      - name: Deploy preview + assign beta domain
         run: |
           OUTPUT=$(du --inodes -d 5 .vercel/output)
           echo "$OUTPUT"
