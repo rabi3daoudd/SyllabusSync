@@ -1,8 +1,4 @@
-name: Deploy to Vercel Preview
-
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+name: Build and Deploy to Vercel Preview
 
 on:
   workflow_dispatch:
@@ -11,32 +7,36 @@ on:
       - feat-reload-pwa
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for history manipulation
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # or any other version you prefer
+          node-version: '14' # Adjust based on your project's requirements
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: Build the project
-        run: npm run build # Assuming this command builds your project into ./dist
+      - name: Build Project
+        run: npm run build # Ensure this populates the ./dist directory
 
-      - name: Push to preview branch
+      - name: Configure Git
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git checkout -b preview
-          git add dist -f
-          git commit -m "Deploy to preview branch"
-          git push origin preview --force
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
 
-  deploy-to-vercel:
-    needs: build-and-push
+      - name: Commit and Push ./dist to Preview Branch
+        run: |
+          git subtree split --prefix dist -b preview # Creates a new branch from dist contents
+          git push -f origin preview:preview # Force push to the preview branch
+
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,19 +44,12 @@ jobs:
           ref: 'preview' # Checkout the preview branch
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install -g vercel
 
-      - name: Pull Vercel environment information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy preview + assign beta domain
+      - name: Deploy to Vercel
         run: |
-          OUTPUT=$(du --inodes -d 5 .vercel/output)
-          echo "$OUTPUT"
-          LAST=$(echo "$OUTPUT" | tail -n 1)
-          PERCENTAGE=$(echo "$LAST" | awk 'BEGIN {maxtotal=15000} { printf "%.2f%%", ($1/maxtotal*100) }')
-          echo "Vercel file usage percentage" >> $GITHUB_STEP_SUMMARY
-          echo "$PERCENTAGE" >> $GITHUB_STEP_SUMMARY
-          du -h -d 3 .vercel/output/functions/en
-          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > domain.txt
-          vercel alias --scope ${{ secrets.VERCEL_TEAM_ID }} --token ${{ secrets.VERCEL_TOKEN }} set `cat domain.txt` ssync-preview.vercel.app
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --confirm --prebuilt
+          vercel alias set $(vercel --token ${{ secrets.VERCEL_TOKEN }} --prebuilt --json | jq -r ".url") your-custom-domain.com --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
