@@ -3,11 +3,12 @@ import {AxiosError} from "axios";
 const { google } = require('googleapis');
 const router = express.Router();
 
-const GOOGLE_CLIENT_ID = 'id'
-const GOOGLE_CLIENT_SECRET = 'secret'
-const REFRESH_TOKEN = 'token'
+//TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 
-
+//TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -25,7 +26,7 @@ router.post('/create-tokens', async (req, res, next) => {
         oauth2Client.setCredentials(tokens);
 
         //TODO store the refresh token in firebase associated with the user
-        res.send(tokens);
+        res.send()
     } catch (error) {
         next(error);
     }
@@ -39,17 +40,17 @@ router.get('/list-events', async (req: Request, res: Response) => {
         // Retrieve events for the primary calendar
         const events = await calendar.events.list({
             auth: oauth2Client,
-            calendarId: 'primary', // 'primary' refers to the main calendar of the user
-            timeMin: (new Date()).toISOString(), // Lists events starting from now
-            maxResults: 10, // Maximum number of events to return
-            singleEvents: true, // Expands recurring events into instances
-            orderBy: 'startTime' // Orders events by their start time
+            calendarId: 'primary',
+            timeMin: (new Date()).toISOString(),
+            maxResults: 10,
+            singleEvents: true,
+            orderBy: 'startTime'
         });
 
-        res.json(events.data); // Sends the list of events back to the client
-    } catch (error: any) { // You can use 'any' or 'unknown' here
-        const e = error as AxiosError; // Type assertion
-        if (e.response) { // Now TypeScript knows e.response exists
+        res.json(events.data);
+    } catch (error: any) {
+        const e = error as AxiosError;
+        if (e.response) {
             console.error('API Error:', e.response.data);
             return res.status(e.response.status).send(e.response.data);
         } else if (e.request) {

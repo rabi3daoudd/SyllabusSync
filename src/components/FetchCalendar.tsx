@@ -2,15 +2,15 @@ import { useGoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 import { useState } from "react";
 
-const LoginComponent = () => {
+const FetchCalendar = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const googleLogin = useGoogleLogin({
         onSuccess: (codeResponse) => {
             const { code } = codeResponse;
+            //TODO change url to actual server url
             axios.post('http://localhost:3001/api/create-tokens', { code })
-                .then((response) => {
-                    console.log(response)
-                    setIsAuthenticated(true); // Assuming authentication is successful
+                .then(() => {
+                    setIsAuthenticated(true);
                 })
                 .catch(error => {
                     console.error('Token exchange failed:', error.response?.data || error.message);
@@ -20,22 +20,22 @@ const LoginComponent = () => {
             console.log('Login Failed');
         },
         flow: 'auth-code',
+        scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid https://www.googleapis.com/auth/calendar'
     });
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const viewCalendarEventsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!isAuthenticated) {
             console.log('No access token available.');
             return;
         }
-
-        // Removed the Authorization header
+        //TODO change url to actual server url
         axios.get('http://localhost:3001/api/list-events')
             .then(response => {
-                console.log('Calendars fetched:', response.data); // Just print out the response data
+                console.log('Calendar events fetched:', response.data);
             })
             .catch(error => {
-                console.error('Failed to fetch calendars:', error.response?.data || error.message);
+                console.error('Failed to fetch calendar events:', error.response?.data || error.message);
             });
     };
 
@@ -44,12 +44,12 @@ const LoginComponent = () => {
             <div className='App'>
                 <h1>Google Calendar API</h1>
                 <button onClick={() => googleLogin()}>Sign in with Google</button>
-                <form onSubmit={handleSubmit}>
-                    <button type="submit" disabled={!isAuthenticated}>View all calendars</button>
+                <form onSubmit={viewCalendarEventsSubmit}>
+                    <button type="submit" disabled={!isAuthenticated}>View all calendar events</button>
                 </form>
             </div>
         </GoogleOAuthProvider>
     );
 };
 
-export default LoginComponent;
+export default FetchCalendar;
