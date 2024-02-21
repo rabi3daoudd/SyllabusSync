@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 
-const FetchCalendar = () => {
+const FetchCalendarEvents = () => {
     //const { isAuthenticated} = useCustomGoogleLogin();
     const { isAuthenticated} = useAuth();
 
@@ -26,7 +26,7 @@ const FetchCalendar = () => {
     };
 
     return (
-        <GoogleOAuthProvider clientId="1041937426677-4enmc56esrqs872v4j7pphffa76cou3s.apps.googleusercontent.com">
+        <GoogleOAuthProvider clientId="ADD CLIENT ID">
             <div className='App'>
                 <h1>Google Calendar API: ListCalendarEvents Function</h1>
                 <p>
@@ -40,4 +40,4 @@ const FetchCalendar = () => {
     );
 };
 
-export default FetchCalendar;
+export default FetchCalendarEvents;
