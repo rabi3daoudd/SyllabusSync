@@ -1,27 +1,10 @@
-import { useGoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+import {GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { useState } from "react";
+import { useCustomGoogleLogin} from './GoogleLogin';
+
 
 const FetchCalendar = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const googleLogin = useGoogleLogin({
-        onSuccess: (codeResponse) => {
-            const { code } = codeResponse;
-            //TODO change url to actual server url
-            axios.post('http://localhost:3001/api/create-tokens', { code })
-                .then(() => {
-                    setIsAuthenticated(true);
-                })
-                .catch(error => {
-                    console.error('Token exchange failed:', error.response?.data || error.message);
-                });
-        },
-        onError: () => {
-            console.log('Login Failed');
-        },
-        flow: 'auth-code',
-        scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid https://www.googleapis.com/auth/calendar'
-    });
+    const { isAuthenticated} = useCustomGoogleLogin();
 
     const viewCalendarEventsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -40,10 +23,9 @@ const FetchCalendar = () => {
     };
 
     return (
-        <GoogleOAuthProvider clientId="your-client-id">
+        <GoogleOAuthProvider clientId="1041937426677-4enmc56esrqs872v4j7pphffa76cou3s.apps.googleusercontent.com">
             <div className='App'>
-                <h1>Google Calendar API</h1>
-                <button onClick={() => googleLogin()}>Sign in with Google</button>
+                <h1>Google Calendar API: ListCalendarEvents Function</h1>
                 <form onSubmit={viewCalendarEventsSubmit}>
                     <button type="submit" disabled={!isAuthenticated}>View all calendar events</button>
                 </form>
