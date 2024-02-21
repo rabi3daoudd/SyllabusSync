@@ -5,7 +5,8 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "esModuleInterop": true,
-    "strict": true
+    "strict": true,
+    "sourceMap": true  // Added this line to use the debugger
   },
   "include": ["src/**/*"]
 }
