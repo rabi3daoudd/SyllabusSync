@@ -1,29 +1,11 @@
-/*
-import { useGoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { useState } from "react";
+import { useAuth } from './AuthContext';
 
 const FetchUserCalendars = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const googleLogin = useGoogleLogin({
-        onSuccess: (codeResponse) => {
-            const { code } = codeResponse;
-            //TODO change url to actual server url
-            axios.post('http://localhost:3001/api/create-tokens', { code })
-                .then((response) => {
-                    console.log(response);
-                    setIsAuthenticated(true);
-                })
-                .catch(error => {
-                    console.error('Token exchange failed:', error.response?.data || error.message);
-                });
-        },
-        onError: () => {
-            console.log('Login Failed');
-        },
-        flow: 'auth-code',
-        scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid https://www.googleapis.com/auth/calendar'
-    });
+
+    const { isAuthenticated} = useAuth();
 
     const viewUserCalendarsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -44,14 +26,15 @@ const FetchUserCalendars = () => {
     return (
         <GoogleOAuthProvider clientId="your-client-id">
             <div className='App'>
-                <h1>Google Calendar API</h1>
-                <button onClick={() => googleLogin()}>Sign in with Google</button>
-                <form onSubmit={viewCalendarEventsSubmit}>
-                    <button type="submit" disabled={!isAuthenticated}>View all calendar events</button>
+                <h1>Google Calendar API: ListUserCalendars Function</h1>
+
+                <form onSubmit={viewUserCalendarsSubmit}>
+                    <button type="submit" disabled={!isAuthenticated}>View all user calendars</button>
                 </form>
             </div>
         </GoogleOAuthProvider>
     );
 };
+
 export default FetchUserCalendars;
-*/
+

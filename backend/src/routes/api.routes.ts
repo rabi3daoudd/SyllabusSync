@@ -65,5 +65,32 @@ router.get('/list-events', async (req: Request, res: Response) => {
 
 });
 
+router.get('/list-user-calendars', async (req: Request, res: Response) => {
+    try {
+        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const calendar = google.calendar({version: 'v3'});
+
+        // Retrieve the user's calendars
+        const calendarList = await calendar.calendarList.list({
+            auth: oauth2Client,
+            maxResults: 10, // Adjust the maxResults as needed
+        });
+
+        res.json(calendarList.data);
+    } catch (error: any) {
+        const e = error as AxiosError;
+        if (e.response) {
+            console.error('API Error:', e.response.data);
+            return res.status(e.response.status).send(e.response.data);
+        } else if (e.request) {
+            console.error('No response received:', e.request);
+            return res.status(500).send('No response received');
+        } else {
+            console.error('Error:', e.message);
+            return res.status(500).send('Error: ' + e.message);
+        }
+    }
+});
+
 
 export default router;
