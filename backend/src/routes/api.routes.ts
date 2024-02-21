@@ -5,9 +5,9 @@ const { google } = require('googleapis');
 const router = express.Router();
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "1041937426677-4enmc56esrqs872v4j7pphffa76cou3s.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = "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";
-const REFRESH_TOKEN = "1//05S5D08Z597i7CgYIARAAGAUSNwF-L9Ir2Mh76L5njb-SGg2WKokiZsCNmgzh6frPi_SNRoT6_F9imvAGgkN_Uj2fMetkruUYFvY";
+const GOOGLE_CLIENT_ID = "REPLACE WITH CLIENT ID";
+const GOOGLE_CLIENT_SECRET = "REPLACE WITH CLIENT SECRET";
+const REFRESH_TOKEN = "REPLACE WITH REFRESH TOKEN";
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
@@ -26,8 +26,8 @@ router.post('/create-tokens', async (req, res, next) => {
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
 
-        //TODO store the refresh token in firebase associated with the user
-        res.send(tokens)
+        //TODO store the refresh token in firebase associated with the user, make sure to add tokens in res.send() to get refresh token
+        res.send()
     } catch (error) {
         next(error);
     }

@@ -8,12 +8,6 @@ const FetchCalendar = () => {
     //const { isAuthenticated} = useCustomGoogleLogin();
     const { isAuthenticated} = useAuth();
 
-    /*
-    useEffect(() => {
-        console.log(`Authentication state is now: ${isAuthenticated}`);
-    }, [isAuthenticated]);
-    */
-
     const viewCalendarEventsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
