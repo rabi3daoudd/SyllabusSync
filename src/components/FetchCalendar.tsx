@@ -1,3 +1,5 @@
+"use client";
+
 import { useGoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 import { useState } from "react";
@@ -8,7 +10,7 @@ const FetchCalendar = () => {
         onSuccess: (codeResponse) => {
             const { code } = codeResponse;
             //TODO change url to actual server url
-            axios.post('http://localhost:3000/api/create-tokens', { code })
+            axios.post('http://localhost:3001/api/create-tokens', { code })
                 .then(() => {
                     setIsAuthenticated(true);
                 })
@@ -30,7 +32,7 @@ const FetchCalendar = () => {
             return;
         }
         //TODO change url to actual server url
-        axios.get('http://localhost:3000/api/list-events')
+        axios.get('http://localhost:3001/api/list-events')
             .then(response => {
                 console.log('Calendar events fetched:', response.data);
             })

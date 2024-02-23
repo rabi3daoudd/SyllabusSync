@@ -1,21 +1,23 @@
-import './App.css'
+import './app/globals.css'
 // import Test from "./components/OpenAITest"
 import MyComponent from './components/MyComponent'
-import FetchCalendar from "./components/FetchCalendar";
-// import image from './img.png';
+import FetchCalendarEvents from "./components/FetchCalendarEvents";
+import { AuthProvider } from './components/AuthContext';
+import SignInButton from './components/SignInButton';
+import FetchUserCalendars from './components/FetchUserCalendars'
 
 function App() {
+  //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
 
   return (
-    <>
-    <h1>W AYERRERERERER</h1> 
-    {/* <img src={image} /> */}
+    <AuthProvider>
       <MyComponent />
-        <FetchCalendar />
-      {/* <Test /> */}
-    </>
-
-  )
+      {/* <SignInWithGoogleButton /> */}
+      <SignInButton />
+      <FetchCalendarEvents />
+      <FetchUserCalendars />
+    </AuthProvider>
+)
 }
 
 export default App

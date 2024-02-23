@@ -1,10 +1,8 @@
 // import { useState, useEffect } from 'react';
 // import OpenAI from 'openai';
 
-// const apiKey = "ada";
-// //import.meta.env.VITE_OPEN_AI_KEY;
-// const assistantId = "aa";
-// //import.meta.env.VITE_ASSISTANT_ID;
+// const apiKey = import.meta.env.VITE_OPEN_AI_KEY;
+// const assistantId = import.meta.env.VITE_ASSISTANT_ID;
 
 // const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 

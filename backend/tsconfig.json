@@ -1,12 +1,12 @@
 {
-  "compilerOptions": {
-    "target": "ES2018",
-    "module": "CommonJS",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "esModuleInterop": true,
-    "strict": true,
-    "sourceMap": true  // Added this line to use the debugger
-  },
-  "include": ["src/**/*"]
-}
+    "compilerOptions": {
+      "target": "ES2018",
+      "module": "CommonJS",
+      "outDir": "./dist",
+      "rootDir": "./src",
+      "esModuleInterop": true,
+      "strict": true,
+      "sourceMap": true  // Added this line to use the debugger
+    },
+    "include": ["src/**/*"]
+  }
