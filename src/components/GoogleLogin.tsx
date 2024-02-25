@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect} from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';

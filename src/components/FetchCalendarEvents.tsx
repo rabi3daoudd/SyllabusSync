@@ -1,3 +1,5 @@
+"use client";
+
 import {GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 //import { useCustomGoogleLogin} from './GoogleLogin';
