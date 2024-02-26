@@ -4,6 +4,8 @@ import { useEffect} from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import { Button } from "../components/ui/button";
+
 
 export const useCustomGoogleLogin = () => {
     //const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,7 +44,7 @@ export const useCustomGoogleLogin = () => {
     }, [isAuthenticated]);
 
     const SignInWithGoogleButton = () => (
-        <button onClick={() => googleLogin()}>Sign in with Google</button>
+        <Button onClick={() => googleLogin()}>Connect your calender with a Google account</Button>
     );
 
     return { isAuthenticated, SignInWithGoogleButton };

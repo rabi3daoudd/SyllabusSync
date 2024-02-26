@@ -14,7 +14,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId="PLACE CLIENT ID HERE">
       <AuthProvider>
-        <SignIn />
+        {/* <SignIn /> */}
         <MyComponent />
         {/* <SignInWithGoogleButton /> */}
         <SignInButton />
