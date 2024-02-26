@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'; // Import useRouter
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase-config'; // Update the path as needed
 import { doc, setDoc } from "firebase/firestore";
-import { CardTitle, CardDescription, CardHeader, CardContent, CardFooter, Card } from "../components/ui/card";
+import { CardTitle, CardDescription, CardHeader, CardFooter, Card } from "../components/ui/card";
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";

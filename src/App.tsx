@@ -6,7 +6,6 @@ import { AuthProvider } from './components/AuthContext';
 import SignInButton from './components/SignInButton';
 import FetchUserCalendars from './components/FetchUserCalendars'
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { SignIn } from './components/SignIn';
 
 function App() {
   //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
