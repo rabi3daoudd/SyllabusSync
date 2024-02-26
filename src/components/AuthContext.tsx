@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useState, ReactNode, FunctionComponent } from 'react';
 
 interface AuthContextType {
