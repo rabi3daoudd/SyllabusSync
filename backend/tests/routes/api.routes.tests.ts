@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { app } from '../../src/server';
+import { google } from 'googleapis';
 jest.mock('googleapis', () => {
     const mockCalendarList = {
         list: jest.fn().mockResolvedValue({
@@ -53,6 +54,31 @@ describe('GET /api/list-events', () => {
         expect(Array.isArray(response.body.items)).toBe(true);
     });
 });
+
+describe('GET /api/list-user-calendars', () => {
+    it('should retrieve a list of user calendars', async () => {
+        const response = await request(app).get('/api/list-user-calendars');
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty('items');
+        expect(response.body.items).toEqual([
+            { id: 'calendar1', summary: 'Test Calendar 1' },
+            { id: 'calendar2', summary: 'Test Calendar 2' },
+        ]);
+    });
+
+    it('should handle errors', async () => {
+        const originalListFunction = google.calendar('v3').calendarList.list;
+        google.calendar('v3').calendarList.list = jest.fn().mockRejectedValue(new Error('Test Error'));
+
+        const response = await request(app).get('/api/list-user-calendars');
+
+        google.calendar('v3').calendarList.list = originalListFunction;
+
+        expect(response.statusCode).toBe(500);
+        expect(response.text).toContain('Error: Test Error');
+    });
+});
+
 
 describe('POST /api/create-event', () => {
     it('should create a new calendar event and return event details', async () => {
