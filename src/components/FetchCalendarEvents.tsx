@@ -4,6 +4,7 @@ import {GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 //import { useCustomGoogleLogin} from './GoogleLogin';
 import { useAuth } from './AuthContext';
+import { Button } from "../components/ui/button";
 
 
 const FetchCalendarEvents = () => {
@@ -35,7 +36,7 @@ const FetchCalendarEvents = () => {
                     {isAuthenticated ? 'True' : 'False'}
                 </p>
                 <form onSubmit={viewCalendarEventsSubmit}>
-                    <button type="submit" disabled={!isAuthenticated}>View all calendar events</button>
+                    <Button type="submit" disabled={!isAuthenticated}>View all calendar events</Button>
                 </form>
             </div>
         </GoogleOAuthProvider>

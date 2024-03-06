@@ -6,12 +6,13 @@ import { AuthProvider } from './components/AuthContext';
 import SignInButton from './components/SignInButton';
 import FetchUserCalendars from './components/FetchUserCalendars'
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import CreateCalendarEvent from './components/CreateCalendarEvent';
 
 function App() {
   //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
 
   return (
-    <GoogleOAuthProvider clientId="PLACE CLIENT ID HERE">
+    <GoogleOAuthProvider clientId="INSERT CLIENT ID">
       <AuthProvider>
         {/* <SignIn /> */}
         <MyComponent />
@@ -19,6 +20,7 @@ function App() {
         <SignInButton />
         <FetchCalendarEvents />
         <FetchUserCalendars />
+        <CreateCalendarEvent />
       </AuthProvider>
     </GoogleOAuthProvider>
 
