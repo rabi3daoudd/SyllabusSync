@@ -4,9 +4,9 @@ const { google } = require('googleapis');
 const router = express.Router();
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "PLACE CLIENT ID HERE";
-const GOOGLE_CLIENT_SECRET = "CLIENT SECRETE HERE";
-const REFRESH_TOKEN = "REPLACE WITH REFRESH TOKEN";
+const GOOGLE_CLIENT_ID = "INSERT_GOOGLE_CLIENT_ID";
+const GOOGLE_CLIENT_SECRET = "INSERT_GOOGLE_CLIENT_SECRET";
+const REFRESH_TOKEN = "INSERT_REFRESH_TOKEN";
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
@@ -88,6 +88,35 @@ router.get('/list-user-calendars', async (req: Request, res: Response) => {
             console.error('Error:', e.message);
             return res.status(500).send('Error: ' + e.message);
         }
+    }
+});
+
+router.post('/create-event', async(req,res,next) => {
+    try{
+        const {summary,description,location,startDateTime,endDateTime, calendarId} = req.body
+        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const calendar = google.calendar({version: 'v3'});
+        const response = await calendar.events.insert({
+            auth: oauth2Client,
+            calendarId: calendarId || 'primary',
+            requestBody: {
+                summary: summary,
+                description: description,
+                location: location,
+                colorId: '6',
+                start:{
+                    dateTime: new Date(startDateTime)
+                },
+                end:{
+                    dateTime: new Date(endDateTime)
+                },
+            },
+        })
+        res.send(response)
+
+    } catch(error){
+        next(error)
+
     }
 });
 
