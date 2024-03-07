@@ -18,15 +18,15 @@ export default function Home() {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setUserEmail(user.email);
-        const name = user.displayName || 'there'; // Use displayName for users who signed in with Google
-        setUserName(name);
+        setUserName(user.displayName || "");
 
         if (!user.displayName) { // Fetch additional details from Firestore for email/password sign-ups
           const userRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            setUserName(`${userData.firstName} ${userData.lastName}`);
+            const fullName = userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : "";
+            setUserName(fullName);
           }
         }
       } else {
@@ -57,7 +57,7 @@ export default function Home() {
           {userEmail ? (
             <>
               <p>Logged in as: <strong>{userEmail}</strong></p>
-              <p>Hello, <strong>{userName}</strong></p>
+              <p>Hello! <strong>{userName}</strong></p>
               <Button onClick={handleSignOut} className="w-full">Sign Out</Button>
             </>
           ) : (
