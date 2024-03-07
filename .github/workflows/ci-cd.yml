@@ -32,20 +32,3 @@ jobs:
           name: production-files
           path: ./dist
 
-  # Deploy Job
-  deploy:
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: production-files
-          path: ./dist
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.SyllabusSync_2 }}
-          publish_dir: ./dist
-          cname: www.syllabussync.com
