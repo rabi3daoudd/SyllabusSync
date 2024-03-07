@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { app } from '../../src/server';
 import { google } from 'googleapis';
-import request from 'supertest';
 
 jest.mock('googleapis', () => {
     const mockCalendarList = {
