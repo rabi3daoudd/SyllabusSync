@@ -1,4 +1,4 @@
-[![Github build](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml)
+![Github build](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg?branch=master)
 
 
 
