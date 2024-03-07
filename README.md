@@ -1,33 +1,37 @@
-![CI-CD-pipeline](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg?branch=master)
+# SyllabusSync
 
+SyllabusSync is a project that aims to synchronize syllabus and make it easier for students to stay on top of their courses, and to not slack off specially when you are taking multiple courses, and you have many assignments, quizzes, and exams to keep track of.
 
-# React + TypeScript + Vite
+SyllabusSync will carve out and tell you what you need to do, and when you need to do it.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Installation
 
-Currently, two official plugins are available:
+1. Clone the repository:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+   ```bash
+   git clone hhttps://github.com/rabi3daoudd/SyllabusSync.git
+    ```
+2. Install the required packages:
 
-## Expanding the ESLint configuration
+   ```bash
+   npm install
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+3. Run the application:
 
-- Configure the top-level `parserOptions` property like this:
+   ```bash
+   npm run dev
+   ```
+   - If you want to run the application in production mode, use the following command:
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+   ```bash
+   npm run build
+   npm start
+   ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Usage
+
+1. Open your browser and go to `http://localhost:3000/`.
+2. Click on the `Sign Up` button to create an account.
+3. After creating an account, you will be redirected to the `Dashboard` page.
+4. Stay tuned for more updates!
