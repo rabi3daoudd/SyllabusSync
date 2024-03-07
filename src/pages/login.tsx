@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React, { useState, FormEvent } from 'react';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
 import { auth, db } from '../firebase-config'; // Update the path as needed
 import { useRouter } from 'next/router';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -55,6 +55,33 @@ const LoginPage: React.FC = () => {
         }
     };
 
+    const handleGitHubSignIn = async () => {
+        const provider = new GithubAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Check if the user's data already exists in Firestore
+            const userRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(userRef);
+
+            // Store only the email for GitHub users
+            if (!docSnap.exists()) {
+                await setDoc(userRef, {
+                    email: user.email,
+                });
+                console.log("GitHub user data added to Firestore");
+            }
+
+            console.log("Signed in with GitHub:", user);
+            router.push('/'); // Redirect to the home page
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+
+
     return (
         <Card className="w-full max-w-sm mx-auto mt-10">
             <CardHeader className="p-6">
@@ -75,6 +102,9 @@ const LoginPage: React.FC = () => {
             <CardFooter className="p-6 flex flex-col space-y-4">
                 <Button onClick={handleGoogleSignIn} variant="outline" className="w-full">
                     Sign in with Google
+                </Button>
+                <Button onClick={handleGitHubSignIn} variant="outline" className="w-full">
+                    Sign in with GitHub
                 </Button>
                 <p className="text-center">
                     Don't have an account?{' '}
