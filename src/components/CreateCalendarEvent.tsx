@@ -3,8 +3,9 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "../components/ui/button";
+import { findOrCreateSyallbusSyncCalendar } from './FindOrCreateSyallbusSyncCalendar';
 
 const CreateCalendarEvent = () => {
     const { isAuthenticated} = useAuth();
@@ -15,6 +16,22 @@ const CreateCalendarEvent = () => {
     const [startDateTime, setStartDateTime] = useState('')
     const [endDateTime, setEndDateTime] = useState('')
     const [calendarId, setCalendarId] = useState('')
+    const [triggerEventCreation, setTriggerEventCreation] = useState(false);
+
+    useEffect(() => {
+        if (calendarId && triggerEventCreation) {
+            // Now that calendarId is updated, you can proceed with creating the event
+            axios.post('http://localhost:3001/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId })
+                .then(response => {
+                    console.log(response.data);
+                    setTriggerEventCreation(false);
+                })
+                .catch(error => {
+                    console.log(error.message)
+                    setTriggerEventCreation(false);
+                });
+        }
+    }, [calendarId, triggerEventCreation]); // This effect runs whenever `calendarId` changes.
 
     const viewCreateCalendarEventSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -26,11 +43,14 @@ const CreateCalendarEvent = () => {
         //TODO change url to actual server url
         //const response = await axios.post('http://localhost:3001/api/create-event', { code });
 
-        axios.post('http://localhost:3001/api/create-event', {summary, description,location, startDateTime, endDateTime, calendarId})
-        .then(response => {
-            console.log(response.data)
-        })
-        .catch(error => console.log(error.message))
+        findOrCreateSyallbusSyncCalendar()
+                .then((retrievedCalendarId) => {
+                    setCalendarId(retrievedCalendarId);
+                    setTriggerEventCreation(true);
+                })
+                .catch(error => console.error('Error in finding/creating calendar:', error));
+        
+        
 
     };
     return (
@@ -39,11 +59,6 @@ const CreateCalendarEvent = () => {
                 <h1>Google Calendar API: Create Calendar Event Function</h1>
 
                 <form onSubmit={viewCreateCalendarEventSubmit}>
-
-                    <label htmlFor="calendarId">Calendar Id</label>
-                    <br />
-                    <input type="text" id="calendarId" value = {calendarId} onChange={e => setCalendarId(e.target.value)}  />
-                    <br />
 
                     <label htmlFor="summary">Summary</label>
                     <br />

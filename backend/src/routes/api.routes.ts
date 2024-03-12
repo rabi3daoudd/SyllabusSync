@@ -4,9 +4,9 @@ const { google } = require('googleapis');
 const router = express.Router();
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "INSERT_GOOGLE_CLIENT_ID";
-const GOOGLE_CLIENT_SECRET = "INSERT_GOOGLE_CLIENT_SECRET";
-const REFRESH_TOKEN = "INSERT_REFRESH_TOKEN";
+const GOOGLE_CLIENT_ID = "INSERT GOOGLE CLIENT ID";
+const GOOGLE_CLIENT_SECRET = "INSERT GOOGLE CLIENT SECRET";
+const REFRESH_TOKEN = "INSERT REFRESH TOKEN";
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
@@ -119,6 +119,34 @@ router.post('/create-event', async(req,res,next) => {
 
     }
 });
+
+router.post('/create-calendar', async(req,res, next) => {
+    try{
+        const {summary, description, timeZone} = req.body;
+
+        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const calendar = google.calendar({version: 'v3'});
+
+        const response = await calendar.calendars.insert({
+            auth: oauth2Client,
+            requestBody: {
+                summary: summary, // Name of the calendar
+                description: description, // Description of the calendar (optional)
+                timeZone: timeZone // Time zone of the calendar (optional)
+            },
+        });
+
+        const data = response.json();
+
+        // Send the response back to the client
+        res.send(data);
+
+    } catch(error){
+        console.error("Failed to create SyallabusSync calendar:", error);
+        next(error);
+    }
+    
+})
 
 
 export default router;
