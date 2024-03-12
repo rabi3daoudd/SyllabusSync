@@ -6,6 +6,7 @@
     "rootDir": "./src",
     "esModuleInterop": true,
     "strict": true,
+    "resolveJsonModule": true,
     "sourceMap": true  // Added this line to use the debugger
   },
   "include": ["src/**/*"]

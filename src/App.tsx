@@ -9,22 +9,22 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import CreateCalendarEvent from './components/CreateCalendarEvent';
 
 function App() {
-  //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
+    //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
 
-  return (
-    <GoogleOAuthProvider clientId="INSERT CLIENT ID">
-      <AuthProvider>
-        {/* <SignIn /> */}
-        <MyComponent />
-        {/* <SignInWithGoogleButton /> */}
-        <SignInButton />
-        <FetchCalendarEvents />
-        <FetchUserCalendars />
-        <CreateCalendarEvent />
-      </AuthProvider>
-    </GoogleOAuthProvider>
+    return (
+        <GoogleOAuthProvider clientId="879578989203-0mpip3uokcaupv52p6692rd79l42tjuu.apps.googleusercontent.com">
+            <AuthProvider>
+                {/* <SignIn /> */}
+                <MyComponent />
+                {/* <SignInWithGoogleButton /> */}
+                <SignInButton />
+                <FetchCalendarEvents />
+                <FetchUserCalendars />
+                <CreateCalendarEvent />
+            </AuthProvider>
+        </GoogleOAuthProvider>
 
-  )
+    )
 }
 
 export default App

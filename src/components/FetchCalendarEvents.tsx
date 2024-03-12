@@ -5,6 +5,7 @@ import axios from 'axios';
 //import { useCustomGoogleLogin} from './GoogleLogin';
 import { useAuth } from './AuthContext';
 import { Button } from "../components/ui/button";
+import { auth } from '../firebase-config';
 
 
 const FetchCalendarEvents = () => {
@@ -18,8 +19,17 @@ const FetchCalendarEvents = () => {
             console.log('No access token available.');
             return;
         }
+
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+            console.error('No Firebase user logged in');
+            return;
+        }
+
+        //const queryParams = new URLSearchParams({ uid: firebaseUser.uid });
+
         //TODO change url to actual server url
-        axios.get('http://localhost:3001/api/list-events')
+        axios.get('http://localhost:3001/api/list-events?${queryParams}')
             .then(response => {
                 console.log('Calendar events fetched:', response.data);
             })

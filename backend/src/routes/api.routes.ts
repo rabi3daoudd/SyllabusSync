@@ -1,11 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import {AxiosError} from "axios";
+//import {getRefreshToken} from "../firebaseHelper";
 const { google } = require('googleapis');
 const router = express.Router();
+const admin = require('../firebaseAdmin');
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "INSERT_GOOGLE_CLIENT_ID";
-const GOOGLE_CLIENT_SECRET = "INSERT_GOOGLE_CLIENT_SECRET";
+const GOOGLE_CLIENT_ID = "879578989203-0mpip3uokcaupv52p6692rd79l42tjuu.apps.googleusercontent.com";
+const GOOGLE_CLIENT_SECRET = "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";
 const REFRESH_TOKEN = "INSERT_REFRESH_TOKEN";
 
 
@@ -22,21 +24,33 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/create-tokens', async (req, res, next) => {
     try {
-        const { code } = req.body;
+        const { code, uid  } = req.body;
+        if (!uid) {
+            res.status(400).send("User ID is missing");
+            return;
+        }
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
-
-        //TODO store the refresh token in firebase associated with the user, make sure to add tokens in res.send() to get refresh token
+        const userRef = admin.firestore().doc(`users/${uid}`);
+        await userRef.set({ refresh_token: tokens.refresh_token }, { merge: true });
         res.send(tokens)
     } catch (error) {
         next(error);
     }
 });
 
+
 router.get('/list-events', async (req: Request, res: Response) => {
     try {
-        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const uid: string = req.query.uid as string;
+        if (!uid) {
+            return res.status(400).send({ message: "User ID is missing" });
+        }
+
+        //const refreshToken: string = await getRefreshToken(uid);
+        //oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
+
 
         // Retrieve events for the primary calendar
         const events = await calendar.events.list({
