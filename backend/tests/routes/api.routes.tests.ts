@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app } from '../../src/server';
 import { google } from 'googleapis';
+import {getRefreshToken} from "../../src/firebaseHelper";
 
 jest.mock('googleapis', () => {
     const mockCalendarList = {
@@ -35,30 +36,51 @@ jest.mock('googleapis', () => {
     };
 });
 
+jest.mock('../../src/firebaseHelper', () => ({
+    getRefreshToken: jest.fn().mockResolvedValue('mocked_refresh_token')
+}));
+
+jest.mock('../../src/firebaseAdmin', () => {
+    const set = jest.fn();
+    const doc = jest.fn(() => ({ set }));
+    const firestore = jest.fn(() => ({ doc }));
+    return { firestore, doc, set };
+});
+
+
+
+
 describe('POST /api/create-tokens', () => {
-    it('should exchange code for tokens', async () => {
+    it('should exchange code for tokens and store them in Firestore', async () => {
         const mockCode = 'valid_code';
+        const mockUid = 'user123';
         const response = await request(app)
             .post('/api/create-tokens')
-            .send({ code: mockCode });
+            .send({ code: mockCode, uid: mockUid });
 
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveProperty('access_token', 'mock_access_token');
     });
 });
 
+
 describe('GET /api/list-events', () => {
     it('should retrieve a list of calendar events', async () => {
-        const response = await request(app).get('/api/list-events');
+        const mockUid = 'testUid';
+
+        const response = await request(app).get(`/api/list-events?uid=${mockUid}`);
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveProperty('items');
         expect(Array.isArray(response.body.items)).toBe(true);
+        expect(getRefreshToken).toHaveBeenCalledWith(mockUid);
     });
 });
 
+
 describe('GET /api/list-user-calendars', () => {
     it('should retrieve a list of user calendars', async () => {
-        const response = await request(app).get('/api/list-user-calendars');
+        const mockUid = 'testUid';
+        const response = await request(app).get(`/api/list-user-calendars?uid=${mockUid}`);
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveProperty('items');
         expect(response.body.items).toEqual([
@@ -68,17 +90,16 @@ describe('GET /api/list-user-calendars', () => {
     });
 
     it('should handle errors', async () => {
+        const mockUid = 'testUid';
         const originalListFunction = google.calendar('v3').calendarList.list;
         google.calendar('v3').calendarList.list = jest.fn().mockRejectedValue(new Error('Test Error'));
-
-        const response = await request(app).get('/api/list-user-calendars');
-
+        const response = await request(app).get(`/api/list-user-calendars?uid=${mockUid}`);
         google.calendar('v3').calendarList.list = originalListFunction;
-
         expect(response.statusCode).toBe(500);
         expect(response.text).toContain('Error: Test Error');
     });
 });
+
 
 
 describe('POST /api/create-event', () => {
@@ -90,7 +111,10 @@ describe('POST /api/create-event', () => {
             startDateTime: new Date().toISOString(),
             endDateTime: new Date().toISOString(),
             calendarId: 'primary',
+            uid: 'mockUid',
         };
+
+        jest.mocked(getRefreshToken).mockResolvedValue('mockRefreshToken');
 
         const response = await request(app)
             .post('/api/create-event')
@@ -100,5 +124,5 @@ describe('POST /api/create-event', () => {
         expect(response.body).toHaveProperty('data');
         expect(response.body.data).toHaveProperty('id', 'new-event-id');
     });
-
 });
+
