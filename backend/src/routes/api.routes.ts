@@ -8,6 +8,7 @@ const GOOGLE_CLIENT_ID = "INSERT GOOGLE CLIENT ID";
 const GOOGLE_CLIENT_SECRET = "INSERT GOOGLE CLIENT SECRET";
 const REFRESH_TOKEN = "INSERT REFRESH TOKEN";
 
+
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
