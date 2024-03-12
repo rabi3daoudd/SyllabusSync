@@ -1,15 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import {AxiosError} from "axios";
-//import {getRefreshToken} from "../firebaseHelper";
+import {getRefreshToken} from "../firebaseHelper";
 const { google } = require('googleapis');
 const router = express.Router();
 const admin = require('../firebaseAdmin');
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "879578989203-0mpip3uokcaupv52p6692rd79l42tjuu.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = "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";
-const REFRESH_TOKEN = "INSERT_REFRESH_TOKEN";
-
+const GOOGLE_CLIENT_ID = "Add client Id here";
+const GOOGLE_CLIENT_SECRET = "Add client secret here";
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
@@ -46,11 +44,9 @@ router.get('/list-events', async (req: Request, res: Response) => {
         if (!uid) {
             return res.status(400).send({ message: "User ID is missing" });
         }
-
-        //const refreshToken: string = await getRefreshToken(uid);
-        //oauth2Client.setCredentials({ refresh_token: refreshToken });
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
-
 
         // Retrieve events for the primary calendar
         const events = await calendar.events.list({
@@ -81,7 +77,12 @@ router.get('/list-events', async (req: Request, res: Response) => {
 
 router.get('/list-user-calendars', async (req: Request, res: Response) => {
     try {
-        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const uid: string = req.query.uid as string;
+        if (!uid) {
+            return res.status(400).send({ message: "User ID is missing" });
+        }
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
 
         // Retrieve the user's calendars
@@ -108,8 +109,15 @@ router.get('/list-user-calendars', async (req: Request, res: Response) => {
 
 router.post('/create-event', async(req,res,next) => {
     try{
-        const {summary,description,location,startDateTime,endDateTime, calendarId} = req.body
-        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const {summary,description,location,startDateTime,endDateTime, calendarId, uid} = req.body
+
+        if (!uid) {
+            res.status(400).send("User ID is missing");
+            return;
+        }
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
+        console.log(refreshToken);
         const calendar = google.calendar({version: 'v3'});
         const response = await calendar.events.insert({
             auth: oauth2Client,

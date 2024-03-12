@@ -2,21 +2,24 @@
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { useAuth } from './AuthContext';
 import { Button } from "../components/ui/button";
+import { auth } from '../firebase-config';
 
 const FetchUserCalendars = () => {
 
-    const { isAuthenticated} = useAuth();
-
     const viewUserCalendarsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!isAuthenticated) {
-            console.log('No access token available.');
+
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+            console.error('No Firebase user logged in');
             return;
         }
+
+        const queryParams = new URLSearchParams({ uid: firebaseUser.uid });
+
         //TODO change url to actual server url
-        axios.get('http://localhost:3001/api/list-user-calendars')
+        axios.get(`http://localhost:3001/api/list-user-calendars?${queryParams}`)
             .then(response => {
                 console.log('User Calendar events fetched:', response.data);
             })
@@ -31,7 +34,7 @@ const FetchUserCalendars = () => {
                 <h1>Google Calendar API: ListUserCalendars Function</h1>
 
                 <form onSubmit={viewUserCalendarsSubmit}>
-                    <Button type="submit" disabled={!isAuthenticated}>View all user calendars</Button>
+                    <Button type="submit">View all user calendars</Button>
                 </form>
             </div>
         </GoogleOAuthProvider>

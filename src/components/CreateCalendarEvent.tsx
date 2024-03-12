@@ -2,12 +2,11 @@
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { useAuth } from './AuthContext';
 import { useState } from 'react';
 import { Button } from "../components/ui/button";
+import {auth} from "../firebase-config";
 
 const CreateCalendarEvent = () => {
-    const { isAuthenticated} = useAuth();
 
     const [summary, setSummary] = useState('')
     const [description, setDescription] = useState('')
@@ -19,14 +18,16 @@ const CreateCalendarEvent = () => {
     const viewCreateCalendarEventSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log(summary, description,location, startDateTime, endDateTime);
-        if (!isAuthenticated) {
-            console.log('No access token available.');
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+            console.error('No Firebase user logged in');
             return;
         }
+
         //TODO change url to actual server url
         //const response = await axios.post('http://localhost:3001/api/create-event', { code });
 
-        axios.post('http://localhost:3001/api/create-event', {summary, description,location, startDateTime, endDateTime, calendarId})
+        axios.post('http://localhost:3001/api/create-event', {summary, description,location, startDateTime, endDateTime, calendarId, uid: firebaseUser.uid})
         .then(response => {
             console.log(response.data)
         })
@@ -69,7 +70,7 @@ const CreateCalendarEvent = () => {
                     <br />
                     <input type = "datetime-local" id="endDateTime" value={endDateTime} onChange={e=> setEndDateTime(e.target.value)} />
                     <br />
-                    <Button type="submit" disabled={!isAuthenticated}>Create an Event</Button>
+                    <Button type="submit">Create an Event</Button>
                 </form>
             </div>
         </GoogleOAuthProvider>

@@ -15,21 +15,16 @@ const FetchCalendarEvents = () => {
     const viewCalendarEventsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (!isAuthenticated) {
-            console.log('No access token available.');
-            return;
-        }
-
         const firebaseUser = auth.currentUser;
         if (!firebaseUser) {
             console.error('No Firebase user logged in');
             return;
         }
 
-        //const queryParams = new URLSearchParams({ uid: firebaseUser.uid });
+        const queryParams = new URLSearchParams({ uid: firebaseUser.uid });
 
         //TODO change url to actual server url
-        axios.get('http://localhost:3001/api/list-events?${queryParams}')
+        axios.get(`http://localhost:3001/api/list-events?${queryParams}`)
             .then(response => {
                 console.log('Calendar events fetched:', response.data);
             })
@@ -46,7 +41,7 @@ const FetchCalendarEvents = () => {
                     {isAuthenticated ? 'True' : 'False'}
                 </p>
                 <form onSubmit={viewCalendarEventsSubmit}>
-                    <Button type="submit" disabled={!isAuthenticated}>View all calendar events</Button>
+                    <Button type="submit">View all calendar events</Button>
                 </form>
             </div>
         </GoogleOAuthProvider>
