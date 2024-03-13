@@ -2,9 +2,11 @@
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { Button } from "../components/ui/button";
-import {auth} from "../firebase-config";
+import { findOrCreateSyallbusSyncCalendar } from './FindOrCreateSyallbusSyncCalendar';
+
 
 const CreateCalendarEvent = () => {
 
@@ -14,25 +16,37 @@ const CreateCalendarEvent = () => {
     const [startDateTime, setStartDateTime] = useState('')
     const [endDateTime, setEndDateTime] = useState('')
     const [calendarId, setCalendarId] = useState('')
+    const [triggerEventCreation, setTriggerEventCreation] = useState(false);
+
+    useEffect(() => {
+        if (calendarId && triggerEventCreation) {
+            // Now that calendarId is updated, you can proceed with creating the event
+            axios.post('http://localhost:3001/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId })
+                .then(response => {
+                    console.log(response.data);
+                    setTriggerEventCreation(false);
+                })
+                .catch(error => {
+                    console.log(error.message)
+                    setTriggerEventCreation(false);
+                });
+        }
+    }, [calendarId, triggerEventCreation]); // This effect runs whenever `calendarId` changes.
 
     const viewCreateCalendarEventSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log(summary, description,location, startDateTime, endDateTime);
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-            console.error('No Firebase user logged in');
-            return;
-        }
+
 
         //TODO change url to actual server url
         //const response = await axios.post('http://localhost:3001/api/create-event', { code });
 
-        axios.post('http://localhost:3001/api/create-event', {summary, description,location, startDateTime, endDateTime, calendarId, uid: firebaseUser.uid})
-        .then(response => {
-            console.log(response.data)
-        })
-        .catch(error => console.log(error.message))
-
+        findOrCreateSyallbusSyncCalendar()
+                .then((retrievedCalendarId) => {
+                    setCalendarId(retrievedCalendarId);
+                    setTriggerEventCreation(true);
+                })
+                .catch(error => console.error('Error in finding/creating calendar:', error));
     };
     return (
         <GoogleOAuthProvider clientId="your-client-id">
@@ -40,11 +54,6 @@ const CreateCalendarEvent = () => {
                 <h1>Google Calendar API: Create Calendar Event Function</h1>
 
                 <form onSubmit={viewCreateCalendarEventSubmit}>
-
-                    <label htmlFor="calendarId">Calendar Id</label>
-                    <br />
-                    <input type="text" id="calendarId" value = {calendarId} onChange={e => setCalendarId(e.target.value)}  />
-                    <br />
 
                     <label htmlFor="summary">Summary</label>
                     <br />

@@ -117,7 +117,6 @@ router.post('/create-event', async(req,res,next) => {
         }
         const refreshToken: string = await getRefreshToken(uid);
         oauth2Client.setCredentials({ refresh_token: refreshToken });
-        console.log(refreshToken);
         const calendar = google.calendar({version: 'v3'});
         const response = await calendar.events.insert({
             auth: oauth2Client,
@@ -142,6 +141,39 @@ router.post('/create-event', async(req,res,next) => {
 
     }
 });
+
+router.post('/create-calendar', async(req,res, next) => {
+    try{
+        const {summary, description, timeZone, uid} = req.body;
+
+        if (!uid) {
+            res.status(400).send("User ID is missing");
+            return;
+        }
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
+        const calendar = google.calendar({version: 'v3'});
+
+        const response = await calendar.calendars.insert({
+            auth: oauth2Client,
+            requestBody: {
+                summary: summary, // Name of the calendar
+                description: description, // Description of the calendar (optional)
+                timeZone: timeZone // Time zone of the calendar (optional)
+            },
+        });
+
+        const data = response.json();
+
+        // Send the response back to the client
+        res.send(data);
+
+    } catch(error){
+        console.error("Failed to create SyallabusSync calendar:", error);
+        next(error);
+    }
+    
+})
 
 
 export default router;
