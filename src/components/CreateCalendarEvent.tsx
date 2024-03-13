@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Button } from "../components/ui/button";
 import { findOrCreateSyallbusSyncCalendar } from './FindOrCreateSyallbusSyncCalendar';
-
+import {auth} from "../firebase-config";
 
 const CreateCalendarEvent = () => {
 
@@ -21,7 +21,14 @@ const CreateCalendarEvent = () => {
     useEffect(() => {
         if (calendarId && triggerEventCreation) {
             // Now that calendarId is updated, you can proceed with creating the event
-            axios.post('http://localhost:3001/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId })
+
+            const firebaseUser = auth.currentUser;
+            if (!firebaseUser) {
+                console.error('No Firebase user logged in');
+                return;
+            }
+
+            axios.post('http://localhost:3001/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId, uid: firebaseUser.uid })
                 .then(response => {
                     console.log(response.data);
                     setTriggerEventCreation(false);

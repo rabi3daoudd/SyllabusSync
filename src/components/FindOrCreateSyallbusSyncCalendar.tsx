@@ -1,11 +1,20 @@
 "use client";
 import axios from 'axios';
+import {auth} from "../firebase-config";
 
 export const findOrCreateSyallbusSyncCalendar = async () => {
 
     try{
 
-        const listOfCalendars = await axios.get('http://localhost:3001/api/list-user-calendars')
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+            console.error('No Firebase user logged in');
+            return;
+        }
+
+        const queryParams = new URLSearchParams({ uid: firebaseUser.uid });
+
+        const listOfCalendars = await axios.get(`http://localhost:3001/api/list-user-calendars?${queryParams}`)
         const existingCalendar = listOfCalendars.data.items.find((calendar: { summary: string; }) => calendar.summary === "SyllabusSync");
 
         if(existingCalendar){
@@ -16,7 +25,7 @@ export const findOrCreateSyallbusSyncCalendar = async () => {
             const description = "Description of SyllabusSync"
             const timeZone = "America/New_York";
 
-            const response = await axios.post('http://localhost:3001/api/create-calendar', {summary, description,timeZone })
+            const response = await axios.post('http://localhost:3001/api/create-calendar', {summary, description,timeZone, uid: firebaseUser.uid })
 
             const stringifiedResponse = JSON.stringify(response.data)
             const responseObj = JSON.parse(stringifiedResponse);
