@@ -1,13 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import {AxiosError} from "axios";
+import {getRefreshToken} from "../firebaseHelper";
 const { google } = require('googleapis');
 const router = express.Router();
+const admin = require('../firebaseAdmin');
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "INSERT GOOGLE CLIENT ID";
-const GOOGLE_CLIENT_SECRET = "INSERT GOOGLE CLIENT SECRET";
-const REFRESH_TOKEN = "INSERT REFRESH TOKEN";
-
+const GOOGLE_CLIENT_ID = "Add client Id here";
+const GOOGLE_CLIENT_SECRET = "Add client secret here";
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
@@ -22,20 +22,30 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/create-tokens', async (req, res, next) => {
     try {
-        const { code } = req.body;
+        const { code, uid  } = req.body;
+        if (!uid) {
+            res.status(400).send("User ID is missing");
+            return;
+        }
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
-
-        //TODO store the refresh token in firebase associated with the user, make sure to add tokens in res.send() to get refresh token
+        const userRef = admin.firestore().doc(`users/${uid}`);
+        await userRef.set({ refresh_token: tokens.refresh_token }, { merge: true });
         res.send(tokens)
     } catch (error) {
         next(error);
     }
 });
 
+
 router.get('/list-events', async (req: Request, res: Response) => {
     try {
-        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const uid: string = req.query.uid as string;
+        if (!uid) {
+            return res.status(400).send({ message: "User ID is missing" });
+        }
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
 
         // Retrieve events for the primary calendar
@@ -67,7 +77,12 @@ router.get('/list-events', async (req: Request, res: Response) => {
 
 router.get('/list-user-calendars', async (req: Request, res: Response) => {
     try {
-        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const uid: string = req.query.uid as string;
+        if (!uid) {
+            return res.status(400).send({ message: "User ID is missing" });
+        }
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
 
         // Retrieve the user's calendars
@@ -94,8 +109,14 @@ router.get('/list-user-calendars', async (req: Request, res: Response) => {
 
 router.post('/create-event', async(req,res,next) => {
     try{
-        const {summary,description,location,startDateTime,endDateTime, calendarId} = req.body
-        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        const {summary,description,location,startDateTime,endDateTime, calendarId, uid} = req.body
+
+        if (!uid) {
+            res.status(400).send("User ID is missing");
+            return;
+        }
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
         const response = await calendar.events.insert({
             auth: oauth2Client,
@@ -123,9 +144,14 @@ router.post('/create-event', async(req,res,next) => {
 
 router.post('/create-calendar', async(req,res, next) => {
     try{
-        const {summary, description, timeZone} = req.body;
+        const {summary, description, timeZone, uid} = req.body;
 
-        oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+        if (!uid) {
+            res.status(400).send("User ID is missing");
+            return;
+        }
+        const refreshToken: string = await getRefreshToken(uid);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
 
         const response = await calendar.calendars.insert({

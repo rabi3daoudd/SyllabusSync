@@ -2,13 +2,13 @@
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { useAuth } from './AuthContext';
+
 import { useEffect, useState } from 'react';
 import { Button } from "../components/ui/button";
 import { findOrCreateSyallbusSyncCalendar } from './FindOrCreateSyallbusSyncCalendar';
+import {auth} from "../firebase-config";
 
 const CreateCalendarEvent = () => {
-    const { isAuthenticated} = useAuth();
 
     const [summary, setSummary] = useState('')
     const [description, setDescription] = useState('')
@@ -21,7 +21,14 @@ const CreateCalendarEvent = () => {
     useEffect(() => {
         if (calendarId && triggerEventCreation) {
             // Now that calendarId is updated, you can proceed with creating the event
-            axios.post('http://localhost:3001/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId })
+
+            const firebaseUser = auth.currentUser;
+            if (!firebaseUser) {
+                console.error('No Firebase user logged in');
+                return;
+            }
+
+            axios.post('http://localhost:3001/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId, uid: firebaseUser.uid })
                 .then(response => {
                     console.log(response.data);
                     setTriggerEventCreation(false);
@@ -36,10 +43,8 @@ const CreateCalendarEvent = () => {
     const viewCreateCalendarEventSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log(summary, description,location, startDateTime, endDateTime);
-        if (!isAuthenticated) {
-            console.log('No access token available.');
-            return;
-        }
+
+
         //TODO change url to actual server url
         //const response = await axios.post('http://localhost:3001/api/create-event', { code });
 
@@ -49,9 +54,6 @@ const CreateCalendarEvent = () => {
                     setTriggerEventCreation(true);
                 })
                 .catch(error => console.error('Error in finding/creating calendar:', error));
-        
-        
-
     };
     return (
         <GoogleOAuthProvider clientId="your-client-id">
@@ -84,7 +86,7 @@ const CreateCalendarEvent = () => {
                     <br />
                     <input type = "datetime-local" id="endDateTime" value={endDateTime} onChange={e=> setEndDateTime(e.target.value)} />
                     <br />
-                    <Button type="submit" disabled={!isAuthenticated}>Create an Event</Button>
+                    <Button type="submit">Create an Event</Button>
                 </form>
             </div>
         </GoogleOAuthProvider>
