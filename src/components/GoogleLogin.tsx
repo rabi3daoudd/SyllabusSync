@@ -5,7 +5,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { Button } from "../components/ui/button";
-
+import { auth } from '../firebase-config';
 
 export const useCustomGoogleLogin = () => {
     //const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,8 +14,17 @@ export const useCustomGoogleLogin = () => {
     const googleLogin = useGoogleLogin({
         onSuccess: async (codeResponse) => {
             const { code } = codeResponse;
+
+            const firebaseUser = auth.currentUser;
+            if (!firebaseUser) {
+                console.error('No Firebase user logged in');
+                return;
+            }
+
             try {
-                const response = await axios.post('http://localhost:3001/api/create-tokens', { code });
+                const response = await axios.post('http://localhost:3001/api/create-tokens', { code, uid: firebaseUser.uid });
+
+                //TODO remove this
                 console.log('Token exchange success:', response.data);
                 setIsAuthenticated(true);
 
@@ -23,13 +32,13 @@ export const useCustomGoogleLogin = () => {
                 if (axios.isAxiosError(error)) {
                     // Now TypeScript knows error is an AxiosError
                     console.error('Token exchange failed:', error.response?.data);
-                  } else if (error instanceof Error) {
+                } else if (error instanceof Error) {
                     // This checks if it's an Error object and safely accesses the message property
                     console.error('Token exchange failed:', error.message);
-                  } else {
+                } else {
                     // Fallback for handling non-Error, unknown types
                     console.error('Token exchange failed:', error);
-                  }
+                }
             }
         },
         onError: () => {

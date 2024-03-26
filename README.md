@@ -1,32 +1,25 @@
-![CI-CD-pipeline](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg?branch=master)
+![Github build](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg?branch=master)
 
 
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# SyllabusSync
 
-Currently, two official plugins are available:
+SyllabusSync is a project that aims to synchronize syllabus and make it easier for students to stay on top of their courses, and to not slack off specially when you are taking multiple courses, and you have many assignments, quizzes, and exams to keep track of.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+SyllabusSync will carve out and tell you what you need to do, and when you need to do it.
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+1. Clone the repository:
 
-- Configure the top-level `parserOptions` property like this:
+   ```bash
+   git clone hhttps://github.com/rabi3daoudd/SyllabusSync.git
+    ```
+2. Install the required packages:
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+   ```bash
+   npm install
+   ```
 
 - Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
 - Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
