@@ -22,7 +22,7 @@ export const CreateTask: React.FC<CreateTaskProps> = ({ onNewTask }) => {
     const [title, setTitle] = useState('');
     const [status, setStatus] = useState('todo');
     const [priority, setPriority] = useState('medium');
-    const [label, setLabel] = useState('');
+    const [label, setLabel] = useState('documentation');
 
     const toggleForm = () => setShowForm(!showForm);
 
