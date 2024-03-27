@@ -1,6 +1,5 @@
 import '../src/app/globals.css'
 // import Test from "./components/OpenAITest"
-import Navbar from './components/navigation/Navbar';
 import MyComponent from './components/MyComponent'
 import FetchCalendarEvents from "./components/FetchCalendarEvents";
 import { AuthProvider } from './components/AuthContext';
@@ -17,7 +16,6 @@ function App() {
             <AuthProvider>
                 {/* <SignIn /> */}
                 <MyComponent />
-                <Navbar />
                 {/* <SignInWithGoogleButton /> */}
                 <SignInButton />
                 <FetchCalendarEvents />
