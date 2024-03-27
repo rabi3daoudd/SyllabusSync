@@ -1,3 +1,7 @@
+"use client";
+
+import * as React from "react";
+
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -5,13 +9,36 @@ import {
   NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuList,
+  NavigationMenuLink,
   NavigationMenuTrigger,
 } from "../../components/ui/navigation-menu";
 import { Button } from "../../components/ui/button";
 import { AvatarImage, Avatar } from "../../components/ui/avatar";
+import { cn } from "../../lib/utils";
 import { Bell, XIcon, Hamburger } from "../../components/ui/icons";
 
-export default function Component() {
+const components: { title: string; href: string; description: string }[] = [
+  {
+    title: "CGPA Calculator",
+    href: "/tools/cgpa-calculator",
+    description:
+      "A tool to calculate your CGPA based on your grades and credit ammount.",
+  },
+  {
+    title: "CGPA Calculator 2",
+    href: "/tools/cgpa-calculator",
+    description:
+      "A tool to calculate your CGPA based on your grades and credit ammount.",
+  },
+  {
+    title: "CGPA Calculator 3",
+    href: "/tools/cgpa-calculator",
+    description:
+      "A tool to calculate your CGPA based on your grades and credit ammount.",
+  },
+]
+
+export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleDrawer = () => {
@@ -33,7 +60,7 @@ export default function Component() {
               style={{ maxWidth: "80px", maxHeight: "80px" }}
             />
           </div>
-          <div className="flex-1 ml-10 mx-auto md:flex md:items-center md:justify-center">
+          <div className="hidden flex-1 ml-10 mx-auto md:flex md:items-center md:justify-center">
             <NavigationMenu>
               <NavigationMenuList className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
                 {/* Home Link */}
@@ -61,32 +88,16 @@ export default function Component() {
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Tools</NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="flex flex-col">
-                      <li>
-                        <a
-                          href="#"
-                          className="text-gray-800 hover:text-blue-500"
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                      {components.map((component) => (
+                        <ListItem
+                          key={component.title}
+                          title={component.title}
+                          href={component.href}
                         >
-                          Tool 1
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="#"
-                          className="text-gray-800 hover:text-blue-500"
-                        >
-                          Tool 2
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="#"
-                          className="text-gray-800 hover:text-blue-500"
-                        >
-                          Tool 3
-                        </a>
-                      </li>
-                      {/* Add more tools as needed */}
+                          {component.description}
+                        </ListItem>
+                      ))}
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -172,3 +183,29 @@ export default function Component() {
     </>
   );
 }
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
