@@ -232,19 +232,19 @@ export default function Navbar() {
               <nav className="flex flex-col items-start p-4">
                 <Link
                   className="text-gray-800 hover:text-blue-500 py-2"
-                  href="#"
+                  href="/"
                 >
                   Home
                 </Link>
                 <Link
                   className="text-gray-800 hover:text-blue-500 py-2"
-                  href="#"
+                  href="/classes"
                 >
                   Classes
                 </Link>
                 <Link
                   className="text-gray-800 hover:[#1FCAD9] py-2"
-                  href="#"
+                  href="/tasks"
                 >
                   Tasks
                 </Link>
