@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   NavigationMenu,
@@ -12,10 +12,23 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "../../components/ui/navigation-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu"
 import { Button } from "../../components/ui/button";
-import { AvatarImage, Avatar } from "../../components/ui/avatar";
+import { AvatarImage, Avatar, AvatarFallback } from "../../components/ui/avatar";
 import { cn } from "../../lib/utils";
-import { Bell, XIcon, Hamburger } from "../../components/ui/icons";
+import { Icons } from "../../components/ui/icons";
+import { auth, db } from '../../firebase-config';
+import { doc, getDoc } from 'firebase/firestore';
+import { useRouter } from 'next/router';
 
 const components: { title: string; href: string; description: string }[] = [
   {
@@ -36,13 +49,59 @@ const components: { title: string; href: string; description: string }[] = [
     description:
       "A tool to calculate your CGPA based on your grades and credit ammount.",
   },
-]
+];
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleDrawer = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userInitial, setUserInitial] = useState<string | null>(null);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUserEmail(user.email);
+        setUserName(user.displayName || "");
+
+        if (user.displayName) {
+          const names = user.displayName.split(' ');
+          const initials = names.map(name => name[0].toUpperCase());
+          setUserInitial(initials.join(''));
+      }
+
+        if (!user.displayName) { // Fetch additional details from Firestore for email/password sign-ups
+          const userRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const fullName = userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : "";
+            setUserName(fullName);
+            setUserAvatarUrl(userData.avatarUrl || null);
+          }
+        }
+      } else {
+        setUserEmail(null);
+        setUserName(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+    router.push('/login');
+  };
+
+  const handleSignIn = () => {
+    router.push('/login');
   };
 
   return (
@@ -65,21 +124,21 @@ export default function Navbar() {
               <NavigationMenuList className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
                 {/* Home Link */}
                 <NavigationMenuItem asChild>
-                  <Link className="text-gray-800 hover:text-blue-500" href="#">
+                  <Link className="text-gray-800 hover:text-blue-500" href="/">
                     Home
                   </Link>
                 </NavigationMenuItem>
 
                 {/* Classes Link */}
                 <NavigationMenuItem asChild>
-                  <Link className="text-gray-800 hover:text-blue-500" href="#">
+                  <Link className="text-gray-800 hover:text-blue-500" href="/classes">
                     Classes
                   </Link>
                 </NavigationMenuItem>
 
                 {/* Tasks Link */}
                 <NavigationMenuItem asChild>
-                  <Link className="text-gray-800 hover:text-blue-500" href="#">
+                  <Link className="text-gray-800 hover:text-blue-500" href="/tasks">
                     Tasks
                   </Link>
                 </NavigationMenuItem>
@@ -108,22 +167,50 @@ export default function Navbar() {
             <Button className="hidden md:inline-block bg-[#1FCAD9] text-white">
               + NEW
             </Button>
-            <Bell />
-            <Avatar>
-              <AvatarImage
-                alt="User"
-                src="https://avatars.githubusercontent.com/u/71355928?s=400&u=768efbb0551d18a659ca9fa1978c442c210fd8eb&v=4"
-              />
+            <Icons.Bell />
+            <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={userAvatarUrl ?? ""} alt="@shadcn" />
+              <AvatarFallback>{userInitial}</AvatarFallback>
             </Avatar>
-
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{userName}</p>
+              <p className="text-xs leading-none text-muted-foreground">
+              {userEmail}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem>
+              Profile
+              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Settings
+              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut} className="w-full hover:[]">
+            Log out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
             <button
               className="mr-10 md:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? (
-                <XIcon className="h-10 w-10" />
+                <Icons.XIcon className="h-10 w-10" />
               ) : (
-                <Hamburger className="h-10 w-10" />
+                <Icons.Hamburger className="h-10 w-10" />
               )}
             </button>
             <div
@@ -144,7 +231,7 @@ export default function Navbar() {
               }`}
             >
               <button onClick={toggleDrawer} className="p-4">
-                <XIcon className="h-6 w-6" />
+                <Icons.XIcon className="h-6 w-6" />
               </button>
               <nav className="flex flex-col items-start p-4">
                 <Link
@@ -160,7 +247,7 @@ export default function Navbar() {
                   Classes
                 </Link>
                 <Link
-                  className="text-gray-800 hover:text-blue-500 py-2"
+                  className="text-gray-800 hover:[#1FCAD9] py-2"
                   href="#"
                 >
                   Tasks
