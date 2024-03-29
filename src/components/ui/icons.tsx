@@ -1,6 +1,13 @@
-import {BellIcon, XMarkIcon, Bars3Icon} from '@heroicons/react/24/solid'
+import {BellIcon, XMarkIcon, Bars3Icon} from '@heroicons/react/24/solid' //navbar
+import { PaperAirplaneIcon, PaperClipIcon } from '@heroicons/react/24/outline' //chatbot
 
-export const Bell = BellIcon;
-export const XIcon = XMarkIcon; 
-export const Hamburger = Bars3Icon;
+export const Icons = {
+    //navbar icons
+    Bell: BellIcon,
+    XIcon: XMarkIcon,
+    Hamburger: Bars3Icon,
 
+    //chatbot icons
+    SendIcon: PaperAirplaneIcon,
+    PaperclipIcon: PaperClipIcon
+}
