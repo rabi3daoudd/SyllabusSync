@@ -100,10 +100,6 @@ export default function Navbar() {
     router.push('/login');
   };
 
-  const handleSignIn = () => {
-    router.push('/login');
-  };
-
   return (
     <>
       <nav
