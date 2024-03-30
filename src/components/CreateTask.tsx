@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { taskSchema } from "./../data/schema"
 import { z } from "zod"
+import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from './ui/drawer';
 
 
 const labels = [
@@ -18,13 +19,10 @@ interface CreateTaskProps {
 }
 
 export const CreateTask: React.FC<CreateTaskProps> = ({ onNewTask }) => {
-    const [showForm, setShowForm] = useState(false);
     const [title, setTitle] = useState('');
     const [status, setStatus] = useState('todo');
     const [priority, setPriority] = useState('medium');
     const [label, setLabel] = useState('documentation');
-
-    const toggleForm = () => setShowForm(!showForm);
 
     async function generateTaskId(userId: string) {
         const userDocRef = doc(db, 'users', userId);
@@ -75,7 +73,7 @@ export const CreateTask: React.FC<CreateTaskProps> = ({ onNewTask }) => {
             setTitle('');
             setStatus('todo');
             setPriority('medium');
-            setLabel('');
+            setLabel('documentation');
             onNewTask(newTask);
         } catch (error) {
             // Handle the error
@@ -84,72 +82,82 @@ export const CreateTask: React.FC<CreateTaskProps> = ({ onNewTask }) => {
     };
 
     return (
-        <div>
-            <Button onClick={toggleForm} className="mb-4">
-                {showForm ? 'Cancel' : 'Create a Task'}
-            </Button>
-            {showForm &&
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="flex flex-col">
-                        <label htmlFor="title" className="mb-2 font-semibold">Task Title</label>
-                        <input
-                            type="text"
-                            id="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Enter Task Title"
-                            required
-                            className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
+        <Drawer>
+            <DrawerTrigger>
+                <Button>Create a Task</Button>
+                </DrawerTrigger>
+            <DrawerContent>
+                <DrawerHeader>
+                    <DrawerTitle>Enter the Task Information</DrawerTitle>
+                </DrawerHeader>
+                <div className="p-8">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="flex flex-col">
+                            <label htmlFor="title" className="mb-2 font-semibold">Task Title</label>
+                            <input
+                                type="text"
+                                id="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Enter Task Title"
+                                required
+                                className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
 
-                    <div className="flex flex-col">
-                        <label htmlFor="status" className="mb-2 font-semibold">Status</label>
-                        <select
-                            id="status"
-                            value={status}
-                            onChange={(e) => setStatus(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="todo">To Do</option>
-                            <option value="in progress">In Progress</option>
-                            <option value="done">Done</option>
-                        </select>
-                    </div>
+                        <div className="flex flex-col">
+                            <label htmlFor="status" className="mb-2 font-semibold">Status</label>
+                            <select
+                                id="status"
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="todo">To Do</option>
+                                <option value="in progress">In Progress</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
 
-                    <div className="flex flex-col">
-                        <label htmlFor="label" className="mb-2 font-semibold">Label</label>
-                        <select
-                            id="label"
-                            value={label}
-                            onChange={(e) => setLabel(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            {labels.map((label) => (
-                                <option key={label.id} value={label.id}>{label.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                        <div className="flex flex-col">
+                            <label htmlFor="label" className="mb-2 font-semibold">Label</label>
+                            <select
+                                id="label"
+                                value={label}
+                                onChange={(e) => setLabel(e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                {labels.map((label) => (
+                                    <option key={label.id} value={label.id}>{label.name}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                    <div className="flex flex-col">
-                        <label htmlFor="priority" className="mb-2 font-semibold">Priority</label>
-                        <select
-                            id="priority"
-                            value={priority}
-                            onChange={(e) => setPriority(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
+                        <div className="flex flex-col">
+                            <label htmlFor="priority" className="mb-2 font-semibold">Priority</label>
+                            <select
+                                id="priority"
+                                value={priority}
+                                onChange={(e) => setPriority(e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
 
-                    <Button type="submit" className="w-full">
-                        Create Task
-                    </Button>
-                </form>
-            }
-        </div>
+                        <Button type="submit" className="w-full">
+                            Create Task
+                        </Button>
+                    </form>
+                </div>
+                <DrawerFooter>
+                    <DrawerClose>
+                        <Button variant="outline">Done</Button>
+                    </DrawerClose>
+                </DrawerFooter>
+            </DrawerContent>
+        </Drawer>
     );
 };

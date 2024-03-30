@@ -14,6 +14,7 @@ import { CardHeader } from "@/components/ui/card"
 import { CreateTask } from '@/components/CreateTask';
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import Navbar from '@/components/navigation/Navbar';
 
 export const metadata: Metadata = {
     title: "Tasks",
@@ -45,7 +46,7 @@ function TaskPage() {
                     } else {
                         console.error('No user document found!');
                     }
-                } catch (error : unknown) {
+                } catch (error: unknown) {
                     if (error instanceof Error) {
                         setError(error);
                     } else {
@@ -63,7 +64,7 @@ function TaskPage() {
         return unsubscribe;
     }, []);
 
-    const handleNewTask = (newTask : Task) => {
+    const handleNewTask = (newTask: Task) => {
         setTasks((currentTasks) => [...currentTasks, newTask]);
     };
 
@@ -78,6 +79,7 @@ function TaskPage() {
 
     return (
         <>
+            <Navbar />
             <div className="md:hidden">
                 <Image
                     src="/examples/tasks-light.png"
@@ -97,11 +99,6 @@ function TaskPage() {
             <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
                 <div className="flex items-center justify-between space-y-2">
                     <div>
-                        <CardHeader className="text-center">
-                            <Link href="/">
-                                <Button className="w-full">Go back to home page</Button>
-                            </Link>
-                        </CardHeader>
                         <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
                         <p className="text-muted-foreground">
                             Here&apos;s a list of your tasks for this month!
@@ -111,8 +108,13 @@ function TaskPage() {
                         <UserNav />
                     </div>
                 </div>
-                <CreateTask  onNewTask={handleNewTask} />
+                <CreateTask onNewTask={handleNewTask} />
                 <DataTable data={tasks} columns={columns} />
+                <CardHeader className="text-center">
+                    <Link href="/">
+                        <Button className="w-full">Go back to home page</Button>
+                    </Link>
+                </CardHeader>
             </div>
         </>
     )

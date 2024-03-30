@@ -65,7 +65,7 @@ export default function Navbar() {
               <NavigationMenuList className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
                 {/* Home Link */}
                 <NavigationMenuItem asChild>
-                  <Link className="text-gray-800 hover:text-blue-500" href="#">
+                  <Link className="text-gray-800 hover:text-blue-500" href="/">
                     Home
                   </Link>
                 </NavigationMenuItem>
@@ -79,7 +79,7 @@ export default function Navbar() {
 
                 {/* Tasks Link */}
                 <NavigationMenuItem asChild>
-                  <Link className="text-gray-800 hover:text-blue-500" href="#">
+                  <Link className="text-gray-800 hover:text-blue-500" href="/tasks">
                     Tasks
                   </Link>
                 </NavigationMenuItem>
@@ -149,7 +149,7 @@ export default function Navbar() {
               <nav className="flex flex-col items-start p-4">
                 <Link
                   className="text-gray-800 hover:text-blue-500 py-2"
-                  href="#"
+                  href="/"
                 >
                   Home
                 </Link>
@@ -161,7 +161,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   className="text-gray-800 hover:text-blue-500 py-2"
-                  href="#"
+                  href="/tasks"
                 >
                   Tasks
                 </Link>
