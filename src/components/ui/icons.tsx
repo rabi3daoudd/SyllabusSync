@@ -14,5 +14,4 @@ export const Icons = {
     UserIcon: UserCircleIcon,
     AssistantIcon: SparklesIcon
 
-
 }

@@ -3,10 +3,9 @@
 import { Button } from "../../components/ui/button";
 import { Icons } from "../../components/ui/icons";
 import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { readDataStream } from "../../lib/read-data-stream";
 import { AssistantStatus, Message } from "ai/react";
-import { ChangeEvent, FormEvent, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useRef, useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
 
@@ -54,16 +53,30 @@ const DotAnimation = () => {
 };
 
 const ChatBot = () => {
-  const prompt = "Summarise the research paper...";
+  const prompt = "Message SyllabusSync Assistant ....";
   const [messages, setMessages] = useState<Message[]>([]);
-  const [message, setMessage] = useState<string>(prompt);
+  const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | undefined>(undefined);
   const [threadId, setThreadId] = useState<string>("");
   const [error, setError] = useState<unknown | undefined>(undefined);
   const [status, setStatus] = useState<AssistantStatus>("awaiting_message");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesBottomRef = useRef<HTMLDivElement | null>(null);
 
-  const handleFormSubmit = async (e: FormEvent) => {
+  useEffect(() => {
+    messagesBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleFormSubmit(e);
+    }
+  };
+
+  const handleFormSubmit = async (
+    e: React.FormEvent | React.KeyboardEvent<HTMLInputElement>
+  ) => {
     e.preventDefault();
 
     setStatus("in_progress");
@@ -96,22 +109,22 @@ const ChatBot = () => {
       )) {
         switch (type) {
           case "assistant_message": {
-            setMessages((messages: Message[]) => [
-              ...messages,
+            setMessages((prevMessages) => [
+              ...prevMessages,
               {
                 id: value.id,
                 role: value.role,
-                content: value.content[0].text.value,
+                content: value.content.map((c) => c.text.value).join(""),
               },
             ]);
             break;
           }
           case "assistant_control_data": {
             setThreadId(value.threadId);
-            setMessages((messages: Message[]) => {
-              const lastMessage = messages[messages.length - 1];
+            setMessages((prevMessages) => {
+              const lastMessage = prevMessages[prevMessages.length - 1];
               lastMessage.id = value.messageId;
-              return [...messages.slice(0, messages.length - 1), lastMessage];
+              return [...prevMessages];
             });
             break;
           }
@@ -157,10 +170,10 @@ const ChatBot = () => {
             </span>
           </div>
         )}
-        <div className="flex flex-col space-y-4">
-          {messages.map((m: Message) => (
+        <div className="flex flex-col space-y-4" ref={messagesEndRef}>
+          {messages.map((m: Message, index) => (
             <div
-              key={m.id}
+              key={m.id || index}
               className={`flex ${
                 m.role === "user" ? "justify-start" : "justify-end"
               } items-start`}
@@ -186,6 +199,7 @@ const ChatBot = () => {
               Reading <DotAnimation />
             </span>
           )}
+          <div ref={messagesBottomRef} />
         </div>
       </div>
       <div className="border-t-2 border-[#18A1AD] px-4 pt-4 mb-2 sm:mb-0">
@@ -215,10 +229,11 @@ const ChatBot = () => {
           </span>
           <Input
             className="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-transparent outline-none"
-            placeholder="Write a message..."
+            placeholder="Message SyllabusSync Assistant ...."
             type="text"
             value={message}
             onChange={handleMessageChange}
+            onKeyDown={handleKeyDown}
             disabled={status !== "awaiting_message"}
           />
           <div className="absolute right-0 items-center inset-y-0 hidden sm:flex">
