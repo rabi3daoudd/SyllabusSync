@@ -16,12 +16,13 @@ const FetchCalendarEvents = () => {
         e.preventDefault();
 
         const firebaseUser = auth.currentUser;
+        const calendarId = 'primary';
         if (!firebaseUser) {
             console.error('No Firebase user logged in');
             return;
         }
 
-        const queryParams = new URLSearchParams({ uid: firebaseUser.uid });
+        const queryParams = new URLSearchParams({ uid: firebaseUser.uid, calendarId: calendarId, });
 
         //TODO change url to actual server url
         axios.get(`http://localhost:3001/api/list-events?${queryParams}`)
