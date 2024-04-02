@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { doc, getDoc } from 'firebase/firestore';
 import { Card, CardHeader, CardContent } from "../components/ui/card"; // Assuming similar styled components as before
 import { Button } from "../components/ui/button";
+import Link from 'next/link';
 
 
 const App = dynamic(() => import('../App'), { ssr: false });
@@ -67,6 +68,20 @@ export default function Home() {
             </>
           )}
         </CardContent>
+        {userEmail ? (
+          <CardHeader className="text-center">
+            <Link href="/tasks">
+              <Button className="w-full">Access Tasks Page</Button>
+            </Link>
+          </CardHeader>
+        ) : (
+          <CardHeader className="text-center">
+            <Button className="w-full">Please log in to view Tasks page access</Button>
+          </CardHeader>
+        )
+
+        }
+
       </Card>
       <App /> {/* Keep the App component at the bottom */}
     </div>
