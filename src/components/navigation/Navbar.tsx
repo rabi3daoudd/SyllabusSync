@@ -186,11 +186,9 @@ export default function Navbar() {
           <DropdownMenuGroup>
             <DropdownMenuItem>
               Profile
-              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem>
               Settings
-              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
