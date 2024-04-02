@@ -14,7 +14,7 @@ function App() {
     //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
 
     return (
-        <GoogleOAuthProvider clientId="">
+        <GoogleOAuthProvider clientId="test">
             <AuthProvider>
                 {/* <SignIn /> */}
                 <MyComponent />

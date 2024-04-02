@@ -6,8 +6,8 @@ const router = express.Router();
 const admin = require('../firebaseAdmin');
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "";
-const GOOGLE_CLIENT_SECRET = "";
+const GOOGLE_CLIENT_ID = "test";
+const GOOGLE_CLIENT_SECRET = "test";
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
