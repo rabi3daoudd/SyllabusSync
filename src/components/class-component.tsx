@@ -48,10 +48,6 @@ interface Assignment{
 
 const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
 
-    
-
-    
-
     const [assignmentName, setAssignmentName] = useState("");
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -59,8 +55,6 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
     const [occurance,setOccurance] = useState("");
     const [day, setDay] = useState("");
     const [date, setDate] = React.useState<Date>();
-
-
 
     const [startingTimeHour,setStartingTimeHour] = useState("");
     const [startingTimeMinute, setStartingTimeMinute] = useState("");
@@ -70,6 +64,8 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
     const [finishingTimeMinute, setFinishingTimeMinute] = useState("");
     const [startingTime, setStartingTime] = React.useState("");
     const [finishingTime, setFinishingTime] = React.useState("");
+
+    
 
     const handleDayChange = (newValue: string) =>{
         setDay(newValue);
@@ -200,8 +196,41 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
     };
 
     const handleSubmit = () => {
+        
         if(!startingTimeHour || !startingTimeMinute || !finishingTimeHour || !finishingTimeMinute || !startingTimeAmOrPm || !finishingTimeAmOrPm ){
             alert("Please fill in the time fields.");
+            return;
+        }
+
+        let startHour24;
+        let finishHour24;
+        
+        if(startingTimeAmOrPm === "PM" && startingTimeHour !== "12"){
+            startHour24 = parseInt(startingTimeHour) + 12;
+        }
+        else if(startingTimeAmOrPm === "AM" && startingTimeHour === "12"){
+            startHour24 = 0;
+
+        }
+        else{
+            startHour24 = parseInt(startingTimeHour);
+        }
+
+        if(finishingTimeAmOrPm === "PM" && finishingTimeHour !== "12"){
+            finishHour24 = parseInt(finishingTimeHour)+12;
+        }
+        else if(finishingTimeAmOrPm === "AM" && finishingTimeHour === "12"){
+            finishHour24 = 0;
+        }
+        else{
+            finishHour24 = parseInt(finishingTimeHour);
+        }
+
+        let startTimeInMinutes = startHour24 * 60 + parseInt(startingTimeMinute);
+        let finishTimeInMinutes = finishHour24*60 +parseInt(startingTimeMinute);
+
+        if (startTimeInMinutes >= finishTimeInMinutes) {
+            alert("The starting time must be before the finishing time.");
             return;
         }
 
@@ -250,11 +279,8 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
         setIsDrawerOpen(false);
     };
 
-
-
     const handleOccuranceChange = (value: string) =>{
-        setOccurance(value);
-        
+        setOccurance(value); 
     }
 
     return (

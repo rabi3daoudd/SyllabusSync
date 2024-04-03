@@ -81,7 +81,6 @@ const ClassPage: React.FC = () => {
 
                   <Label>Name of Semester:</Label>
                   <Input id="semesterName" placeholder="Enter Semester Name" value={semesterName} onChange={handleSemesterNameChange} required />
-
                   <Label>Semester start and end dates:</Label>
                   <Popover>
                             <PopoverTrigger asChild>
