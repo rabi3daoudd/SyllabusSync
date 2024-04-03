@@ -28,7 +28,7 @@ export const fetchAllEventsFromAllCalendars = async (uid: string): Promise<Calen
             queryParams.set('calendarId', calendar.id || 'primary');
 
             const eventsResponse = await axios.get(`http://localhost:3001/api/list-events?${queryParams}`);
-            const calendarEvents = eventsResponse.data.items.map((event: any) => ({
+            const calendarEvents = eventsResponse.data.items.map((event: { summary: string; start: { dateTime: string | number | Date; }; end: { dateTime: string | number | Date; }; }) => ({
                 title: event.summary,
                 start: new Date(event.start.dateTime),
                 end: new Date(event.end.dateTime),
