@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { Button } from './ui/button';
+import { auth } from '../firebase-config';
+import { fetchAllEventsFromAllCalendars } from './api';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const localizer = momentLocalizer(moment);
 
+interface CalendarEvent {
+  title: string;
+  start: Date;
+  end: Date;
+  allDay?: boolean;
+}
+
 const MyCalendar: React.FC = () => {
-  const [events, setEvents] = useState([
-    {
-      title: 'Midterm',
-      start: new Date(2024, 3, 14, 10, 0), 
-      end: new Date(2024, 3, 14, 12, 0), 
-      allDay: false,
-    },
-    // ...more events
-  ]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -33,6 +35,7 @@ const MyCalendar: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     const { title, start, end } = newEvent;
 
     if (!title || !start || !end) {
@@ -44,20 +47,32 @@ const MyCalendar: React.FC = () => {
       title,
       start: new Date(start),
       end: new Date(end),
-      allDay: false, // or dynamically set based on user input
+      allDay: false, 
     };
 
     setEvents([...events, event]);
-
     setNewEvent({ title: '', start: '', end: '' }); // Reset the form
   };
+
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log('Authenticated user found, fetching events...');
+        const fetchedEvents = await fetchAllEventsFromAllCalendars(user.uid);
+        setEvents(fetchedEvents);
+      } else {
+        console.log('No authenticated user found.');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   return (
     <div>
       <h1 className="text-xl font-bold p-4 text-left">Calendar</h1>
-      {/* <Button onClick={() => console.log('Add session form opened')}>
-        Add Session
-      </Button> */}
+      <p className="text-l p-4 text-left">Add information to add only to react calendar</p>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
