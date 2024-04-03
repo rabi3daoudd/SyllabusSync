@@ -6,8 +6,8 @@ const router = express.Router();
 const admin = require('../firebaseAdmin');
 
 //TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "Add client Id here";
-const GOOGLE_CLIENT_SECRET = "Add client secret here";
+const GOOGLE_CLIENT_ID = "test";
+const GOOGLE_CLIENT_SECRET = "test";
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(
@@ -41,6 +41,7 @@ router.post('/create-tokens', async (req, res, next) => {
 router.get('/list-events', async (req: Request, res: Response) => {
     try {
         const uid: string = req.query.uid as string;
+        const calendarId: string = req.query.calendarId as string || 'primary';
         if (!uid) {
             return res.status(400).send({ message: "User ID is missing" });
         }
@@ -48,10 +49,9 @@ router.get('/list-events', async (req: Request, res: Response) => {
         oauth2Client.setCredentials({ refresh_token: refreshToken });
         const calendar = google.calendar({version: 'v3'});
 
-        // Retrieve events for the primary calendar
         const events = await calendar.events.list({
             auth: oauth2Client,
-            calendarId: 'primary',
+            calendarId: calendarId,
             timeMin: (new Date()).toISOString(),
             maxResults: 10,
             singleEvents: true,
