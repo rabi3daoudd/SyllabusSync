@@ -5,16 +5,16 @@ import { Icons } from "../../components/ui/icons";
 import { Input } from "../../components/ui/input";
 import { readDataStream } from "../../lib/read-data-stream";
 import { AssistantStatus, Message } from "ai/react";
-import { ChangeEvent, FormEvent, useRef, useState, useEffect } from "react";
+import { ChangeEvent, useRef, useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
 
-const roleToColorMap: Record<Message["role"], string> = {
-  system: "lightred",
-  user: "white",
-  function: "lightblue",
-  assistant: "lightgreen",
-};
+// const roleToColorMap: Record<Message["role"], string> = {
+//   system: "lightred",
+//   user: "white",
+//   function: "lightblue",
+//   assistant: "lightgreen",
+// };
 
 const DotAnimation = () => {
   const dotVariants = {
@@ -32,7 +32,6 @@ const DotAnimation = () => {
 
   const [key, setKey] = useState(0);
 
-  // ...
   return (
     <motion.div
       key={key}
@@ -53,13 +52,13 @@ const DotAnimation = () => {
 };
 
 const ChatBot = () => {
-  const prompt = "Message SyllabusSync Assistant ....";
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | undefined>(undefined);
   const [threadId, setThreadId] = useState<string>("");
   const [error, setError] = useState<unknown | undefined>(undefined);
   const [status, setStatus] = useState<AssistantStatus>("awaiting_message");
+  const [isEmpty, setIsEmpty] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesBottomRef = useRef<HTMLDivElement | null>(null);
@@ -83,7 +82,7 @@ const ChatBot = () => {
 
     setMessages((messages: Message[]) => [
       ...messages,
-      { id: "", role: "user" as "user", content: message! },
+      { id: "", role: "user", content: message! },
     ]);
 
     const formData = new FormData();
@@ -109,14 +108,19 @@ const ChatBot = () => {
       )) {
         switch (type) {
           case "assistant_message": {
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              {
-                id: value.id,
-                role: value.role,
-                content: value.content.map((c) => c.text.value).join(""),
-              },
-            ]);
+            const messageContent = value.content
+              .map((c) => c.text.value)
+              .join("");
+            if (messageContent.trim() !== "") {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                  id: value.id,
+                  role: value.role,
+                  content: messageContent,
+                },
+              ]);
+            }
             break;
           }
           case "assistant_control_data": {
@@ -124,7 +128,10 @@ const ChatBot = () => {
             setMessages((prevMessages) => {
               const lastMessage = prevMessages[prevMessages.length - 1];
               lastMessage.id = value.messageId;
-              return [...prevMessages];
+              return [
+                ...prevMessages.slice(0, prevMessages.length - 1),
+                lastMessage,
+              ];
             });
             break;
           }
@@ -140,15 +147,18 @@ const ChatBot = () => {
 
     setStatus("awaiting_message");
     setMessage("");
+    setIsEmpty(true); // Reset isEmpty to true after sending the message
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setFile(file);
+    setIsEmpty(!file); // Set isEmpty to false if a file is selected
   };
 
   const handleMessageChange = (e: ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
+    setIsEmpty(e.target.value.trim() === ""); // Update isEmpty based on the input value
   };
 
   const handleOpenFileExplorer = () => {
@@ -156,7 +166,7 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="mt-20 bg-[#E6E6E6] bg-opacity-20 outline-4 backdrop-blur-lg rounded-xl shadow-lg w-11/12 md:w-3/4 lg:w-1/2 h-3/5 p-4 flex flex-col">
+    <div className="mt-20 bg-[#E6E6E6] bg-opacity-20 outline-4 backdrop-blur-lg rounded-xl shadow-lg w-12/12 md:w-3/4 lg:w-2/2 h-3/5 p-4 flex flex-col">
       <div className="flex-1 overflow-auto p-4 space-y-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold">
@@ -166,7 +176,7 @@ const ChatBot = () => {
         {error != null && (
           <div className="relative bg-red-500 text-white px-6 py-4 rounded-md">
             <span className="block sm:inline">
-              Error: {(error as any).toString()}
+              Error: {(error as Error).toString()}
             </span>
           </div>
         )}
@@ -208,7 +218,6 @@ const ChatBot = () => {
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Button
                 className="h-10 w-10 mr-2"
-                htmlFor="file-upload"
                 size="icon"
                 variant="ghost"
                 disabled={status !== "awaiting_message"}
@@ -236,17 +245,23 @@ const ChatBot = () => {
             onKeyDown={handleKeyDown}
             disabled={status !== "awaiting_message"}
           />
-          <div className="absolute right-0 items-center inset-y-0 hidden sm:flex">
-            <Button
-              className="h-10 w-10"
-              size="icon"
-              variant="ghost"
-              onClick={handleFormSubmit}
-              disabled={status !== "awaiting_message"}
+          <div className="absolute right-0 items-center inset-y-0 sm:flex">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: isEmpty ? 0 : 1, scale: isEmpty ? 0.5 : 1 }}
+              transition={{ duration: 0.3 }}
             >
-              <Icons.SendIcon className="h-5 w-5" />
-              <span className="sr-only">Send a message</span>
-            </Button>
+              <Button
+                className="h-10 w-10"
+                size="icon"
+                variant="ghost"
+                onClick={handleFormSubmit}
+                disabled={status !== "awaiting_message" || isEmpty}
+              >
+                <Icons.SendIcon className="h-5 w-5" />
+                <span className="sr-only">Send a message</span>
+              </Button>
+            </motion.div>
           </div>
         </div>
         <span className="group-hover:text-white transition-colors duration-200 ease-in-out text-xs">
