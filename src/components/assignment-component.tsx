@@ -13,7 +13,7 @@ interface AssignmentComponentProps{
 }
 
 
-const AssignmentComponent: React.FC<AssignmentComponentProps> = ({index,name,day,date, startingTime,finishingTime,location,occurance}) => {
+const AssignmentComponent: React.FC<AssignmentComponentProps> = ({name,day,date, startingTime,finishingTime,location,occurance}) => {
     return(
             <Card>
                 <div className="bg-[#FFFFFF] rounded-lg p-4 overflow-x-auto">

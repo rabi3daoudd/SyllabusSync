@@ -226,8 +226,8 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
             finishHour24 = parseInt(finishingTimeHour);
         }
 
-        let startTimeInMinutes = startHour24 * 60 + parseInt(startingTimeMinute);
-        let finishTimeInMinutes = finishHour24*60 +parseInt(startingTimeMinute);
+        const startTimeInMinutes = startHour24 * 60 + parseInt(startingTimeMinute);
+        const finishTimeInMinutes = finishHour24*60 +parseInt(startingTimeMinute);
 
         if (startTimeInMinutes >= finishTimeInMinutes) {
             alert("The starting time must be before the finishing time.");

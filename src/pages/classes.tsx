@@ -39,7 +39,6 @@ const ClassPage: React.FC = () => {
     const [semesterName, setSemesterName] = useState("");
     const [semesters, setSemesters] = useState<Semester[]>([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [open, setOpen] = React.useState(false);
 
     const handleSemesterNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSemesterName(event.target.value);
