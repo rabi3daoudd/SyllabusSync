@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { Button } from "./ui/button"
-import { addDays,format} from "date-fns";
+import {format} from "date-fns";
 import ClassComponent from "./class-component.tsx"
 
 import {
@@ -30,7 +30,6 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({index,name,startDa
     const [className, setClassName] = useState("");
     const [classes, setClasses] = useState<Class[]>([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [open, setOpen] = React.useState(false);
 
     const handleClassNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setClassName(event.target.value);

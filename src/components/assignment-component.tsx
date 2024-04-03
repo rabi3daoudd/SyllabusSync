@@ -1,7 +1,5 @@
 import { format } from "date-fns";
 import { Card } from "./ui/card";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { ScrollBar } from "./ui/scroll-area";
 
 interface AssignmentComponentProps{
     index:number;
