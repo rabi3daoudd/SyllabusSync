@@ -62,6 +62,10 @@ module.exports = {
           '-full': '-100%',
         }
       },
+      margin: {
+        '30': '7.5rem',
+        '50': '10rem',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
