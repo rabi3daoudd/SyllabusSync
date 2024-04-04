@@ -1,5 +1,5 @@
 import {BellIcon, XMarkIcon, Bars3Icon} from '@heroicons/react/24/solid' //navbar
-import { PaperAirplaneIcon, PaperClipIcon } from '@heroicons/react/24/outline' //chatbot
+import { PaperAirplaneIcon, PaperClipIcon, DocumentIcon, UserCircleIcon, SparklesIcon } from '@heroicons/react/24/outline' //chatbot
 
 export const Icons = {
     //navbar icons
@@ -9,5 +9,9 @@ export const Icons = {
 
     //chatbot icons
     SendIcon: PaperAirplaneIcon,
-    PaperclipIcon: PaperClipIcon
+    PaperclipIcon: PaperClipIcon,
+    DocumentIcon: DocumentIcon,
+    UserIcon: UserCircleIcon,
+    AssistantIcon: SparklesIcon
+
 }
