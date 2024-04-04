@@ -408,7 +408,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,assignments,s
                                     </div>
 
                                     <Label>Location:</Label>
-                                    <Input id="locationName" placeholder="Enter Assignment Name" value={locationName} onChange={handleLocationNameChange}  />
+                                    <Input id="locationName" placeholder="Enter Location Name" value={locationName} onChange={handleLocationNameChange}  />
 
                                 </DrawerHeader>
                                 <DrawerFooter className="pt-2">
