@@ -1,3 +1,5 @@
+"use client";
+
 import ChatBot from "../components/assistant/Chat";
 import Navbar from "../components/navigation/Navbar";
 import "../app/globals.css";
