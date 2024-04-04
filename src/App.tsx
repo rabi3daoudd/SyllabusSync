@@ -8,23 +8,27 @@ import SignInButton from './components/SignInButton';
 import FetchUserCalendars from './components/FetchUserCalendars'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import CreateCalendarEvent from './components/CreateCalendarEvent';
+import MyCalendar from './components/MyCalendar';
 import FetchAllEventsFromAllCalendars from "./components/FetchAllEventsFromAllCalendars";
 
 function App() {
     //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
+    const clientId = process.env.NEXT_PUBLIC_CLIENT_ID!;
 
     return (
-        <GoogleOAuthProvider clientId="test">
+        <GoogleOAuthProvider clientId={clientId}>
             <AuthProvider>
                 {/* <SignIn /> */}
                 <MyComponent />
                 <Navbar />
+                
                 {/* <SignInWithGoogleButton /> */}
                 <SignInButton />
                 <FetchCalendarEvents />
                 <FetchAllEventsFromAllCalendars />
                 <FetchUserCalendars />
                 <CreateCalendarEvent />
+                <MyCalendar />
             </AuthProvider>
         </GoogleOAuthProvider>
 
