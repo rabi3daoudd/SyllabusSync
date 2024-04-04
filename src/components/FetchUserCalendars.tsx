@@ -29,7 +29,7 @@ const FetchUserCalendars = () => {
     };
 
     return (
-        <GoogleOAuthProvider clientId="your-client-id">
+        <GoogleOAuthProvider clientId="879578989203-0mpip3uokcaupv52p6692rd79l42tjuu.apps.googleusercontent.com">
             <div className='App'>
                 <h1>Google Calendar API: ListUserCalendars Function</h1>
 

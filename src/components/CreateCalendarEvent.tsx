@@ -56,7 +56,7 @@ const CreateCalendarEvent = () => {
                 .catch(error => console.error('Error in finding/creating calendar:', error));
     };
     return (
-        <GoogleOAuthProvider clientId="your-client-id">
+        <GoogleOAuthProvider clientId="879578989203-0mpip3uokcaupv52p6692rd79l42tjuu.apps.googleusercontent.com">
             <div className='App'>
                 <h1>Google Calendar API: Create Calendar Event Function</h1>
 

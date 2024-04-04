@@ -4,10 +4,10 @@ import {getRefreshToken} from "../firebaseHelper";
 const { google } = require('googleapis');
 const router = express.Router();
 const admin = require('../firebaseAdmin');
+import { clientId, clientSecret } from '../config';
 
-//TODO REFRESH_TOKEN should be stored in firebase, this is temporary for testing.
-const GOOGLE_CLIENT_ID = "test";
-const GOOGLE_CLIENT_SECRET = "test";
+const GOOGLE_CLIENT_ID = clientId;
+const GOOGLE_CLIENT_SECRET = clientSecret;
 
 //TODO change url to actual client url
 const oauth2Client = new google.auth.OAuth2(

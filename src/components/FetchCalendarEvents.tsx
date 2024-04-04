@@ -35,7 +35,7 @@ const FetchCalendarEvents = () => {
     };
 
     return (
-        <GoogleOAuthProvider clientId="ADD CLIENT ID">
+        <GoogleOAuthProvider clientId="879578989203-0mpip3uokcaupv52p6692rd79l42tjuu.apps.googleusercontent.com">
             <div className='App'>
                 <h1>Google Calendar API: ListCalendarEvents Function</h1>
                 <p>
