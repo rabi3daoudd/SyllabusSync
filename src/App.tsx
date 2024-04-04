@@ -12,9 +12,10 @@ import FetchAllEventsFromAllCalendars from "./components/FetchAllEventsFromAllCa
 
 function App() {
     //const { SignInWithGoogleButton, isAuthenticated } = useCustomGoogleLogin();
+    const clientId = process.env.NEXT_PUBLIC_CLIENT_ID!;
 
     return (
-        <GoogleOAuthProvider clientId="test">
+        <GoogleOAuthProvider clientId={clientId}>
             <AuthProvider>
                 {/* <SignIn /> */}
                 <MyComponent />

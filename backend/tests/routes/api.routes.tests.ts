@@ -2,7 +2,6 @@ import request from 'supertest';
 import { app } from '../../src/server';
 import { google } from 'googleapis';
 import {getRefreshToken} from "../../src/firebaseHelper";
-
 jest.mock('googleapis', () => {
     const mockCalendarList = {
         list: jest.fn().mockResolvedValue({
@@ -47,7 +46,10 @@ jest.mock('../../src/firebaseAdmin', () => {
     return { firestore, doc, set };
 });
 
-
+jest.mock('../../src/config', () => ({
+    clientId: 'mock_client_id',
+    clientSecret: 'mock_client_secret',
+}));
 
 
 describe('POST /api/create-tokens', () => {
