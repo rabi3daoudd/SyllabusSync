@@ -8,13 +8,14 @@ import { z } from "zod"
 
 import { columns } from "@/components/datatable/columns"
 import { DataTable } from "@/components/datatable/data-table"
-import { UserNav } from "@/components/datatable/user-nav"
 import { taskSchema } from "./../data/schema"
 import { CardHeader } from "@/components/ui/card"
 import { CreateTask } from '@/components/CreateTask';
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Navbar from '@/components/navigation/Navbar';
+import '../app/globals.css';
+
 
 export const metadata: Metadata = {
     title: "Tasks",
@@ -103,9 +104,6 @@ function TaskPage() {
                         <p className="text-muted-foreground">
                             Here&apos;s a list of your tasks for this month!
                         </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <UserNav />
                     </div>
                 </div>
                 <CreateTask onNewTask={handleNewTask} />
