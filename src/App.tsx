@@ -8,6 +8,7 @@ import SignInButton from './components/SignInButton';
 import FetchUserCalendars from './components/FetchUserCalendars'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import CreateCalendarEvent from './components/CreateCalendarEvent';
+import MyCalendar from './components/MyCalendar';
 import FetchAllEventsFromAllCalendars from "./components/FetchAllEventsFromAllCalendars";
 
 function App() {
@@ -20,12 +21,14 @@ function App() {
                 {/* <SignIn /> */}
                 <MyComponent />
                 <Navbar />
+                
                 {/* <SignInWithGoogleButton /> */}
                 <SignInButton />
                 <FetchCalendarEvents />
                 <FetchAllEventsFromAllCalendars />
                 <FetchUserCalendars />
                 <CreateCalendarEvent />
+                <MyCalendar />
             </AuthProvider>
         </GoogleOAuthProvider>
 
