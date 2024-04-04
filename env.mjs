@@ -8,7 +8,6 @@ export const env = createEnv({
 	 * Will throw if you access these variables on the client.
 	 */
 	server: {
-		SITE_URL: z.string().url(),
 		OPENAI_API_KEY: z.string(),
 		OPENAI_ASSISTANT_ID: z.string()
 	},
@@ -24,7 +23,6 @@ export const env = createEnv({
 	 * You'll get type errors if not all variables from `server` & `client` are included here.
 	 */
 	runtimeEnv: {
-		SITE_URL: process.env.SITE_URL,
 		OPENAI_API_KEY: process.env.OPENAI_API_KEY,
 		OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID
 	}
