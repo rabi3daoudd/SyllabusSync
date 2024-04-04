@@ -1,5 +1,5 @@
 import { experimental_AssistantResponse } from "ai";
-import OpenAI from "openai";
+import { OpenAI } from "openai";
 import { TextContentBlock } from "openai/resources/beta/threads/messages/messages";
 import { env } from "../../../../env.mjs";
 import { NextRequest } from "next/server";
