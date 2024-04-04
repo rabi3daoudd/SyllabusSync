@@ -1,30 +1,30 @@
 
 
 import React, {useState } from "react"
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
 
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../components/ui/accordion"
+} from "../ui/accordion"
 
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "./ui/drawer";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-  } from "../components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+  } from "../ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {CalendarIcon } from "lucide-react";
-import {Calendar} from "./ui/calendar"
+import {Calendar} from "../ui/calendar"
 import { format } from "date-fns";
-import { cn } from "../lib/utils";
+import { cn } from "../../lib/utils";
 import AssignmentComponent from "./assignment-component";
 
 
@@ -32,6 +32,8 @@ import AssignmentComponent from "./assignment-component";
 interface ClassComponentProps{
     index:number;
     name:string;
+    assignments: Assignment[]; 
+    setAssignments: (newAssignment: Assignment) => void;
 }
 
 
@@ -46,10 +48,9 @@ interface Assignment{
 }
 
 
-const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
+const ClassComponent: React.FC<ClassComponentProps> = ({index,name,assignments,setAssignments}) => {
 
     const [assignmentName, setAssignmentName] = useState("");
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [locationName,setLocationName] = useState("");
     const [occurance,setOccurance] = useState("");
@@ -227,7 +228,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
         }
 
         const startTimeInMinutes = startHour24 * 60 + parseInt(startingTimeMinute);
-        const finishTimeInMinutes = finishHour24*60 +parseInt(startingTimeMinute);
+        const finishTimeInMinutes = finishHour24*60 +parseInt(finishingTimeMinute);
 
         if (startTimeInMinutes >= finishTimeInMinutes) {
             alert("The starting time must be before the finishing time.");
@@ -261,7 +262,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
           occurance:occurance
           
         };
-        setAssignments([...assignments, newAssignment]);
+        setAssignments(newAssignment);
         // Clear the form
         setAssignmentName("");
         setDay("");
@@ -322,8 +323,6 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name}) => {
                                             <Label htmlFor="r3">Once every two weeks</Label>
                                         </div>
                                     </RadioGroup>
-                                    <p>Current Occurance: {occurance}</p>
-
                                     {(occurance === 'OnceAWeek' || occurance === 'OnceEveryTwoWeeks') && <ChooseDayComponent />}
                                     {(occurance === 'OneTime') && <ChooseDateComponent />}
 
