@@ -31,22 +31,10 @@ import { useRouter } from 'next/router';
 
 const components: { title: string; href: string; description: string }[] = [
   {
-    title: "CGPA Calculator",
-    href: "/tools/cgpa-calculator",
+    title: "SyllabusSync AI",
+    href: "/chat",
     description:
-      "A tool to calculate your CGPA based on your grades and credit ammount.",
-  },
-  {
-    title: "CGPA Calculator 2",
-    href: "/tools/cgpa-calculator",
-    description:
-      "A tool to calculate your CGPA based on your grades and credit ammount.",
-  },
-  {
-    title: "CGPA Calculator 3",
-    href: "/tools/cgpa-calculator",
-    description:
-      "A tool to calculate your CGPA based on your grades and credit ammount.",
+      "An AI chatbot that helps you find and sync your syllabus with your calendar.",
   },
 ];
 
@@ -103,7 +91,7 @@ export default function Navbar() {
     <>
       <nav
         key="1"
-        className="fixed w-[95%] top-2 md:top-5 md:w-4/5 bg-white py-2 rounded-lg shadow mt-2"
+        className="fixed w-[95%] top-1 md:top-1 md:w-[90%] bg-white py-2 rounded-lg shadow mt-2"
       >
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center space-x-4">

@@ -52,11 +52,6 @@ export async function POST(req: NextRequest) {
   return experimental_AssistantResponse(
     { threadId, messageId: createdMessage.id },
     async ({ threadId, sendMessage, forwardStream }) => {
-      console.log("experimental_AssistantResponse: threadId", threadId);
-      console.log(
-        "experimental_AssistantResponse: messageId",
-        createdMessage.id
-      );
 
       // Run the assistant on the thread with streaming
       const runStream = openai.beta.threads.runs.stream(threadId, {
