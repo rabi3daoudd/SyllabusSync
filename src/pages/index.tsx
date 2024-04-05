@@ -134,7 +134,7 @@ export default function Home() {
                 Hello {userName}, Welcome back!
               </h1>
             )}
-            <div className="flex justify-end hidden">
+            <div className="justify-end">
               <AuthProvider>
                 <SignInButton />
               </AuthProvider>
