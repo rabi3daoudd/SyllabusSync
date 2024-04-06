@@ -5,7 +5,8 @@ import ChatBot from "../components/assistant/Chat";
 import Navbar from "../components/navigation/Navbar";
 import "../app/globals.css";
 
-const router = useRouter();
+export default function Chat() {
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -18,11 +19,9 @@ const router = useRouter();
     return () => unsubscribe();
   }, []);
 
-
-export default function Chat() {
   return (
     <div className="flex flex-col space-y-4 items-center justify-center h-screen">
-        <Navbar />
+      <Navbar />
       <ChatBot />
     </div>
   );
