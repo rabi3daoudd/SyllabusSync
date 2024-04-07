@@ -158,7 +158,6 @@ export default function Settings() {
         setHasChanges(false);
       }
     } catch (error) {
-
       toast({
         title: "Error updating preferences",
         description:
@@ -349,7 +348,7 @@ export default function Settings() {
                           </p>
                         </div>
                       </div>
-                      <div>
+                      <div className="ml-8">
                         {isGoogleCalendarSynced ? (
                           <Button disabled>Google Calendar Synced</Button>
                         ) : (
