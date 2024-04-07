@@ -97,6 +97,7 @@ export default function Navbar() {
 
   return (
     <>
+      <div className="fixed top-0 left-1/2 overflow-hidden transform -translate-x-1/2 h-[10%] w-[90%] backdrop-filter backdrop-blur-3xl z-50"></div>
       <div className="fixed top-0 left-0 right-0 h-[30%] bg-gradient-to-b from-[#1FCAD9] opacity-50 to-transparent backdrop-blur-md z-0"></div>
       <div className="flex justify-center items-center">
         <nav
