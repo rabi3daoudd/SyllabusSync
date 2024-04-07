@@ -12,11 +12,8 @@ import {
 import { Button } from "../components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import MyCalendar from "@/components/MyCalendar";
 import { fetchAllEventsFromAllCalendars } from "@/components/api";
-import { AuthProvider } from "@/components/AuthContext";
-import SignInButton from "@/components/SignInButton";
 import Link from "next/link";
 import "../app/globals.css";
 
@@ -34,7 +31,6 @@ interface Task {
 }
 
 export default function Home() {
-  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID!;
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [upcomingEvent, setUpcomingEvent] = useState<CalendarEvent | null>(
