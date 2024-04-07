@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -32,6 +31,17 @@ import { Icons } from "../../components/ui/icons";
 import { auth, db } from "../../firebase-config";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
+import { useMediaQuery } from "../../app/hooks/use-media-query.tsx";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const components: { title: string; href: string; description: string }[] = [
   {
@@ -43,6 +53,7 @@ const components: { title: string; href: string; description: string }[] = [
 ];
 
 export default function Navbar() {
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleDrawer = () => {
@@ -113,61 +124,63 @@ export default function Navbar() {
                 style={{ maxWidth: "80px", maxHeight: "80px" }}
               />
             </div>
-            <div className="hidden flex-1 ml-10 mx-auto md:flex md:items-center md:justify-center">
-              <NavigationMenu>
-                <NavigationMenuList className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
-                  {/* Home Link */}
-                  <NavigationMenuItem asChild>
-                    <Link
-                      className="text-gray-800 hover:text-blue-500"
-                      href="/"
-                    >
-                      Home
-                    </Link>
-                  </NavigationMenuItem>
+            {!isSmallScreen && (
+              <div className="hidden flex-1 ml-10 mx-auto md:flex md:items-center md:justify-center">
+                <NavigationMenu>
+                  <NavigationMenuList className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
+                    {/* Home Link */}
+                    <NavigationMenuItem asChild>
+                      <Link
+                        className="text-gray-800 hover:text-blue-500"
+                        href="/"
+                      >
+                        Home
+                      </Link>
+                    </NavigationMenuItem>
 
-                  {/* Classes Link */}
-                  <NavigationMenuItem asChild>
-                    <Link
-                      className="text-gray-800 hover:text-blue-500"
-                      href="/classes"
-                    >
-                      Classes
-                    </Link>
-                  </NavigationMenuItem>
+                    {/* Classes Link */}
+                    <NavigationMenuItem asChild>
+                      <Link
+                        className="text-gray-800 hover:text-blue-500"
+                        href="/classes"
+                      >
+                        Classes
+                      </Link>
+                    </NavigationMenuItem>
 
-                  {/* Tasks Link */}
-                  <NavigationMenuItem asChild>
-                    <Link
-                      className="text-gray-800 hover:text-blue-500"
-                      href="/tasks"
-                    >
-                      Tasks
-                    </Link>
-                  </NavigationMenuItem>
+                    {/* Tasks Link */}
+                    <NavigationMenuItem asChild>
+                      <Link
+                        className="text-gray-800 hover:text-blue-500"
+                        href="/tasks"
+                      >
+                        Tasks
+                      </Link>
+                    </NavigationMenuItem>
 
-                  {/* Tools - If you need a dropdown like the Select component, you might need to implement a custom solution or adapt the NavigationMenu to handle dropdown logic */}
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="text-gray-800 hover:text-blue-500">
-                      Tools
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                        {components.map((component) => (
-                          <ListItem
-                            key={component.title}
-                            title={component.title}
-                            href={component.href}
-                          >
-                            {component.description}
-                          </ListItem>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
-            </div>
+                    {/* Tools - If you need a dropdown like the Select component, you might need to implement a custom solution or adapt the NavigationMenu to handle dropdown logic */}
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="text-gray-800 hover:text-blue-500">
+                        Tools
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                          {components.map((component) => (
+                            <ListItem
+                              key={component.title}
+                              title={component.title}
+                              href={component.href}
+                            >
+                              {component.description}
+                            </ListItem>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+              </div>
+            )}
             <div className="flex items-center space-x-4 mr-6">
               <Button className="hidden md:inline-block bg-[#1FCAD9] text-white">
                 + NEW
@@ -211,65 +224,57 @@ export default function Navbar() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <button
-                className="mr-10 md:hidden"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? (
-                  <Icons.XIcon className="h-10 w-10" />
-                ) : (
-                  <Icons.Hamburger className="h-10 w-10" />
-                )}
-              </button>
-              <div
-                className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ${
-                  isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-                }
-                isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
-                onClick={toggleDrawer}
-              />
-
-              {/* Side Drawer */}
-              <div
-                className={`fixed -ml-4 top-0 left-[-16px] w-[80%] bg-white h-full overflow-auto transition-transform duration-300 z-50 ${
-                  isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                }
-                isMenuOpen ? "translate-x-0" : "-translate-x-full"
-              }`}
-              >
-                <button onClick={toggleDrawer} className="p-4">
-                  <Icons.XIcon className="h-6 w-6" />
-                </button>
-                <nav className="flex flex-col items-start p-4">
-                  <Link
-                    className="text-gray-800 hover:text-blue-500 py-2"
-                    href="/"
-                  >
-                    Home
-                  </Link>
-                  <Link
-                    className="text-gray-800 hover:text-blue-500 py-2"
-                    href="/classes"
-                  >
-                    Classes
-                  </Link>
-                  <Link
-                    className="text-gray-800 hover:[#1FCAD9] py-2"
-                    href="/tasks"
-                  >
-                    Tasks
-                  </Link>
-                  {/* Include other links or content */}
-                </nav>
-              </div>
+              {isSmallScreen && (
+                <Sheet onOpenChange={(open) => setIsMenuOpen(open)}>
+                  <SheetTrigger asChild>
+                    <div
+                      className="relative h-8 w-8 rounded-full flex items-center justify-center"
+                      onClick={toggleDrawer}
+                    >
+                      {isMenuOpen ? (
+                        <Icons.XIcon className="h-6 w-6" />
+                      ) : (
+                        <Icons.Hamburger className="h-6 w-6" />
+                      )}
+                    </div>
+                  </SheetTrigger>
+                  <SheetContent side="right">
+                    <SheetHeader>
+                      <SheetTitle>Menu</SheetTitle>
+                      <SheetDescription>
+                        Navigate to different sections of the app.
+                      </SheetDescription>
+                    </SheetHeader>
+                    <div className="grid gap-4 py-4">
+                      <Link
+                        className="text-gray-800 hover:text-blue-500"
+                        href="/"
+                      >
+                        Home
+                      </Link>
+                      <Link
+                        className="text-gray-800 hover:text-blue-500"
+                        href="/classes"
+                      >
+                        Classes
+                      </Link>
+                      <Link
+                        className="text-gray-800 hover:text-blue-500"
+                        href="/tasks"
+                      >
+                        Tasks
+                      </Link>
+                      {/* Include other links or content */}
+                    </div>
+                    <SheetFooter>
+                      <SheetClose asChild>
+                        <Button type="submit">Close</Button>
+                      </SheetClose>
+                    </SheetFooter>
+                  </SheetContent>
+                </Sheet>
+              )}
             </div>
-
-            {isMenuOpen && (
-              <div className="md:hidden">
-                <div className="px-2 pt-2 pb-3 space-y-1"></div>
-              </div>
-            )}
           </div>
         </nav>
       </div>
