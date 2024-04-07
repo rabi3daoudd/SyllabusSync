@@ -48,8 +48,8 @@ export default function Settings() {
           setFirstName(userData.firstName || "");
           setLastName(userData.lastName || "");
           setEmail(userData.email || "");
-          setStudyTimes(userData.studyTimes || "");
-          setSessionDuration(userData.sessionDuration || "");
+          setStudyTimes(userData.preferences?.StudyTimes || "");
+          setSessionDuration(userData.preferences?.StudySessionDuration || "");
 
           if (userData.refresh_token) {
             setIsGoogleCalendarSynced(true);
@@ -60,7 +60,7 @@ export default function Settings() {
     return () => unsubscribe();
   }, []);
 
-  const handleSave = async () => {
+  const handleSaveInfo = async () => {
     try {
       const user = auth.currentUser;
       if (user) {
@@ -123,6 +123,54 @@ export default function Settings() {
     }
   };
 
+  const handleSavePreferences = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        // Validate the required fields for preferences
+        if (!studyTimes.trim() || !sessionDuration.trim()) {
+          toast({
+            title: "Validation Error",
+            description:
+              "Please fill in all the required fields (Preferred Study Times, Study Session Duration).",
+            variant: "destructive",
+          });
+          return;
+        }
+        setIsSaving(true);
+        const userDocRef = doc(db, "users", user.uid);
+
+        const updatedPreferences = {
+          preferences: {
+            StudyTimes: studyTimes,
+            StudySessionDuration: sessionDuration,
+          },
+        };
+
+        await updateDoc(userDocRef, updatedPreferences);
+
+        toast({
+          title: "Preferences Updated",
+          description: "Your study preferences have been successfully updated.",
+          variant: "success",
+        });
+
+        setIsEditingPreferences(false);
+        setHasChanges(false);
+      }
+    } catch (error) {
+
+      toast({
+        title: "Error updating preferences",
+        description:
+          "An error occurred while updating your preferences, try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     setter: React.Dispatch<React.SetStateAction<string>>
@@ -148,7 +196,7 @@ export default function Settings() {
               <div className="mb-4">
                 <h1 className="text-4xl font-bold">Settings</h1>
                 <p className="text-gray-500">
-                    Manage your account settings and preferences.
+                  Manage your account settings and preferences.
                 </p>
               </div>
               <TabsList className="border-b">
@@ -208,7 +256,7 @@ export default function Settings() {
                   <CardFooter>
                     <Button
                       className="ml-auto"
-                      onClick={handleSave}
+                      onClick={handleSaveInfo}
                       disabled={!hasChanges || isSaving}
                     >
                       {isSaving ? "Saving..." : "Save"}
@@ -261,7 +309,7 @@ export default function Settings() {
                   <CardFooter>
                     <Button
                       className="ml-auto"
-                      onClick={handleSave}
+                      onClick={handleSavePreferences}
                       disabled={!isEditingPreferences}
                     >
                       Save
