@@ -109,7 +109,6 @@ export default function Home() {
   };
 
   return (
-    <GoogleOAuthProvider clientId={clientId}>
       <div className="flex flex-col min-h-screen">
         <div className="flex-grow py-8 mt-30 z-40">
           <div className="w-4/5 mx-auto">
@@ -118,12 +117,6 @@ export default function Home() {
                 Hello {userName}, Welcome back!
               </h1>
             )}
-            <div className="justify-end">
-              <AuthProvider>
-                <SignInButton />
-              </AuthProvider>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
               <Card className="w-full rounded-xl">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -235,7 +228,5 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
-    </GoogleOAuthProvider>
-  );
+      </div>  );
 }

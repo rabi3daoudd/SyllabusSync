@@ -21,8 +21,8 @@ export default function Chat() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen z-40">
-      <div className="flex flex-col space-y-4 items-center justify-center h-screen z-40">
+    <div className="flex flex-col min-h-screen z-45">
+      <div className="flex flex-col space-y-4 items-center justify-center h-screen z-45">
         <ChatBot />
       </div>
     </div>

@@ -1,20 +1,22 @@
 import React from "react";
 import Navbar from "@/components/navigation/Navbar";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { Toaster } from "@/components/ui/toaster"
 
 type LayoutProps = {
   children: React.ReactNode;
 };
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const router = useRouter();
+  const pathname = usePathname();
   const shouldShowNavbar =
-    router.pathname !== "/login" && router.pathname !== "/signup";
+    pathname !== "/login" && pathname !== "/signup";
 
   return (
     <>
       {shouldShowNavbar && <Navbar />}
       <main>{children}</main>
+      <Toaster />
     </>
   );
 };

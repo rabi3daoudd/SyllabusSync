@@ -97,7 +97,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 h-[40%] bg-gradient-to-b from-[#1FCAD9] opacity-50 to-transparent backdrop-blur-md z-0"></div>
+      <div className="fixed top-0 left-0 right-0 h-[30%] bg-gradient-to-b from-[#1FCAD9] opacity-50 to-transparent backdrop-blur-md z-0"></div>
       <div className="flex justify-center items-center">
         <nav
           key="1"
@@ -171,7 +171,7 @@ export default function Navbar() {
               <Button className="hidden md:inline-block bg-[#1FCAD9] text-white">
                 + NEW
               </Button>
-              <Icons.Bell />
+              <Icons.Bell className="w-7 h-11 left-0 ml-[-10%]" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -197,8 +197,9 @@ export default function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>Profile</DropdownMenuItem>
-                    <DropdownMenuItem>Settings</DropdownMenuItem>
+                    <Link href="/settings">
+                      <DropdownMenuItem>Settings</DropdownMenuItem>
+                    </Link>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
