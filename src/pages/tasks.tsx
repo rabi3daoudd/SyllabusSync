@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
-import { auth, db } from "../firebase-config";
+import { CreateTask } from "@/components/CreateTask";
+import { columns } from "@/components/datatable/columns";
+import { DataTable } from "@/components/datatable/data-table";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { Metadata } from "next";
-import { z } from "zod";
 import { useRouter } from "next/router";
-import { columns } from "@/components/datatable/columns";
-import { DataTable } from "@/components/datatable/data-table";
+import { useEffect, useState } from "react";
+import { z } from "zod";
+
+import { auth, db } from "../firebase-config";
 import { taskSchema } from "./../data/schema";
-import { CreateTask } from "@/components/CreateTask";
-import Navbar from "@/components/navigation/Navbar";
+
 import "../app/globals.css";
 
 export const metadata: Metadata = {
@@ -79,11 +80,8 @@ function TaskPage() {
 
   return (
     <>
-      <div className="flex justify-center">
-        <Navbar />
-      </div>
-      <div className="flex justify-center w-4/5 mx-auto">
-        <div className="flex-1 flex-col space-y-8 mt-30 p-8 md:flex">
+      <div className="flex justify-center w-4/5 mx-auto z-40">
+        <div className="flex-1 flex-col space-y-8 mt-30 p-8 md:flex z-40">
           <div className="flex items-center justify-between space-y-2">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">

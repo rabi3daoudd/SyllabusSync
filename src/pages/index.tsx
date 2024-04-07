@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import MyCalendar from "@/components/MyCalendar";
-import Navbar from "@/components/navigation/Navbar";
 import { fetchAllEventsFromAllCalendars } from "@/components/api";
 import { AuthProvider } from "@/components/AuthContext";
 import SignInButton from "@/components/SignInButton";
@@ -108,26 +108,10 @@ export default function Home() {
     return currentTime >= event.start && currentTime <= event.end;
   };
 
-
-  const CardSkeleton = () => (
-    <Card className="w-full border">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="h-4 w-1/2 bg-gray-300 animate-pulse rounded"></div>
-      </CardHeader>
-      <CardContent>
-        <div className="h-6 w-3/4 bg-gray-300 animate-pulse rounded mb-2"></div>
-        <div className="h-4 w-1/2 bg-gray-300 animate-pulse rounded"></div>
-      </CardContent>
-    </Card>
-  );
-
   return (
     <GoogleOAuthProvider clientId={clientId}>
-      <div className="flex flex-col bg-gray-100 min-h-screen">
-        <div className="flex justify-center">
-          <Navbar />
-        </div>
-        <div className="flex-grow bg-gray-100 py-8 mt-30">
+      <div className="flex flex-col min-h-screen">
+        <div className="flex-grow py-8 mt-30 z-40">
           <div className="w-4/5 mx-auto">
             {userName && (
               <h1 className="text-5xl font-bold mb-5">
@@ -139,61 +123,92 @@ export default function Home() {
                 <SignInButton />
               </AuthProvider>
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <Card className="w-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Upnext Event</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <CardSkeleton />
-                ) : upcomingEvent ? (
-                  <>
-                    <div className="text-2xl font-bold">{upcomingEvent.title}</div>
-                    {isEventHappeningNow(upcomingEvent) ? (
-                      <p className="text-xs text-muted-foreground">Happening Now</p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        {upcomingEvent.start.toLocaleString()}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-xs text-muted-foreground">No upcoming events</p>
-                )}
-              </CardContent>
-            </Card>
 
-            <Card className="w-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tasks Due Soon</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <CardSkeleton />
-                ) : (
-                  <>
-                    {tasks.slice(0, 3).map((task) => (
-                      <div key={task.id} className="flex items-center space-x-2 mt-3">
-                        <Checkbox />
-                        <span
-                          className={`${task.completed ? "line-through text-gray-500" : ""}`}
-                        >
-                          {task.title}
-                        </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <Card className="w-full rounded-xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Upnext Event
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[250px]" />
+                      <Skeleton className="h-4 w-[200px]" />
+                    </div>
+                  ) : upcomingEvent ? (
+                    <>
+                      <div className="text-2xl font-bold">
+                        {upcomingEvent.title}
                       </div>
-                    ))}
-                    {tasks.length > 3 && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {tasks.length - 3} more tasks...
-                      </p>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-              <Card className="w-full">
+                      {isEventHappeningNow(upcomingEvent) ? (
+                        <p className="text-xs text-muted-foreground">
+                          Happening Now
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          {upcomingEvent.start.toLocaleString()}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      No upcoming events
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="w-full rounded-xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Tasks Due Soon
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <>
+                      <div className="flex items-center space-x-2">
+                        <Skeleton className="w-5 h-5 rounded" />
+                        <Skeleton className="w-32 h-4 rounded" />
+                      </div>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Skeleton className="w-5 h-5 rounded" />
+                        <Skeleton className="w-32 h-4 rounded" />
+                      </div>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Skeleton className="w-5 h-5 rounded" />
+                        <Skeleton className="w-32 h-4 rounded" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {tasks.slice(0, 3).map((task) => (
+                        <div
+                          key={task.id}
+                          className="flex items-center space-x-2 mt-1"
+                        >
+                          <Checkbox />
+                          <span
+                            className={`${
+                              task.completed ? "line-through text-gray-500" : ""
+                            }`}
+                          >
+                            {task.title}
+                          </span>
+                        </div>
+                      ))}
+                      {tasks.length > 3 && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {tasks.length - 3} more tasks...
+                        </p>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="w-full rounded-xl">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Chat with SyllabusSync AI

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Button } from './ui/button';
-import { auth } from '../firebase-config';
-import { fetchAllEventsFromAllCalendars, createCalendarEvent } from './api';
+import React, { useEffect, useState } from "react";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import moment from "moment";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Button } from "./ui/button";
+import { auth } from "../firebase-config";
+import { fetchAllEventsFromAllCalendars, createCalendarEvent } from "./api";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -12,10 +12,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
-import { onAuthStateChanged } from 'firebase/auth';
-import { DatePickerWithPresets } from '@/components/calendar/DatePicker';
+import { onAuthStateChanged } from "firebase/auth";
+import { DatePickerWithPresets } from "@/components/calendar/DatePicker";
 
 const localizer = momentLocalizer(moment);
 
@@ -26,19 +26,18 @@ interface CalendarEvent {
   allDay?: boolean;
 }
 
-
 const MyCalendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [newEvent, setNewEvent] = useState({
-    title: '',
+    title: "",
     startDate: new Date(),
-    startHour: '12',
-    startMinute: '00',
-    startAmPm: 'AM',
+    startHour: "12",
+    startMinute: "00",
+    startAmPm: "AM",
     endDate: new Date(),
-    endHour: '12',
-    endMinute: '00',
-    endAmPm: 'PM',
+    endHour: "12",
+    endMinute: "00",
+    endAmPm: "PM",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,16 +59,26 @@ const MyCalendar: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { title, startDate, startHour, startMinute, startAmPm, endDate, endHour, endMinute, endAmPm } = newEvent;
+    const {
+      title,
+      startDate,
+      startHour,
+      startMinute,
+      startAmPm,
+      endDate,
+      endHour,
+      endMinute,
+      endAmPm,
+    } = newEvent;
     if (!title || !startDate || !endDate) {
-      alert('All fields are required');
+      alert("All fields are required");
       return;
     }
     const start = new Date(startDate);
-    start.setHours(parseInt(startHour) + (startAmPm === 'PM' ? 12 : 0));
+    start.setHours(parseInt(startHour) + (startAmPm === "PM" ? 12 : 0));
     start.setMinutes(parseInt(startMinute));
     const end = new Date(endDate);
-    end.setHours(parseInt(endHour) + (endAmPm === 'PM' ? 12 : 0));
+    end.setHours(parseInt(endHour) + (endAmPm === "PM" ? 12 : 0));
     end.setMinutes(parseInt(endMinute));
     const event = {
       title,
@@ -79,15 +88,15 @@ const MyCalendar: React.FC = () => {
     };
     setEvents([...events, event]);
     setNewEvent({
-      title: '',
+      title: "",
       startDate: new Date(),
-      startHour: '12',
-      startMinute: '00',
-      startAmPm: 'AM',
+      startHour: "12",
+      startMinute: "00",
+      startAmPm: "AM",
       endDate: new Date(),
-      endHour: '12',
-      endMinute: '00',
-      endAmPm: 'PM',
+      endHour: "12",
+      endMinute: "00",
+      endAmPm: "PM",
     });
 
     // Call the createCalendarEvent function from api.ts
@@ -96,30 +105,30 @@ const MyCalendar: React.FC = () => {
       if (user) {
         await createCalendarEvent(
           title,
-          '',  // Add the description if available
-          '',  // Add the location if available
+          "", // Add the description if available
+          "", // Add the location if available
           start.toISOString(),
           end.toISOString(),
-          'primary',  // Use the appropriate calendar ID
+          "primary", // Use the appropriate calendar ID
           user.uid
         );
-        console.log('Event created successfully');
+        console.log("Event created successfully");
       } else {
-        console.log('No authenticated user found.');
+        console.log("No authenticated user found.");
       }
     } catch (error) {
-      console.error('Error in creating calendar event:', error);
+      console.error("Error in creating calendar event:", error);
     }
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log('Authenticated user found, fetching events...');
+        console.log("Authenticated user found, fetching events...");
         const fetchedEvents = await fetchAllEventsFromAllCalendars(user.uid);
         setEvents(fetchedEvents);
       } else {
-        console.log('No authenticated user found.');
+        console.log("No authenticated user found.");
       }
     });
 
@@ -127,9 +136,11 @@ const MyCalendar: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 w-[100%]">
+    <div className="bg-white rounded-xl shadow-md p-6 w-[100%]">
       <h1 className="text-2xl font-bold mb-4">Calendar</h1>
-      <p className="text-gray-600 mb-6">Add information to add only to react calendar</p>
+      <p className="text-gray-600 mb-6">
+        Add information to add only to react calendar
+      </p>
       <form onSubmit={handleSubmit} className="mb-6">
         <div className="mb-4">
           <input
@@ -147,7 +158,10 @@ const MyCalendar: React.FC = () => {
               Start Date
             </label>
             <div className="flex items-center">
-              <DatePickerWithPresets date={newEvent.startDate} onChange={handleStartDateChange} />
+              <DatePickerWithPresets
+                date={newEvent.startDate}
+                onChange={handleStartDateChange}
+              />
               <div className="ml-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -162,7 +176,9 @@ const MyCalendar: React.FC = () => {
                       <DropdownMenuCheckboxItem
                         key={i + 1}
                         checked={newEvent.startHour === (i + 1).toString()}
-                        onCheckedChange={() => handleDropdownChange('startHour', (i + 1).toString())}
+                        onCheckedChange={() =>
+                          handleDropdownChange("startHour", (i + 1).toString())
+                        }
                       >
                         {i + 1}
                       </DropdownMenuCheckboxItem>
@@ -180,11 +196,13 @@ const MyCalendar: React.FC = () => {
                   <DropdownMenuContent>
                     <DropdownMenuLabel>Start Minute</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {['00', '15', '30', '45'].map((minute) => (
+                    {["00", "15", "30", "45"].map((minute) => (
                       <DropdownMenuCheckboxItem
                         key={minute}
                         checked={newEvent.startMinute === minute}
-                        onCheckedChange={() => handleDropdownChange('startMinute', minute)}
+                        onCheckedChange={() =>
+                          handleDropdownChange("startMinute", minute)
+                        }
                       >
                         {minute}
                       </DropdownMenuCheckboxItem>
@@ -203,14 +221,18 @@ const MyCalendar: React.FC = () => {
                     <DropdownMenuLabel>AM/PM</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuCheckboxItem
-                      checked={newEvent.startAmPm === 'AM'}
-                      onCheckedChange={() => handleDropdownChange('startAmPm', 'AM')}
+                      checked={newEvent.startAmPm === "AM"}
+                      onCheckedChange={() =>
+                        handleDropdownChange("startAmPm", "AM")
+                      }
                     >
                       AM
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
-                      checked={newEvent.startAmPm === 'PM'}
-                      onCheckedChange={() => handleDropdownChange('startAmPm', 'PM')}
+                      checked={newEvent.startAmPm === "PM"}
+                      onCheckedChange={() =>
+                        handleDropdownChange("startAmPm", "PM")
+                      }
                     >
                       PM
                     </DropdownMenuCheckboxItem>
@@ -226,7 +248,10 @@ const MyCalendar: React.FC = () => {
               End Date
             </label>
             <div className="flex items-center">
-              <DatePickerWithPresets date={newEvent.endDate} onChange={handleEndDateChange} />
+              <DatePickerWithPresets
+                date={newEvent.endDate}
+                onChange={handleEndDateChange}
+              />
               <div className="ml-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -241,7 +266,9 @@ const MyCalendar: React.FC = () => {
                       <DropdownMenuCheckboxItem
                         key={i + 1}
                         checked={newEvent.endHour === (i + 1).toString()}
-                        onCheckedChange={() => handleDropdownChange('endHour', (i + 1).toString())}
+                        onCheckedChange={() =>
+                          handleDropdownChange("endHour", (i + 1).toString())
+                        }
                       >
                         {i + 1}
                       </DropdownMenuCheckboxItem>
@@ -259,11 +286,13 @@ const MyCalendar: React.FC = () => {
                   <DropdownMenuContent>
                     <DropdownMenuLabel>End Minute</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {['00', '15', '30', '45'].map((minute) => (
+                    {["00", "15", "30", "45"].map((minute) => (
                       <DropdownMenuCheckboxItem
                         key={minute}
                         checked={newEvent.endMinute === minute}
-                        onCheckedChange={() => handleDropdownChange('endMinute', minute)}
+                        onCheckedChange={() =>
+                          handleDropdownChange("endMinute", minute)
+                        }
                       >
                         {minute}
                       </DropdownMenuCheckboxItem>
@@ -282,14 +311,18 @@ const MyCalendar: React.FC = () => {
                     <DropdownMenuLabel>AM/PM</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuCheckboxItem
-                      checked={newEvent.endAmPm === 'AM'}
-                      onCheckedChange={() => handleDropdownChange('endAmPm', 'AM')}
+                      checked={newEvent.endAmPm === "AM"}
+                      onCheckedChange={() =>
+                        handleDropdownChange("endAmPm", "AM")
+                      }
                     >
                       AM
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
-                      checked={newEvent.endAmPm === 'PM'}
-                      onCheckedChange={() => handleDropdownChange('endAmPm', 'PM')}
+                      checked={newEvent.endAmPm === "PM"}
+                      onCheckedChange={() =>
+                        handleDropdownChange("endAmPm", "PM")
+                      }
                     >
                       PM
                     </DropdownMenuCheckboxItem>

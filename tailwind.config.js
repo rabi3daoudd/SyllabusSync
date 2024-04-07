@@ -2,12 +2,12 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-    './src/app/**/*.{ts,tsx}',
-    './src/components/**/*.{ts,tsx}',
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+    "./src/app/**/*.{ts,tsx}",
+    "./src/components/**/*.{ts,tsx}",
   ],
   prefix: "",
   theme: {
@@ -54,22 +54,30 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
         inset: {
-          '-1': '-0.25rem',
-          '-2': '-0.5rem',
-          '-4': '-1rem',
-          '-8': '-2rem',
-          '-16': '-4rem',
-          '-full': '-100%',
-        }
+          "-1": "-0.25rem",
+          "-2": "-0.5rem",
+          "-4": "-1rem",
+          "-8": "-2rem",
+          "-16": "-4rem",
+          "-full": "-100%",
+        },
       },
       margin: {
-        '30': '7.5rem',
-        '50': '10rem',
+        30: "7.5rem",
+        50: "10rem",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      zIndex: {
+        "-10": "-10",
+        "-20": "-20",
+        "-30": "-30",
+        "-40": "-40",
+        "-50": "-50",
+        "20" : "20",
       },
       keyframes: {
         "accordion-down": {
@@ -88,4 +96,4 @@ module.exports = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+};

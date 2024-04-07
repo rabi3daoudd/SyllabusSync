@@ -1,8 +1,9 @@
-import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { auth } from "../firebase-config";
+import { useEffect } from "react";
+
 import ChatBot from "../components/assistant/Chat";
-import Navbar from "../components/navigation/Navbar";
+import { auth } from "../firebase-config";
+
 import "../app/globals.css";
 
 export default function Chat() {
@@ -20,9 +21,10 @@ export default function Chat() {
   }, []);
 
   return (
-    <div className="flex flex-col space-y-4 items-center justify-center h-screen">
-      <Navbar />
-      <ChatBot />
+    <div className="flex flex-col min-h-screen z-40">
+      <div className="flex flex-col space-y-4 items-center justify-center h-screen z-40">
+        <ChatBot />
+      </div>
     </div>
   );
 }
