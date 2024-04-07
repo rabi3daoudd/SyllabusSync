@@ -152,7 +152,6 @@ export default function Settings() {
         toast({
           title: "Preferences Updated",
           description: "Your study preferences have been successfully updated.",
-          variant: "success",
         });
 
         setIsEditingPreferences(false);
