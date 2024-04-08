@@ -3,6 +3,7 @@ import { app } from '../../src/server';
 import { google } from 'googleapis';
 import {getRefreshToken} from "../../src/firebaseHelper";
 jest.mock('googleapis', () => {
+    // Mock responses for calendar listing
     const mockCalendarList = {
         list: jest.fn().mockResolvedValue({
             data: {
@@ -14,9 +15,16 @@ jest.mock('googleapis', () => {
         }),
     };
 
+    // Mock responses for event operations
     const mockEvents = {
         list: jest.fn().mockResolvedValue({ data: { items: [] } }),
-        insert: jest.fn().mockResolvedValue({ data: { id: 'new-event-id' } }),
+        insert: jest.fn().mockResolvedValue({ data: { id: 'new-event-id', summary: 'New Event' } }),
+    };
+
+    const mockCalendars = {
+        insert: jest.fn().mockResolvedValue({
+            json: () => ({ id: 'new-calendar-id', summary: 'New Calendar' })
+        }),
     };
 
     return {
@@ -24,16 +32,18 @@ jest.mock('googleapis', () => {
             auth: {
                 OAuth2: jest.fn().mockImplementation(() => ({
                     setCredentials: jest.fn(),
-                    getToken: jest.fn().mockResolvedValue({ tokens: { access_token: 'mock_access_token' } }),
+                    getToken: jest.fn().mockResolvedValue({ tokens: { access_token: 'mock_access_token', refresh_token: 'mock_refresh_token' } }),
                 })),
             },
             calendar: jest.fn().mockImplementation(() => ({
                 events: mockEvents,
                 calendarList: mockCalendarList,
+                calendars: mockCalendars,
             })),
         },
     };
 });
+
 
 jest.mock('../../src/firebaseHelper', () => ({
     getRefreshToken: jest.fn().mockResolvedValue('mocked_refresh_token')
@@ -125,6 +135,27 @@ describe('POST /api/create-event', () => {
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveProperty('data');
         expect(response.body.data).toHaveProperty('id', 'new-event-id');
+    });
+});
+
+describe('/create-calendar endpoint', () => {
+    it('should create a calendar and return its details', async () => {
+        const requestBody = {
+            summary: 'Test Event',
+            description: 'This is a test description',
+            location: 'Test Location',
+            startDateTime: new Date().toISOString(),
+            endDateTime: new Date().toISOString(),
+            calendarId: 'primary',
+            uid: 'testUID',
+        };
+
+        const response = await request(app)
+            .post('/api/create-calendar')
+            .send(requestBody);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty('id', 'new-calendar-id');
     });
 });
 
