@@ -1,6 +1,7 @@
 # SyllabusSync
 
 ![Github build](https://github.com/rabi3daoudd/SyllabusSync/actions/workflows/ci-cd.yml/badge.svg?branch=master)
+![Vercel Deploy](https://therealsujitk-vercel-badge.vercel.app/?app=syllabus-sync-five&label=ssync.ca)
 
 <p align="center">
   <img src="./public/Readme_hero.png" alt="SyllabusSync Logo"/>
