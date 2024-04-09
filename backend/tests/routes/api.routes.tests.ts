@@ -75,6 +75,20 @@ describe('POST /api/create-tokens', () => {
     });
 });
 
+describe('POST /create-tokens', () => {
+    it('should return 400 if uid is missing', async () => {
+        const requestBody = {
+            code: 'validCode'
+        };
+
+        const response = await request(app)
+            .post('/api/create-tokens')
+            .send(requestBody);
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({});
+    });
+});
 
 describe('GET /api/list-events', () => {
     it('should retrieve a list of calendar events', async () => {
@@ -88,6 +102,49 @@ describe('GET /api/list-events', () => {
     });
 });
 
+describe('GET /list-events', () => {
+    beforeEach(() => {
+        (google.calendar('v3').events.list as jest.Mock).mockResolvedValueOnce({
+            data: {
+                items: [
+                    { id: 'event1', summary: 'Event 1' },
+                    { id: 'event2', summary: 'Event 2' },
+                ],
+            },
+        });
+    });
+    it('should successfully return a list of events', async () => {
+
+        const uid = 'validUID';
+        const response = await request(app).get(`/api/list-events?uid=${uid}`);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.items).toHaveLength(2);
+        expect(response.body.items[0]).toHaveProperty('id', 'event1');
+        expect(response.body.items[1]).toHaveProperty('summary', 'Event 2');
+    });
+});
+
+describe('GET /list-events', () => {
+    it('should return 400 if uid query parameter is missing', async () => {
+        const response = await request(app).get(`/api/list-events`);
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toHaveProperty('message', "User ID is missing");
+    });
+});
+
+describe('GET /list-events', () => {
+    it('should handle Google Calendar API errors gracefully', async () => {
+        (google.calendar('v3').events.list as jest.Mock).mockRejectedValueOnce(new Error('Google Calendar API Error'));
+
+        const uid = 'validUIDWithError';
+        const response = await request(app).get(`/api/list-events?uid=${uid}`);
+
+        expect(response.statusCode).toBe(500);
+        expect(response.body).toEqual({});
+    });
+});
 
 describe('GET /api/list-user-calendars', () => {
     it('should retrieve a list of user calendars', async () => {
@@ -138,7 +195,7 @@ describe('POST /api/create-event', () => {
     });
 });
 
-describe('/create-calendar endpoint', () => {
+describe('POST /create-calendar', () => {
     it('should create a calendar and return its details', async () => {
         const requestBody = {
             summary: 'Test Event',
@@ -158,4 +215,138 @@ describe('/create-calendar endpoint', () => {
         expect(response.body).toHaveProperty('id', 'new-calendar-id');
     });
 });
+
+describe('POST /create-calendar', () => {
+    it('should return 400 if required fields are missing', async () => {
+        const requestBody = {
+            description: 'This is a test description',
+            timeZone: 'America/Los_Angeles',
+        };
+
+        const response = await request(app)
+            .post('/api/create-calendar')
+            .send(requestBody);
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({});
+    });
+});
+
+describe('POST /create-calendar', () => {
+    beforeAll(() => {
+        (google.calendar('v3').calendars.insert as jest.Mock).mockRejectedValueOnce(new Error('Google Calendar API Error'));
+    });
+
+    it('should handle Google Calendar API errors gracefully', async () => {
+        const requestBody = {
+            summary: 'Test Event with API Failure',
+            description: 'This event creation should fail due to API error',
+            timeZone: 'America/Los_Angeles',
+            uid: 'testUID',
+        };
+
+        const response = await request(app)
+            .post('/api/create-calendar')
+            .send(requestBody);
+
+        expect(response.statusCode).toBe(500);
+        expect(response.body).toEqual({});
+    });
+});
+
+describe('Get all events from all calendars', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        
+        (google.calendar('v3').calendarList.list as jest.Mock).mockResolvedValue({
+            data: {
+                items: [
+                    { id: 'calendar1', summary: 'Test Calendar 1' },
+                    { id: 'calendar2', summary: 'Test Calendar 2' },
+                ],
+            },
+        });
+
+        const mockEventListResponses = [
+            { data: { items: [{ id: 'event1', summary: 'Event 1 from Calendar 1' }] } },
+            { data: { items: [{ id: 'event2', summary: 'Event 2 from Calendar 2' }] } },
+        ];
+
+        let callCount = 0;
+        (google.calendar('v3').events.list as jest.Mock).mockImplementation(() =>
+            Promise.resolve(mockEventListResponses[callCount++] || { data: { items: [] } })
+        );
+    });
+
+    it('should fetch events from all user calendars', async () => {
+        const uid = 'user123';
+
+        const calendarListResponse = await request(app).get(`/api/list-user-calendars?uid=${uid}`);
+        expect(calendarListResponse.statusCode).toBe(200);
+        expect(calendarListResponse.body.items.length).toBeGreaterThan(0);
+
+        let allEvents = [];
+        for (let calendar of calendarListResponse.body.items) {
+            const eventsResponse = await request(app).get(`/api/list-events?uid=${uid}&calendarId=${calendar.id}`);
+            expect(eventsResponse.statusCode).toBe(200);
+            allEvents.push(...eventsResponse.body.items);
+        }
+
+        expect(allEvents).toEqual(expect.arrayContaining([
+            expect.objectContaining({ id: 'event1', summary: 'Event 1 from Calendar 1' }),
+            expect.objectContaining({ id: 'event2', summary: 'Event 2 from Calendar 2' }),
+        ]));
+    });
+
+    it('should handle failure to fetch list of calendars', async () => {
+        (google.calendar('v3').calendarList.list as jest.Mock).mockRejectedValue(new Error('Failed to fetch calendars'));
+
+        const uid = 'user123';
+        const response = await request(app).get(`/api/list-user-calendars?uid=${uid}`);
+
+        expect(response.statusCode).toBe(500);
+    });
+
+    it('should handle errors when fetching events for a specific calendar', async () => {
+        (google.calendar('v3').events.list as jest.Mock)
+            .mockResolvedValueOnce({ data: { items: [{ id: 'event1', summary: 'Event 1 from Calendar 1' }] } })
+            .mockRejectedValueOnce(new Error('Failed to fetch events'));
+
+        const uid = 'user123';
+        const calendarListResponse = await request(app).get(`/api/list-user-calendars?uid=${uid}`);
+        expect(calendarListResponse.statusCode).toBe(200);
+
+        const eventsResponse = await request(app).get(`/api/list-events?uid=${uid}&calendarId=calendar1`);
+        expect(eventsResponse.statusCode).toBe(200);
+
+        const failedEventsResponse = await request(app).get(`/api/list-events?uid=${uid}&calendarId=calendar2`);
+        expect(failedEventsResponse.statusCode).toBe(500);
+    });
+
+    it('should handle empty event lists from a calendar', async () => {
+
+        (google.calendar('v3').events.list as jest.Mock)
+            .mockResolvedValueOnce({ data: { items: [{ id: 'event1', summary: 'Event 1 from Calendar 1' }] } })
+            .mockResolvedValueOnce({ data: { items: [] } });
+
+        const uid = 'user123';
+        const calendarListResponse = await request(app).get(`/api/list-user-calendars?uid=${uid}`);
+        expect(calendarListResponse.statusCode).toBe(200);
+
+        let allEvents = [];
+        for (let calendar of calendarListResponse.body.items) {
+            const eventsResponse = await request(app).get(`/api/list-events?uid=${uid}&calendarId=${calendar.id}`);
+            expect(eventsResponse.statusCode).toBe(200);
+            allEvents.push(...eventsResponse.body.items);
+        }
+        expect(allEvents).toEqual(expect.arrayContaining([
+            expect.objectContaining({ id: 'event1', summary: 'Event 1 from Calendar 1' })
+        ]));
+        expect(allEvents.length).toBe(1);
+    });
+
+});
+
+
+
 
