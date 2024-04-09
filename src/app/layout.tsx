@@ -1,18 +1,24 @@
-import { Metadata } from 'next'
-export const metadata: Metadata = {
-  title: 'SyllabusSync',
-  description: 'My App is SyllabusSync',
-}
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+import React from "react";
+import Navbar from "@/components/navigation/Navbar";
+import { usePathname } from "next/navigation";
+import { Toaster } from "@/components/ui/toaster"
+
+type LayoutProps = {
+  children: React.ReactNode;
+};
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const pathname = usePathname();
+  const shouldShowNavbar =
+    pathname !== "/login" && pathname !== "/signup";
+
   return (
-    <html lang="en">
-      <body>
-        <div id="root">{children}</div>
-      </body>
-    </html>
-  )
-}
+    <>
+      {shouldShowNavbar && <Navbar />}
+      <main>{children}</main>
+      <Toaster />
+    </>
+  );
+};
+
+export default Layout;

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
-import { readDataStream } from "@/lib/read-data-stream"
+import { readDataStream } from "@/lib/read-data-stream";
 import { AssistantStatus, Message } from "ai/react";
 import { ChangeEvent, useRef, useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
@@ -166,7 +166,7 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="mt-20 bg-[#E6E6E6] bg-opacity-20 outline-4 backdrop-blur-lg rounded-xl shadow-lg w-12/12 md:w-3/4 lg:w-2/2 h-3/5 p-4 flex flex-col">
+    <div className="mt-10 bg-white bg-opacity-20 border border-[#18A1AD] outline-4 backdrop-blur-lg rounded-xl shadow-lg w-12/12 md:w-3/4 lg:w-2/2 h-3/5 p-4 flex flex-col z-20">
       <div className="flex-1 overflow-auto p-4 space-y-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold">

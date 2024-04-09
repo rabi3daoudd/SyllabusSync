@@ -25,6 +25,7 @@ export const fetchAllEventsFromAllCalendars = async (uid: string): Promise<Calen
 
         for (const calendar of calendars) {
             const queryParams = new URLSearchParams(commonQueryParams);
+            console.log(calendar.id);
             queryParams.set('calendarId', calendar.id || 'primary');
 
             const eventsResponse = await axios.get(`http://localhost:3001/api/list-events?${queryParams}`);
@@ -43,3 +44,29 @@ export const fetchAllEventsFromAllCalendars = async (uid: string): Promise<Calen
     }
     return allEvents;
 };
+
+export const createCalendarEvent = async (
+    summary: string,
+    description: string,
+    location: string,
+    startDateTime: string,
+    endDateTime: string,
+    calendarId: string,
+    uid: string
+  ): Promise<void> => {
+    try {
+      await axios.post('http://localhost:3001/api/create-event', {
+        summary,
+        description,
+        location,
+        startDateTime,
+        endDateTime,
+        calendarId,
+        uid,
+      });
+      console.log('Event created successfully');
+    } catch (error) {
+      console.error('Failed to create calendar event:', error);
+      throw error;
+    }
+  };

@@ -1,4 +1,5 @@
 name: CI-CD-pipeline
+
 on:
   push:
     branches:
@@ -6,29 +7,47 @@ on:
   pull_request:
     branches:
       - master
+
 jobs:
   # Build Job
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
       - name: Install Node
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
+
       - name: Install Dependencies
         run: npm install
+
+      - name: Set Environment Variables
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+        run: |
+          echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV          
+          echo "OPENAI_ASSISTANT_ID=$OPENAI_ASSISTANT_ID" >> $GITHUB_ENV
+
       - name: Run Frontend Unit Tests
         run: npm test
+
       - name: Run Backend Unit Tests
         run: npm test
         working-directory: ./backend
+
       - name: Build Project
         run: npm run build
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+          
       - name: Upload artifact to enable deployment
         uses: actions/upload-artifact@v3
         with:
           name: production-files
           path: ./dist
-
