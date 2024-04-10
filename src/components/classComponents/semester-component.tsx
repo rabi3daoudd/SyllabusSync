@@ -8,10 +8,10 @@ import {
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "../ui/accordion.tsx"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer.tsx";
-import { Input } from "../ui/input.tsx";
-import { Label } from "../ui/label.tsx";
+} from "../ui/accordion"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 interface Assignment {
     name: string;
