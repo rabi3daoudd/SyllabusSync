@@ -17,6 +17,7 @@
       "DOM.Iterable"
     ],
     "module": "ESNext",
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
