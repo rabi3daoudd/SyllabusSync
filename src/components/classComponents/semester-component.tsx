@@ -96,7 +96,7 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({ index, name, star
 
                         <Drawer open={isDrawerOpen}>
                             <DrawerTrigger asChild onClick={() => setIsDrawerOpen(true)}>
-                                <Button className="bg-[#1FCAD9] text-[#FFFFFF]">+ Add Class</Button>
+                                <Button data-testid="add-class-button" className="bg-[#1FCAD9] text-[#FFFFFF]">+ Add Class</Button>
                             </DrawerTrigger>
                             <DrawerContent>
                                 <DrawerHeader>
@@ -129,9 +129,6 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({ index, name, star
                             ))}
                         </Accordion>
                     </div>
-
-
-
                 </AccordionContent>
             </div>
         </AccordionItem>
