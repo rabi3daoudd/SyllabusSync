@@ -1,17 +1,17 @@
 import React, { useState } from "react"
-import { Button } from "../ui/button.tsx"
+import { Button } from "../ui/button"
 import { format } from "date-fns";
-import ClassComponent from "./class-component.tsx"
+import ClassComponent from "./class-component"
 
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "../ui/accordion.tsx"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer.tsx";
-import { Input } from "../ui/input.tsx";
-import { Label } from "../ui/label.tsx";
+} from "../ui/accordion"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 interface Assignment {
     name: string;
@@ -96,7 +96,7 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({ index, name, star
 
                         <Drawer open={isDrawerOpen}>
                             <DrawerTrigger asChild onClick={() => setIsDrawerOpen(true)}>
-                                <Button className="bg-[#1FCAD9] text-[#FFFFFF]">+ Add Class</Button>
+                                <Button data-testid="add-class-button" className="bg-[#1FCAD9] text-[#FFFFFF]">+ Add Class</Button>
                             </DrawerTrigger>
                             <DrawerContent>
                                 <DrawerHeader>
@@ -129,9 +129,6 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({ index, name, star
                             ))}
                         </Accordion>
                     </div>
-
-
-
                 </AccordionContent>
             </div>
         </AccordionItem>

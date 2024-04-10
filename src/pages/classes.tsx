@@ -153,6 +153,7 @@ const ClassPage: React.FC = () => {
             {semesters.map((semester, index) => (
               <>
                 <SemesterComponent
+                  key = {semester.name}
                   index={index + 1}
                   name={semester.name}
                   startDate={semester.start}
