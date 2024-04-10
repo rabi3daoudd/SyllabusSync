@@ -1,7 +1,7 @@
 import React, { useState } from "react"
-import { Button } from "../ui/button.tsx"
+import { Button } from "../ui/button"
 import { format } from "date-fns";
-import ClassComponent from "./class-component.tsx"
+import ClassComponent from "./class-component"
 
 import {
     Accordion,
