@@ -1,28 +1,34 @@
-import * as React from "react"
-import * as AccordionPrimitive from "@radix-ui/react-accordion"
-import { ChevronDown } from "lucide-react"
+// Import necessary modules and components
+import * as React from "react" // Import React for component creation
+import * as AccordionPrimitive from "@radix-ui/react-accordion" // Import AccordionPrimitive from @radix-ui/react-accordion
+import { ChevronDown } from "lucide-react" // Import ChevronDown from lucide-react
 
-import { cn } from "../../lib/utils"
+import { cn } from "../../lib/utils" // Import cn utility for class name manipulation
 
+// Define the Accordion component using the Root component from AccordionPrimitive
 const Accordion = AccordionPrimitive.Root
 
+// Define the AccordionItem component using the Item component from AccordionPrimitive
+// This component is forwarded a ref and accepts all props that the Item component from AccordionPrimitive accepts
 const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
-    className={cn("border-b", className)}
+    className={cn("border-b", className)} // Use the cn utility to combine class names
     {...props}
   />
 ))
-AccordionItem.displayName = "AccordionItem"
+AccordionItem.displayName = "AccordionItem" // Set the display name of the AccordionItem component
 
+// Define the AccordionTrigger component using the Trigger component from AccordionPrimitive
+// This component is forwarded a ref and accepts all props that the Trigger component from AccordionPrimitive accepts
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
-  <AccordionPrimitive.Header className="flex">
+  <AccordionPrimitive.Header className="flex"> // Use the Header component from AccordionPrimitive
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
@@ -31,8 +37,8 @@ const AccordionTrigger = React.forwardRef<
       )}
       {...props}
     >
-      {children}
-      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+      {children} // Render the children inside the Trigger component
+      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" /> // Render the ChevronDown component
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ))

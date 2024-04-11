@@ -1,8 +1,11 @@
-import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
+// Import necessary modules and components
+import * as React from "react" // Import React for component creation
+import * as AvatarPrimitive from "@radix-ui/react-avatar" // Import AvatarPrimitive from @radix-ui/react-avatar
 
-import { cn } from "src/lib/utils"
+import { cn } from "src/lib/utils" // Import cn utility for class name manipulation
 
+// Define the Avatar component using the Root component from AvatarPrimitive
+// This component is forwarded a ref and accepts all props that the Root component from AvatarPrimitive accepts
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
@@ -16,8 +19,10 @@ const Avatar = React.forwardRef<
     {...props}
   />
 ))
-Avatar.displayName = AvatarPrimitive.Root.displayName
+Avatar.displayName = AvatarPrimitive.Root.displayName // Set the display name of the Avatar component
 
+// Define the AvatarImage component using the Image component from AvatarPrimitive
+// This component is forwarded a ref and accepts all props that the Image component from AvatarPrimitive accepts
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
@@ -28,7 +33,9 @@ const AvatarImage = React.forwardRef<
     {...props}
   />
 ))
-AvatarImage.displayName = AvatarPrimitive.Image.displayName
+AvatarImage.displayName = AvatarPrimitive.Image.displayName // Set the display name of the AvatarImage component
+
+// Define the AvatarFallback component using the Fallback component from AvatarPrimitive
 
 const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Fallback>,
