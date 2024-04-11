@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
   return experimental_AssistantResponse(
     { threadId, messageId: createdMessage.id },
     async ({ threadId, sendMessage, forwardStream }) => {
-
       // Run the assistant on the thread with streaming
       const runStream = openai.beta.threads.runs.stream(threadId, {
         assistant_id:
@@ -75,15 +74,15 @@ export async function POST(req: NextRequest) {
 
       // Send the messages
       // Send the messages
-for (const message of responseMessages) {
-    sendMessage({
-      id: message.id,
-      role: "assistant",
-      content: message.content.filter(
-        (content): content is TextContentBlock => content.type === "text"
-      ) as TextContentBlock[],
-    });
-  }
+      for (const message of responseMessages) {
+        sendMessage({
+          id: message.id,
+          role: "assistant",
+          content: message.content.filter(
+            (content): content is TextContentBlock => content.type === "text"
+          ) as TextContentBlock[],
+        });
+      }
     }
   );
 }

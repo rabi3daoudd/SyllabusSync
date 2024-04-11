@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 //   assistant: "lightgreen",
 // };
 
+// Dot animation for the assistant typing indicator (3 dots)
 const DotAnimation = () => {
   const dotVariants = {
     initial: { opacity: 0 },
@@ -52,6 +53,7 @@ const DotAnimation = () => {
 };
 
 const ChatBot = () => {
+  // Set the initial state of the chatbot component
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | undefined>(undefined);
@@ -63,6 +65,7 @@ const ChatBot = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesBottomRef = useRef<HTMLDivElement | null>(null);
 
+  // Scroll to the bottom of the chat when new messages are added
   useEffect(() => {
     messagesBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -73,6 +76,7 @@ const ChatBot = () => {
     }
   };
 
+  // Handle form submission and send the message to the assistant
   const handleFormSubmit = async (
     e: React.FormEvent | React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -103,10 +107,12 @@ const ChatBot = () => {
     }
 
     try {
+      // Read the response stream and update the messages accordingly
       for await (const { type, value } of readDataStream(
         result.body.getReader()
       )) {
         switch (type) {
+          // Add the assistant message to the messages array
           case "assistant_message": {
             const messageContent = value.content
               .map((c) => c.text.value)
@@ -123,6 +129,7 @@ const ChatBot = () => {
             }
             break;
           }
+          // Update the threadId and messageId for the assistant control data
           case "assistant_control_data": {
             setThreadId(value.threadId);
             setMessages((prevMessages) => {
@@ -150,17 +157,20 @@ const ChatBot = () => {
     setIsEmpty(true); // Reset isEmpty to true after sending the message
   };
 
+  // Handle file change and update the file state
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setFile(file);
     setIsEmpty(!file); // Set isEmpty to false if a file is selected
   };
 
+  // Handle message change and update the message state
   const handleMessageChange = (e: ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
     setIsEmpty(e.target.value.trim() === ""); // Update isEmpty based on the input value
   };
 
+  // Open the file explorer when the attach file button is clicked
   const handleOpenFileExplorer = () => {
     fileInputRef.current?.click();
   };
