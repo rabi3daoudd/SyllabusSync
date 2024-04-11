@@ -35,9 +35,10 @@ export default function Settings() {
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
   const [isGoogleCalendarSynced, setIsGoogleCalendarSynced] = useState(false);
 
-  const { toast } = useToast();
+  const { toast } = useToast(); // Use the useToast hook to show toasts
 
   useEffect(() => {
+    // Fetch the user data from Firestore when the component mounts and set the state
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         const userDocRef = doc(db, "users", user.uid);
@@ -60,6 +61,7 @@ export default function Settings() {
     return () => unsubscribe();
   }, []);
 
+  // Function to handle saving the user data to Firestore
   const handleSaveInfo = async () => {
     try {
       const user = auth.currentUser;
@@ -123,12 +125,14 @@ export default function Settings() {
     }
   };
 
+  // Function to handle saving the user preferences to Firestore
   const handleSavePreferences = async () => {
     try {
       const user = auth.currentUser;
       if (user) {
         // Validate the required fields for preferences
         if (!studyTimes.trim() || !sessionDuration.trim()) {
+          // Show a toast message if the required fields are not filled
           toast({
             title: "Validation Error",
             description:
@@ -148,7 +152,7 @@ export default function Settings() {
         };
 
         await updateDoc(userDocRef, updatedPreferences);
-
+        // Fetch the updated user data from Firestore
         toast({
           title: "Preferences Updated",
           description: "Your study preferences have been successfully updated.",
@@ -158,6 +162,7 @@ export default function Settings() {
         setHasChanges(false);
       }
     } catch (error) {
+      // Show a toast message if an error occurs while updating the preferences
       toast({
         title: "Error updating preferences",
         description:
@@ -169,6 +174,7 @@ export default function Settings() {
     }
   };
 
+  // Function to handle input change and set hasChanges to true
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     setter: React.Dispatch<React.SetStateAction<string>>
@@ -177,11 +183,13 @@ export default function Settings() {
     setHasChanges(true);
   };
 
+  // Function to handle edit click and toggle isEditing state
   const handleEditClick = () => {
     setIsEditing((prevIsEditing) => !prevIsEditing);
     setHasChanges(false);
   };
 
+  // Function to handle edit preferences click and toggle isEditingPreferences state
   const handleEditPreferencesClick = () => {
     setIsEditingPreferences((prevIsEditing) => !prevIsEditing);
   };

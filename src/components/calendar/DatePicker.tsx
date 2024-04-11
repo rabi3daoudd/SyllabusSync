@@ -1,37 +1,41 @@
+// Use the client-side rendering strategy
 "use client"
 
-import * as React from "react"
-import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+// Import necessary modules and components
+import * as React from "react" // Import React for component creation
+import { format } from "date-fns" // Import format function from date-fns for date formatting
+import { Calendar as CalendarIcon } from "lucide-react" // Import CalendarIcon from lucide-react
+import { cn } from "@/lib/utils" // Import cn utility for class name manipulation
+import { Button } from "@/components/ui/button" // Import Button component
+import { Calendar } from "@/components/ui/calendar" // Import Calendar component
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover" // Import Popover components
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select" // Import Select components
 
+// Define the type for the props of the DatePickerWithPresets component
 interface DatePickerWithPresetsProps {
-  date: Date | undefined;
-  onChange: (date: Date | undefined) => void;
+  date: Date | undefined; // date prop will accept a Date object or undefined
+  onChange: (date: Date | undefined) => void; // onChange prop will accept a function that takes a Date object or undefined
 }
 
+// Define the DatePickerWithPresets component
 export function DatePickerWithPresets({ date, onChange }: DatePickerWithPresetsProps) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
+    <Popover> // Use the Popover component to create a dropdown
+      <PopoverTrigger asChild> // Use the PopoverTrigger component to define the trigger for the dropdown
+        <Button // Use the Button component to create the trigger button
+          variant={"outline"} // Set the variant of the button to "outline"
           className={cn(
-            "w-[280px] justify-start text-left font-normal",
+            "w-[280px] justify-start text-left font-normal", // Set the class name of the button
             !date && "text-muted-foreground"
           )}
         >
