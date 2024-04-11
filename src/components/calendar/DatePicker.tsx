@@ -30,12 +30,12 @@ interface DatePickerWithPresetsProps {
 // Define the DatePickerWithPresets component
 export function DatePickerWithPresets({ date, onChange }: DatePickerWithPresetsProps) {
   return (
-    <Popover> // Use the Popover component to create a dropdown
-      <PopoverTrigger asChild> // Use the PopoverTrigger component to define the trigger for the dropdown
-        <Button // Use the Button component to create the trigger button
-          variant={"outline"} // Set the variant of the button to "outline"
+    <Popover> 
+      <PopoverTrigger asChild> 
+        <Button 
+          variant={"outline"} 
           className={cn(
-            "w-[280px] justify-start text-left font-normal", // Set the class name of the button
+            "w-[280px] justify-start text-left font-normal", 
             !date && "text-muted-foreground"
           )}
         >
