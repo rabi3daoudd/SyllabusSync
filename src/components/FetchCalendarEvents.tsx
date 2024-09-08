@@ -25,7 +25,7 @@ const FetchCalendarEvents = () => {
         const queryParams = new URLSearchParams({ uid: firebaseUser.uid, calendarId: calendarId, });
 
         //TODO change url to actual server url
-        axios.get(`http://localhost:3001/api/list-events?${queryParams}`)
+        axios.get(`/api/list-events?${queryParams}`)
             .then(response => {
                 console.log('Calendar events fetched:', response.data);
             })
