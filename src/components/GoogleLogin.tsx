@@ -20,8 +20,6 @@ export const useCustomGoogleLogin = () => {
                 console.error('No Firebase user logged in');
                 return;
             }
-            console.log('code: ', code);
-            console.log('firebase user: ', firebaseUser.uid);
             try {
                 const response = await axios.post('/api/create-tokens', {
                     code,
