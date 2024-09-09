@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { getRefreshToken } from '../../lib/firebaseHelper';
 import { clientId, clientSecret } from '../../config/config';
@@ -9,14 +9,14 @@ const oauth2Client = new google.auth.OAuth2(
     'http://localhost:3000' // Replace with actual client URL if needed
 );
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
-    console.log("testing 123");
+export async function GET(req: NextRequest) {
     try {
-        const uid = req.query.uid as string;
-        const calendarId = (req.query.calendarId as string) || 'primary';
+        const { searchParams } = new URL(req.url);
+        const uid = searchParams.get('uid');
+        const calendarId = searchParams.get('calendarId') || 'primary';
 
         if (!uid) {
-            return res.status(400).json({ message: 'User ID is missing' });
+            return NextResponse.json({ message: 'User ID is missing' }, { status: 400 });
         }
 
         const refreshToken = await getRefreshToken(uid);
@@ -32,9 +32,9 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
             orderBy: 'startTime',
         });
 
-        return res.status(200).json(events.data);
+        return NextResponse.json(events.data, { status: 200 });
     } catch (error: any) {
         console.error('Error fetching events:', error.message || error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

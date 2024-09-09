@@ -28,7 +28,7 @@ const CreateCalendarEvent = () => {
                 return;
             }
 
-            axios.post('http://localhost:3001/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId, uid: firebaseUser.uid })
+            axios.post('/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId, uid: firebaseUser.uid })
                 .then(response => {
                     console.log(response.data);
                     setTriggerEventCreation(false);

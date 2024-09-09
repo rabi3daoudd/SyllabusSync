@@ -12,8 +12,6 @@ const oauth2Client = new google.auth.OAuth2(
 
 // Refactored to use NextResponse in the App Router
 export async function POST(req: NextRequest) {
-    console.log("POST method invoked");
-
     try {
         const body = await req.json();
         const { code, uid } = body;
