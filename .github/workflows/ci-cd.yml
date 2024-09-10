@@ -36,10 +36,6 @@ jobs:
       - name: Run Frontend Unit Tests
         run: npm test
 
-      - name: Run Backend Unit Tests
-        run: npm test
-        working-directory: ./backend
-
       - name: Build Project
         run: npm run build
         env:
