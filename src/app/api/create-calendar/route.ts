@@ -33,8 +33,12 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json(response.data, { status: 200 });
-    } catch (error: any) {
-        console.error('Failed to create calendar:', error.message || error);
-        return NextResponse.json({ message: 'Internal Server Error', error: error.message || error }, { status: 500 });
+    } catch (error: unknown) {
+        let errorMessage = 'Internal Server Error';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error('Failed to create calendar:', errorMessage);
+        return NextResponse.json({ message: errorMessage }, { status: 500 });
     }
 }

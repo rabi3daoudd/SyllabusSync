@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(calendarList.data, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching user calendars:', error.message || error);
 
         if (error.response) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { clientId, clientSecret } from '../../config/config';
-import { admin, db } from "../../lib/firebaseAdmin";
+import { db } from "../../lib/firebaseAdmin";
 
 // Initialize OAuth2 client
 const oauth2Client = new google.auth.OAuth2(

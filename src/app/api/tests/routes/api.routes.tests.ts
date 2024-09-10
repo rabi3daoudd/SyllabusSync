@@ -285,8 +285,8 @@ describe('Get all events from all calendars', () => {
         expect(calendarListResponse.statusCode).toBe(200);
         expect(calendarListResponse.body.items.length).toBeGreaterThan(0);
 
-        let allEvents = [];
-        for (let calendar of calendarListResponse.body.items) {
+        const allEvents = [];
+        for (const calendar of calendarListResponse.body.items) {
             const eventsResponse = await request(app).get(`/api/list-events?uid=${uid}&calendarId=${calendar.id}`);
             expect(eventsResponse.statusCode).toBe(200);
             allEvents.push(...eventsResponse.body.items);
@@ -333,8 +333,8 @@ describe('Get all events from all calendars', () => {
         const calendarListResponse = await request(app).get(`/api/list-user-calendars?uid=${uid}`);
         expect(calendarListResponse.statusCode).toBe(200);
 
-        let allEvents = [];
-        for (let calendar of calendarListResponse.body.items) {
+        const allEvents = [];
+        for (const calendar of calendarListResponse.body.items) {
             const eventsResponse = await request(app).get(`/api/list-events?uid=${uid}&calendarId=${calendar.id}`);
             expect(eventsResponse.statusCode).toBe(200);
             allEvents.push(...eventsResponse.body.items);
