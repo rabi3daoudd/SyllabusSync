@@ -30,18 +30,13 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(calendarList.data, { status: 200 });
-    } catch (error: unknown) {
-        console.error('Error fetching user calendars:', error.message || error);
-
-        if (error.response) {
-            // Handle API error
-            return NextResponse.json(error.response.data, { status: error.response.status });
-        } else if (error.request) {
-            // No response received
-            return NextResponse.json({ error: 'No response received from Google API' }, { status: 500 });
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error fetching user calendars:', error.message);
+            return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         } else {
-            // Other errors
-            return NextResponse.json({ error: 'Internal Server Error: ' + error.message }, { status: 500 });
+            console.error('Unexpected error:', error);
+            return NextResponse.json({ error: 'Unknown Internal Server Error' }, { status: 500 });
         }
     }
 }

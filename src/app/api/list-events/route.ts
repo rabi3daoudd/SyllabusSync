@@ -33,8 +33,13 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(events.data, { status: 200 });
-    } catch (error: unknown) {
-        console.error('Error fetching events:', error.message || error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error fetching events:', error.message);
+            return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        } else {
+            console.error('Unexpected error:', error);
+            return NextResponse.json({ error: 'Unknown Internal Server Error' }, { status: 500 });
+        }
     }
 }
