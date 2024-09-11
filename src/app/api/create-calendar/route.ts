@@ -11,7 +11,14 @@ const oauth2Client = new google.auth.OAuth2(
 
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        let body;
+
+        try {
+            body = await req.json();  // Parse request body
+        } catch (jsonError) {
+            return NextResponse.json({ message: 'Invalid JSON in request body' }, { status: 400 });
+        }
+
         const { summary, description, timeZone, uid } = body;
 
         if (!uid) {
