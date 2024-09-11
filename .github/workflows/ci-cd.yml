@@ -29,6 +29,9 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET:  ${{ secrets.CLIENT_SECRET }}
+          FIREBASE_ADMINSDK: ${{ secrets.FIREBASE_ADMINSDK }}
         run: |
           echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV          
           echo "OPENAI_ASSISTANT_ID=$OPENAI_ASSISTANT_ID" >> $GITHUB_ENV
@@ -41,6 +44,9 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET:  ${{ secrets.CLIENT_SECRET }}
+          FIREBASE_ADMINSDK: ${{ secrets.FIREBASE_ADMINSDK }}
           
       - name: Upload artifact to enable deployment
         uses: actions/upload-artifact@v3
