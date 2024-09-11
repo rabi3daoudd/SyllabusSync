@@ -20,14 +20,14 @@ export const useCustomGoogleLogin = () => {
                 console.error('No Firebase user logged in');
                 return;
             }
-
             try {
-                const response = await axios.post('http://localhost:3001/api/create-tokens', { code, uid: firebaseUser.uid });
+                const response = await axios.post('/api/create-tokens', {
+                    code,
+                    uid: firebaseUser.uid
+                });
 
-                //TODO remove this
                 console.log('Token exchange success:', response.data);
                 setIsAuthenticated(true);
-
             } catch (error) {
                 if (axios.isAxiosError(error)) {
                     // Now TypeScript knows error is an AxiosError

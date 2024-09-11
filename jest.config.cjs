@@ -7,7 +7,7 @@ module.exports = {
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx'],
   testMatch: [
     '**/*.spec.ts',
-    '**/*.test.ts',
+    '**/*.route.ts',
     '**/*.spec.tsx',
     '**/*.test.tsx'
   ],

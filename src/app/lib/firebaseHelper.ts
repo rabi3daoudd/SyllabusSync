@@ -1,10 +1,9 @@
-const admin = require('./firebaseAdmin');
+import { db } from './firebaseAdmin'; // Import the Firestore instance
 
 export async function getRefreshToken(uid: string): Promise<string> {
-    const userRef = admin.firestore().doc(`users/${uid}`);
+    const userRef = db.collection('users').doc(uid); // Use db.collection to access Firestore
     const docSnap = await userRef.get();
 
-    // Correctly using exists as a property, not a method
     if (docSnap.exists && docSnap.data()) {
         const refreshToken = docSnap.data()?.refresh_token;
         if (refreshToken) {
