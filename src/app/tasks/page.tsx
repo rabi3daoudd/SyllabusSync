@@ -1,22 +1,19 @@
+"use client"; 
+
 import { CreateTask } from "@/components/CreateTask";
 import { columns } from "@/components/datatable/columns";
 import { DataTable } from "@/components/datatable/data-table";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { Metadata } from "next";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
-import { auth, db } from "../firebase-config";
-import { taskSchema } from "./../data/schema";
+import { auth, db } from "../../firebase-config";
+import { taskSchema } from "./../../data/schema";
 
-import "../app/globals.css";
+import "../globals.css";
 
-export const metadata: Metadata = {
-  title: "Tasks",
-  description: "A task and issue tracker build using Tanstack Table.",
-};
 
 type TaskPageProps = {
   tasks: z.infer<typeof taskSchema>[];

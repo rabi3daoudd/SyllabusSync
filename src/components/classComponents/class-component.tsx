@@ -1,6 +1,6 @@
 
 
-import React, {useState } from "react"
+import React, {useState, useEffect} from "react"
 import { Button } from "../ui/button"
 
 import {
@@ -8,6 +8,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion"
+
+import { auth, db } from '../../firebase-config';
+import { doc, updateDoc, arrayUnion, getDoc, Timestamp } from 'firebase/firestore';
 
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer";
 import { Label } from "../ui/label";
@@ -27,29 +30,27 @@ import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import AssignmentComponent from "./assignment-component";
 
+import { z } from "zod"
+import { useRouter } from "next/router";
+import {assignmentSchema} from "../../data/classesSchema";
+import { onAuthStateChanged } from "firebase/auth";
 
 
 interface ClassComponentProps{
     index:number;
     name:string;
+    semesterName:string;
+    /*
     assignments: Assignment[]; 
     setAssignments: (newAssignment: Assignment) => void;
+    */
 }
 
 
-interface Assignment{
-    name:string,
-    day?:string,
-    date?:Date,
-    startingTime:string,
-    finishingTime:string,
-    location?:string,
-    occurance:string
-}
 
-
-const ClassComponent: React.FC<ClassComponentProps> = ({index,name,assignments,setAssignments}) => {
-
+const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}) => {
+    type Assignment = z.infer<typeof assignmentSchema>
+    const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [assignmentName, setAssignmentName] = useState("");
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [locationName,setLocationName] = useState("");
@@ -65,11 +66,65 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,assignments,s
     const [finishingTimeMinute, setFinishingTimeMinute] = useState("");
     const [startingTime, setStartingTime] = React.useState("");
     const [finishingTime, setFinishingTime] = React.useState("");
+    const [error, setError] = useState<Error | null>(null);
+    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        setLoading(true);  // Set loading to true at the start
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            try {
+              const userDocRef = doc(db, "users", user.uid);
+              const userDocSnap = await getDoc(userDocRef);
+      
+              if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+
+                const assignmentsWithDates = (userData.assignments || []).map((assignment: Assignment) => ({
+                    ...assignment,
+                    date: assignment.date instanceof Timestamp
+                    ? assignment.date.toDate() // Convert Firestore Timestamp to JavaScript Date
+                    : assignment.date || undefined // Use existing Date or undefined if no date
+                }));
+                const validatedAssignments = z
+                    .array(assignmentSchema)
+                    .parse(assignmentsWithDates);
+                const filteredAssignments = validatedAssignments.filter((cls) => cls.semesterName === semesterName && cls.className === name);
+                setAssignments(filteredAssignments);
+              } else {
+                console.error("No user document found!");
+              }        
+            } catch (error: unknown) {
+              if (error instanceof Error) {
+                setError(error);
+              } else {
+                setError(new Error("An error occurred while fetching assignments"));
+              }
+              console.error("Failed to fetch assignments:", error);
+            } finally {
+              setLoading(false);  // Set loading to false after data is fetched
+            }
+          } else {
+            router.push("/login");
+          }
+        });
+      
+        return unsubscribe;
+      }, []);
 
     
 
     const handleDayChange = (newValue: string) =>{
         setDay(newValue);
+    }
+
+    if (loading) {
+        return <div>Loading assignments...</div>;
+    }
+
+    if (error) {
+        return <div>Failed to load assignments</div>;
     }
 
 
@@ -196,7 +251,13 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,assignments,s
         setLocationName(event.target.value);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+
+        const user = auth.currentUser;
+        if (!user) {
+            console.error("No user logged in!");
+            return;
+        }
         
         if(!startingTimeHour || !startingTimeMinute || !finishingTimeHour || !finishingTimeMinute || !startingTimeAmOrPm || !finishingTimeAmOrPm ){
             alert("Please fill in the time fields.");
@@ -253,31 +314,43 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,assignments,s
             return;
         }
         const newAssignment = {
+          semesterName: semesterName,
+          className: name,
           name: assignmentName,
-          day:day,
-          date: date,
+          day: occurance === "OneTime" ? "" : day,
           startingTime:startingTime,
           finishingTime:finishingTime,
           location:locationName,
-          occurance:occurance
-          
+          occurance:occurance,
+          ...(occurance === "OneTime" && date ? { date } : {})
         };
-        setAssignments(newAssignment);
-        // Clear the form
-        setAssignmentName("");
-        setDay("");
-        setDate(undefined);
-        setStartingTime("");
-        setFinishingTime("");
-        setStartingTimeHour("");
-        setFinishingTimeHour("");
-        setFinishingTimeMinute("");
-        setStartingTimeMinute("");
-        setStartingTimeAmOrPm("");
-        setFinishingTimeAmOrPm("");
-        setLocationName("");
-        setOccurance("");
-        setIsDrawerOpen(false);
+
+        try {
+            const userDocRef = doc(db, 'users', user.uid);
+            await updateDoc(userDocRef, {
+                assignments: arrayUnion(newAssignment),
+            });
+            setAssignments([...assignments, newAssignment]);
+            // Clear the form
+            setAssignmentName("");
+            setDay("");
+            setDate(undefined);
+            setStartingTime("");
+            setFinishingTime("");
+            setStartingTimeHour("");
+            setFinishingTimeHour("");
+            setFinishingTimeMinute("");
+            setStartingTimeMinute("");
+            setStartingTimeAmOrPm("");
+            setFinishingTimeAmOrPm("");
+            setLocationName("");
+            setOccurance("");
+            setIsDrawerOpen(false);
+
+        } catch (error) {
+            // Handle the error
+            console.error("Error adding class: ", error);
+        }
     };
 
     const handleOccuranceChange = (value: string) =>{
@@ -427,7 +500,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,assignments,s
                                 index={index+1}
                                 name={assignmentObject.name}
                                 day={assignmentObject.day}
-                                date={assignmentObject.date}
+                                date={assignmentObject.date || undefined}
                                 startingTime={assignmentObject.startingTime}
                                 finishingTime={assignmentObject.finishingTime}
                                 location={assignmentObject.location}

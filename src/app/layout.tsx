@@ -1,16 +1,16 @@
+// Use client directive if using client-side hooks like usePathname
+"use client"; 
+
 // Import necessary modules and components
 import React from "react";
 import Navbar from "@/components/navigation/Navbar"; // Import Navbar component
 import { usePathname } from "next/navigation"; // Import usePathname hook from Next.js
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster component
+import "./globals.css";
 
-// Define the type for the props of the Layout component
-type LayoutProps = {
-  children: React.ReactNode; // children prop will accept any valid React node
-};
 
-// Define the Layout component
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+// Define the RootLayout component
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); // Get the current path using the usePathname hook
 
   // Determine whether to show the Navbar
@@ -18,13 +18,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const shouldShowNavbar = pathname !== "/login" && pathname !== "/signup";
 
   return (
-    <>
-      {shouldShowNavbar && <Navbar />}
-      <main>{children}</main>
-      <Toaster />
-    </>
+    <html lang="en">
+      <head>
+        {/* Place global head elements here if needed */}
+      </head>
+      <body>
+        {shouldShowNavbar && <Navbar />}
+        <main>{children}</main>
+        <Toaster />
+      </body>
+    </html>
   );
-};
-
-// Export the Layout component as the default export
-export default Layout;
+}
