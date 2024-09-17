@@ -1,6 +1,8 @@
+"use client"; 
+
 import { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db, auth } from "../firebase-config";
+import { db, auth } from "../../firebase-config";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { TabsTrigger, TabsList, TabsContent, Tabs } from "@/components/ui/tabs";

@@ -1,10 +1,10 @@
-import { useRouter } from "next/router";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import ChatBot from "../components/assistant/Chat";
-import { auth } from "../firebase-config";
-
-import "../app/globals.css";
+import ChatBot from "@/components/assistant/Chat";
+import { auth } from "../../firebase-config";
 
 export default function Chat() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function Chat() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   return (
     <div className="flex flex-col min-h-screen z-45">

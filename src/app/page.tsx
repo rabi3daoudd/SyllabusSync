@@ -1,6 +1,8 @@
+"use client"; 
+
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase-config";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import {
   CardTitle,
@@ -15,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MyCalendar from "@/components/MyCalendar";
 import { fetchAllEventsFromAllCalendars } from "@/components/api";
 import Link from "next/link";
-import "../app/globals.css";
+import "./globals.css";
 
 interface CalendarEvent {
   title: string;
