@@ -3,6 +3,8 @@ import { google } from 'googleapis';
 import { getRefreshToken } from '../../lib/firebaseHelper';
 import { clientId, clientSecret } from '../../config/config';
 
+export const dynamic = "force-dynamic";
+
 const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
@@ -11,7 +13,7 @@ const oauth2Client = new google.auth.OAuth2(
 
 export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
+        const { searchParams } = req.nextUrl;
         const uid = searchParams.get('uid');
         const calendarId = searchParams.get('calendarId') || 'primary';
 

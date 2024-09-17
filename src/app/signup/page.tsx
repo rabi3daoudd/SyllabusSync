@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React, { useState, FormEvent } from 'react';
-import { useRouter } from 'next/router'; // Import useRouter
+import { useRouter } from 'next/navigation'; // Use useRouter from 'next/navigation'
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../../firebase-config'; // Update the path as needed
 import { doc, setDoc } from "firebase/firestore";
@@ -31,7 +31,10 @@ const SignUpPage: React.FC = () => {
         email: email
       });
       console.log("Account created and user information saved");
-      router.push('/');
+
+      // Use setTimeout to ensure it's called after rendering
+      setTimeout(() => router.push('/'), 0);
+      
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);
@@ -68,7 +71,7 @@ const SignUpPage: React.FC = () => {
         <p className="text-center">
           Already have an account?{' '}
           <Link href="/login">
-          <span className="text-blue-500 hover:text-blue-700 cursor-pointer">Login</span>
+            <span className="text-blue-500 hover:text-blue-700 cursor-pointer">Login</span>
           </Link>
         </p>
       </CardFooter>
