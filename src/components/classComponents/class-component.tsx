@@ -31,7 +31,7 @@ import { cn } from "../../lib/utils";
 import AssignmentComponent from "./assignment-component";
 
 import { z } from "zod"
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import {assignmentSchema} from "../../data/classesSchema";
 import { onAuthStateChanged } from "firebase/auth";
 

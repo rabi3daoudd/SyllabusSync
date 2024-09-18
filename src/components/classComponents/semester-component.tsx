@@ -6,7 +6,7 @@ import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import ClassComponent from "./class-component"
 import { classSchema} from "../../data/classesSchema";
 import { z } from "zod"
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import {
     Accordion,

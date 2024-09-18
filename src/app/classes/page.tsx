@@ -53,11 +53,11 @@ const ClassPage: React.FC = () => {
                 : new Date(semester.start), // Convert Firestore Timestamp to JavaScript Date
                 end: semester.end instanceof Timestamp
                 ? semester.end.toDate()
-                : new Date(semester.start)
+                : new Date(semester.end)
             }));
               const validatedSemesters = z
-                  .array(semestersWithDates)
-                  .parse(userData.semesters || []);
+                  .array(semesterSchema)
+                  .parse(semestersWithDates || []);
               setSemesters(validatedSemesters);
             } else {
               console.error("No user document found!");
