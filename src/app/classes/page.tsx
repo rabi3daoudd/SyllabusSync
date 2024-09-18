@@ -49,9 +49,11 @@ const ClassPage: React.FC = () => {
               const semestersWithDates = (userData.semesters || []).map((semester: Semester) => ({
                 ...semester,
                 start: semester.start instanceof Timestamp
-                ? semester.start.toDate(), // Convert Firestore Timestamp to JavaScript Date
+                ? semester.start.toDate()
+                : semester.start, // Convert Firestore Timestamp to JavaScript Date
                 end: semester.end instanceof Timestamp
                 ? semester.end.toDate()
+                : semester.end
             }));
               const validatedSemesters = z
                   .array(semestersWithDates)
