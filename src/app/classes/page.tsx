@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {semesterSchema} from "../../data/classesSchema";
 import { onAuthStateChanged } from "firebase/auth";
 import { z } from "zod"
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { auth, db } from '../../firebase-config';
 import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
