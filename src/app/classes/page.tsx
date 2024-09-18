@@ -2,7 +2,7 @@
 
 import { addDays, format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 
 import SemesterComponent from "@/components/classComponents/semester-component"
@@ -14,26 +14,83 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
+import {semesterSchema} from "../../data/classesSchema";
+import { onAuthStateChanged } from "firebase/auth";
+import { z } from "zod"
+import { useRouter } from "next/router";
+import { auth, db } from '../../firebase-config';
+import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+
+
 const ClassPage: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: addDays(new Date(), 120),
   });
 
-  interface Semester {
-    name: string;
-    start: Date;
-    end: Date;
-  }
+  type Semester = z.infer<typeof semesterSchema>;
   const [semesterName, setSemesterName] = useState("");
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+      setLoading(true);  // Set loading to true at the start
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+    
+            if (userDocSnap.exists()) {
+              const userData = userDocSnap.data();
+              const validatedSemesters = z
+                  .array(semesterSchema)
+                  .parse(userData.classes || []);
+              setSemesters(validatedSemesters);
+            } else {
+              console.error("No user document found!");
+            }        
+          } catch (error: unknown) {
+            if (error instanceof Error) {
+              setError(error);
+            } else {
+              setError(new Error("An error occurred while fetching semesters"));
+            }
+            console.error("Failed to fetch semesters:", error);
+          } finally {
+            setLoading(false);  // Set loading to false after data is fetched
+          }
+        } else {
+          router.push("/login");
+        }
+      });
+    
+      return unsubscribe;
+    }, []);
+
+  if (loading) {
+      return <div>Loading semesters...</div>;
+  }
+
+  if (error) {
+      return <div>Failed to load semesters</div>;
+  }
 
   const handleSemesterNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSemesterName(event.target.value);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+        console.error("No user logged in!");
+        return;
+    }
+
     if (!semesterName || !dateRange?.from || !dateRange?.to) {
       alert("Please fill in all fields.");
       return;
@@ -48,11 +105,24 @@ const ClassPage: React.FC = () => {
       start: dateRange.from,
       end: dateRange.to,
     };
-    setSemesters([...semesters, newSemester]);
-    // Clear the form
-    setSemesterName("");
-    setDateRange({ from: new Date(), to: addDays(new Date(), 120) });
-    setIsDrawerOpen(false);
+    try{
+
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, {
+          semesters: arrayUnion(newSemester),
+      });
+
+      setSemesters([...semesters, newSemester]);
+      // Clear the form
+      setSemesterName("");
+      setDateRange({ from: new Date(), to: addDays(new Date(), 120) });
+      setIsDrawerOpen(false);
+
+    } catch (error) {
+      // Handle the error
+      console.error("Error adding semester: ", error);
+    }
+    
   };
 
   return (

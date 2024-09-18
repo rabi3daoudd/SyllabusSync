@@ -59,9 +59,9 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({ index, name, star
               if (error instanceof Error) {
                 setError(error);
               } else {
-                setError(new Error("An error occurred while fetching tasks"));
+                setError(new Error("An error occurred while fetching classes"));
               }
-              console.error("Failed to fetch tasks:", error);
+              console.error("Failed to fetch classes:", error);
             } finally {
               setLoading(false);  // Set loading to false after data is fetched
             }
