@@ -46,8 +46,15 @@ const ClassPage: React.FC = () => {
     
             if (userDocSnap.exists()) {
               const userData = userDocSnap.data();
+              const semestersWithDates = (userData.semesters || []).map((semester: Semester) => ({
+                ...semester,
+                start: semester.start instanceof Timestamp
+                ? semester.start.toDate(), // Convert Firestore Timestamp to JavaScript Date
+                end: semester.end instanceof Timestamp
+                ? semester.end.toDate()
+            }));
               const validatedSemesters = z
-                  .array(semesterSchema)
+                  .array(semestersWithDates)
                   .parse(userData.semesters || []);
               setSemesters(validatedSemesters);
             } else {
