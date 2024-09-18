@@ -48,7 +48,7 @@ const ClassPage: React.FC = () => {
               const userData = userDocSnap.data();
               const validatedSemesters = z
                   .array(semesterSchema)
-                  .parse(userData.classes || []);
+                  .parse(userData.semesters || []);
               setSemesters(validatedSemesters);
             } else {
               console.error("No user document found!");
