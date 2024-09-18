@@ -19,7 +19,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { z } from "zod"
 import { useRouter } from "next/navigation";
 import { auth, db } from '../../firebase-config';
-import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, getDoc, Timestamp } from 'firebase/firestore';
 
 
 const ClassPage: React.FC = () => {
@@ -103,7 +103,7 @@ const ClassPage: React.FC = () => {
     const newSemester = {
       name: semesterName,
       start: dateRange.from,
-      end: dateRange.to,
+      end: dateRange.to
     };
     try{
 
