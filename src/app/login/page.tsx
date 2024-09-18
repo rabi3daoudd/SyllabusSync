@@ -1,14 +1,16 @@
+"use client"; 
+
 import Link from 'next/link';
 import React, { useState, FormEvent } from 'react';
+import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
-import { auth, db } from '../firebase-config'; // Update the path as needed
-import { useRouter } from 'next/router';
+import { auth, db } from '../../firebase-config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { CardTitle, CardDescription, CardHeader, CardFooter, Card } from "../components/ui/card";
-import { Label } from "../components/ui/label";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import '../app/globals.css';
+import { CardTitle, CardDescription, CardHeader, CardFooter, Card } from "../../components/ui/card";
+import { Label } from "../../components/ui/label";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import '../globals.css';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState<string>('');

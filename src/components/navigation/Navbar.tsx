@@ -30,7 +30,7 @@ import { cn } from "../../lib/utils";
 import { Icons } from "../../components/ui/icons";
 import { auth, db } from "../../firebase-config";
 import { doc, getDoc } from "firebase/firestore";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useMediaQuery } from "../../app/hooks/use-media-query.tsx";
 import {
   Sheet,

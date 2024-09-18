@@ -4,7 +4,7 @@ import { CardTitle, CardDescription, CardHeader, CardContent, CardFooter, Card }
 import { Label } from "../components/ui/label"
 import { Input } from "../components/ui/input"
 import { Button } from "../components/ui/button"
-import '../app/globals.css'
+import '../globals.css'
 
 export function SignIn() {
   return (
