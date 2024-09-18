@@ -42,7 +42,7 @@ interface ClassComponentProps{
     semesterName:string;
     /*
     assignments: Assignment[]; 
-    setAssignments: (newAssignment: Assignment) => void;
+    setAssignments: (newAssignment: Assignment) => void; LOL
     */
 }
 
