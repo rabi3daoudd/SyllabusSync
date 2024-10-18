@@ -11,16 +11,15 @@ if (env === 'test') {
 
 dotenv.config({ path: envPath });
 
-const clientId = process.env.CLIENT_ID!;
-const clientSecret = process.env.CLIENT_SECRET!;
+export const clientId = process.env.CLIENT_ID!;
+export const clientSecret = process.env.CLIENT_SECRET!;
 
 const serviceAccountString = process.env.FIREBASE_ADMINSDK!;
 
 const decodedServiceAccountString = decodeURIComponent(serviceAccountString);
 
 const serviceAccount = JSON.parse(decodedServiceAccountString);
+
 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 export const firebaseServiceAccount = serviceAccount;
-export const clientId = process.env.CLIENT_ID!;
-export const clientSecret = process.env.CLIENT_SECRET!;

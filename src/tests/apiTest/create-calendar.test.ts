@@ -17,7 +17,6 @@ import { POST } from '../../app/api/create-calendar/route';
 import { NextRequest } from 'next/server';
 import { getRefreshToken } from '../../app/lib/firebaseHelper';
 import { google } from 'googleapis';
-import { getFirestore } from 'firebase-admin/firestore';
 
 describe('POST /api/create-calendar', () => {
     beforeEach(() => {

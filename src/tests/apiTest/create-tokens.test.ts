@@ -104,7 +104,6 @@ describe('POST /api/create-tokens', () => {
         const response = await POST(req);
 
         expect(response.status).toBe(500);
-        const data = await response.json();
     });
 
     it('should return 500 if Firestore set operation throws an error', async () => {
@@ -146,6 +145,5 @@ describe('POST /api/create-tokens', () => {
         const response = await POST(req);
 
         expect(response.status).toBe(500);
-        const data = await response.json();
     });
 });

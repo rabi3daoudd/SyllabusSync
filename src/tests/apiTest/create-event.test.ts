@@ -119,7 +119,6 @@ describe('POST /api/create-event', () => {
         const response = await POST(req);
 
         expect(response.status).toBe(500);
-        const data = await response.json();
         expect(getRefreshToken).not.toHaveBeenCalled();
         expect(google.calendar).not.toHaveBeenCalled();
     });
