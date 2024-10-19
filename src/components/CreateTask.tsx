@@ -33,7 +33,7 @@ export const CreateTask: React.FC<CreateTaskProps> = ({
     const [title, setTitle] = useState(task ? task.title : "");
     const [status, setStatus] = useState(task ? task.status : "todo");
     const [priority, setPriority] = useState(task ? task.priority : "medium");
-    const [label, setLabel] = useState<string | undefined>(
+    const [label, setLabel] = useState<string | undefined | null>(
         task ? task.label : undefined
       );
     const [dueDate, setDueDate] = useState<Date | null>(
@@ -121,9 +121,17 @@ export const CreateTask: React.FC<CreateTaskProps> = ({
             title,
             status,
             priority,
-            ...(label ? { label } : {}),
-            ...(dueDate ? { dueDate: dueDate.toISOString() } : {}),
+            label: label !== undefined ? label : null,
+            dueDate: dueDate ? dueDate.toISOString() : null,
           };
+
+          if (label !== undefined) {
+            updatedTask.label = label;
+          }
+          
+          if (dueDate !== undefined) {
+            updatedTask.dueDate = dueDate ? dueDate.toISOString() : null;
+          }
       
           try {
             const userDocRef = doc(db, "users", user.uid);
