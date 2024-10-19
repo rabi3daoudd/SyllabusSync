@@ -20,4 +20,4 @@ module.exports = {
       isolatedModules: true,
     },
   },
-};
+}; 
