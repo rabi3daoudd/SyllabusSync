@@ -6,21 +6,22 @@ import { clientId, clientSecret } from '../../config/config';
 const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
-    'http://localhost:3000' // Replace with actual client URL if needed
+    'http://localhost:3000'
 );
 
 export async function POST(req: NextRequest) {
     try {
+        // Try to parse the request body
         let body;
-
         try {
-            body = await req.json();  // Parse request body
+            body = await req.json();
         } catch (jsonError) {
-            return NextResponse.json({ message: 'Invalid JSON in request body' }, { status: 400 });
+            return NextResponse.json({ message: 'Invalid or missing JSON in request body' }, { status: 400 });
         }
 
         const { summary, description, timeZone, uid } = body;
 
+        // Validate the necessary fields
         if (!uid) {
             return NextResponse.json({ message: 'User ID is missing' }, { status: 400 });
         }
@@ -30,12 +31,13 @@ export async function POST(req: NextRequest) {
 
         const calendar = google.calendar({ version: 'v3' });
 
+        // Create the calendar
         const response = await calendar.calendars.insert({
             auth: oauth2Client,
             requestBody: {
-                summary: summary,
-                description: description,
-                timeZone: timeZone,
+                summary,
+                description,
+                timeZone,
             },
         });
 

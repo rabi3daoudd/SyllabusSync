@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
-    'http://localhost:3000' // Replace with actual client URL if needed
+    'http://localhost:3000'
 );
 
 export async function GET(req: NextRequest) {
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
         // Retrieve the user's calendars
         const calendarList = await calendar.calendarList.list({
             auth: oauth2Client,
-            maxResults: 10, // Adjust the maxResults as needed
+            maxResults: 10,
         });
 
         return NextResponse.json(calendarList.data, { status: 200 });
