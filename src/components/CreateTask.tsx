@@ -5,8 +5,13 @@ import { Button } from './ui/button';
 import { taskSchema } from "./../data/schema"
 import { z } from "zod"
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle, } from './ui/drawer';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+
 
 
 type Task = z.infer<typeof taskSchema>;
@@ -220,20 +225,46 @@ export const CreateTask: React.FC<CreateTaskProps> = ({
                             </select>
                         </div>
                         <div className="flex flex-col">
-                        <label htmlFor="dueDate" className="mb-2 font-semibold">
+                          <label htmlFor="dueDate" className="mb-2 font-semibold">
                             Due Date (Optional)
-                        </label>
-                        <DatePicker
-                            selected={dueDate}
-                            onChange={(date: Date | null) => setDueDate(date)}
-                            dateFormat="yyyy-MM-dd"
-                            className="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholderText="Select a due date"
-                            isClearable
-                            required={false}
-                        />
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-between",
+                                  !dueDate && "text-muted-foreground"
+                                )}
+                              >
+                                <span>
+                                  {dueDate ? format(new Date(dueDate), "yyyy-MM-dd") : "Select a due date"}
+                                </span>
+                                {dueDate && (
+                                  <span
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevent triggering the popover
+                                      setDueDate(null);
+                                    }}
+                                    className="cursor-pointer text-red-500"
+                                  >
+                                    ✕
+                                  </span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={dueDate ? new Date(dueDate) : undefined}
+                                onSelect={(date) => {
+                                  setDueDate(date ? date : null);
+                                }}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
-
                         <Button type="submit" className="w-full">
                             {mode === "create" ? "Create Task" : "Save"}
                         </Button>
