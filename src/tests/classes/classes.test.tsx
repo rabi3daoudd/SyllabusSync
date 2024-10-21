@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import ClassPage from '../../app/classes/page.tsx';
 import { onAuthStateChanged } from 'firebase/auth';
 import {getDoc} from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 // Mock Firebase imports
 jest.mock('firebase/auth');
@@ -52,7 +53,7 @@ describe('ClassPage Component', () => {
 
   test('redirects to login if no user is authenticated', async () => {
     const mockPush = jest.fn();
-    require('next/navigation').useRouter.mockReturnValue({ push: mockPush });
+    useRouter.mockReturnValue({ push: mockPush });
 
     onAuthStateChanged.mockImplementation((auth, callback) => {
       setTimeout(() => {
