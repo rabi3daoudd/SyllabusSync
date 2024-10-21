@@ -30,6 +30,7 @@ jest.mock('../../firebase-config', () => ({
 describe('ClassPage Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   test('renders loading state initially', async () => {
@@ -42,7 +43,7 @@ describe('ClassPage Component', () => {
       return jest.fn();
     });
 
-    getDoc.mockResolvedValueOnce({ exists: () => false });
+    getDoc.mockResolvedValueOnce({ exists: () => true });
 
     await act(async () => {
       render(<ClassPage />);
