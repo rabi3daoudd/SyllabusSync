@@ -1,10 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ClassPage from '../../app/classes/page.tsx';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../../firebase-config';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import {getDoc} from 'firebase/firestore';
 
 // Mock Firebase imports
 jest.mock('firebase/auth');
