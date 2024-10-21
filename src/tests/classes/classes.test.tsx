@@ -14,13 +14,6 @@ jest.mock('next/navigation', () => ({
 }));
 
 const mockUser = { uid: 'test-user-id' };
-const mockSemesters = [
-  {
-    name: 'Spring 2023',
-    start: new Date('2023-01-01'),
-    end: new Date('2023-05-01'),
-  },
-];
 
 // Mocking scrollTo since jsdom does not implement it
 window.scrollTo = jest.fn();
