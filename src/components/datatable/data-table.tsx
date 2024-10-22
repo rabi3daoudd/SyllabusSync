@@ -29,14 +29,28 @@ import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+  columns: (
+    userClasses: string[],
+    onDelete: (task: TData) => void,
+    onEdit: (task: TData) => void,
+    onStatusChange: (taskId: string, newStatus: string) => void,
+  ) => ColumnDef<TData, TValue>[];
   data: TData[];
+  userClasses: string[];
+  onDelete: (task: TData) => void;
+  onEdit: (task: TData) => void;
+  onStatusChange: (taskId: string, newStatus: string) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  userClasses,
+  onDelete,
+  onEdit,
+  onStatusChange,
 }: DataTableProps<TData, TValue>) {
+  const resolvedColumns = columns(userClasses, onDelete, onEdit, onStatusChange);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -47,7 +61,7 @@ export function DataTable<TData, TValue>({
 
   const table = useReactTable({
     data,
-    columns,
+    columns: resolvedColumns,
     state: {
       sorting,
       columnVisibility,
@@ -110,7 +124,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={resolvedColumns.length}
                   className="h-24 text-center"
                 >
                   No results.
