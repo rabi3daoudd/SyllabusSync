@@ -6,7 +6,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 import {getDoc} from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
-// Mock Firebase imports
 jest.mock('firebase/auth');
 jest.mock('firebase/firestore');
 
@@ -16,10 +15,8 @@ jest.mock('next/navigation', () => ({
 
 const mockUser = { uid: 'test-user-id' };
 
-// Mocking scrollTo since jsdom does not implement it
 window.scrollTo = jest.fn();
 
-// Mock auth object
 jest.mock('../../firebase-config', () => ({
   auth: {
     currentUser: { uid: 'test-user-id' },
