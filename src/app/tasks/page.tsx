@@ -111,10 +111,24 @@ function TaskPage() {
     setIsDrawerOpen(true);
   };
 
-  const handleUpdateTask = (updatedTask: Task) => {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
+  const handleUpdateTask = async (updatedTask: Task) => {
+    const updatedTasks = tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task));
+    setTasks(updatedTasks);
+  
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        console.error("No user logged in!");
+        return;
+      }
+  
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, {
+        tasks: updatedTasks,
+      });
+    } catch (error) {
+      console.error("Error updating task: ", error);
+    }
   };
 
   const handleCloseDrawer = () => {
@@ -137,13 +151,13 @@ function TaskPage() {
         return;
       }
 
-      setTasks((currentTasks) =>
-        currentTasks.filter((task) => task.id !== taskToDelete.id)
-      );
+      const updatedTasks = tasks.filter((task) => task.id !== taskToDelete.id);
+
+      setTasks(updatedTasks);
 
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
-        tasks: tasks.filter((task) => task.id !== taskToDelete.id),
+        tasks: updatedTasks,
       });
     } catch (error) {
       console.error("Error deleting task: ", error);
