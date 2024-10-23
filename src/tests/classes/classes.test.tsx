@@ -1,10 +1,11 @@
+// classes.test.tsx
+
 import React from 'react';
 import { render, screen, waitFor, act, waitForElementToBeRemoved } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ClassPage from '../../app/classes/page.tsx';
 import { onAuthStateChanged } from 'firebase/auth';
-import { getDoc } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
+import { getDoc, Timestamp } from 'firebase/firestore';
 import { z } from 'zod';
 import { assignmentSchema, classSchema, semesterSchema } from '../../data/classesSchema.ts';
 
@@ -15,10 +16,26 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn().mockReturnValue({ push: jest.fn() }),
 }));
 
-const mockUser = { uid: 'test-user-id' }; // Sample mock data for semesters and classes
-const mockSemesters: z.infer<typeof semesterSchema>[] = [
-  { name: 'Fall 2024', start: new Date('2024-09-06'), end: new Date('2024-12-06') },
-  { name: 'Spring 2024', start: new Date('2024-01-10'), end: new Date('2024-05-15') },
+// Mocking SemesterComponent to simplify the test
+jest.mock('@/components/classComponents/semester-component', () => ({
+  __esModule: true,
+  default: ({ name }: { name: string }) => <div>{name}</div>,
+}));
+
+const mockUser = { uid: 'test-user-id' };
+
+// Adjusted mockSemesters to use Timestamp for start and end dates
+const mockSemestersData = [
+  {
+    name: 'Fall 2024',
+    start: new Date(2024, 8, 6), // September 6, 2024
+    end: new Date(2024, 11, 6),  // December 6, 2024
+  },
+  {
+    name: 'Spring 2024',
+    start: new Date(2024, 0, 10), // January 10, 2024
+    end: new Date(2024, 4, 15),   // May 15, 2024
+  },
 ];
 
 const mockClasses: z.infer<typeof classSchema>[] = [
@@ -39,28 +56,25 @@ jest.mock('../../firebase-config', () => ({
 describe('ClassPage Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    // Remove this line to see console errors during tests
+    // jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   test('renders semesters when user is authenticated and semesters are fetched', async () => {
-    // Mocking the onAuthStateChanged function to simulate a logged-in user
+    // Mock onAuthStateChanged to simulate a logged-in user
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       setTimeout(() => {
-        callback(mockUser); // Simulating that a user is authenticated
+        callback(mockUser); // Simulate that a user is authenticated
       }, 0);
       return jest.fn();
     });
 
-    const { auth, db } = jest.requireMock('../../firebase-config');
-    console.log("Mocked Firebase Auth:", auth);
-    console.log("Mocked Firestore Database (db):", db);
-
-    // Mocking getDoc to simulate fetching Firestore data for semesters and classes
-    (getDoc as jest.Mock).mockResolvedValueOnce({
+    // Mock getDoc to simulate fetching Firestore data for semesters
+    (getDoc as jest.Mock).mockResolvedValue({
       exists: () => true, // Simulate document exists
       data: () => ({
-        semesters: mockSemesters, // Returning mock semesters
-        classes: mockClasses, // Returning mock classes
+        semesters: mockSemestersData, // Returning mock semesters with Timestamps
+        classes: mockClasses,         // Returning mock classes
       }),
     });
 
@@ -69,14 +83,8 @@ describe('ClassPage Component', () => {
       render(<ClassPage />);
     });
 
-    // Debugging the output to verify the component rendering
-    console.log("SCREEN DEBUG:");
-
     // Wait for the loading message to disappear before making assertions
     await waitForElementToBeRemoved(() => screen.getByText(/Loading semesters/i));
-
-    // Output the current DOM to inspect the rendered output
-    screen.debug();
 
     // Assert that "Fall 2024" is rendered in the document
     expect(screen.getByText('Fall 2024')).toBeInTheDocument();
