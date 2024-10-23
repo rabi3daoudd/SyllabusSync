@@ -6,10 +6,12 @@ module.exports = {
       testEnvironment: 'jsdom',
       transform: {
         '^.+\\.(ts|tsx|js|jsx)?$': 'ts-jest',
+        '^.+\\.tsx?$': 'ts-jest',
       },
       moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx'],
       testMatch: [
         '**/tests/classes/**/*.test.(ts|tsx|js|jsx)',
+        '**/tests/tasks/**/*.test.(ts|tsx|js|jsx)',
       ],
       transformIgnorePatterns: [
         "node_modules/(?!firebase|@firebase)"
@@ -17,6 +19,7 @@ module.exports = {
       moduleNameMapper: {
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
         '^@/(.*)$': '<rootDir>/src/$1',
+        '^src/(.*)$': '<rootDir>/src/$1',
       },
       globals: {
         'ts-jest': {
