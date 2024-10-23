@@ -43,8 +43,6 @@ const ClassPage: React.FC = () => {
           try {
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
-            console.log("USER DOC SNAP",userDocSnap);
-            console.log("USER DOC REF",userDocRef);
     
             if (userDocSnap.exists()) {
               const userData = userDocSnap.data();
@@ -215,10 +213,6 @@ const ClassPage: React.FC = () => {
           </Drawer>
           <Accordion type="single" collapsible className="w-full mt-10">
             {semesters.map((semester, index) => {
-              console.log("Rendering semester:", semester.name);
-              console.log("Rendering semester start date:", semester.start);
-              console.log("Rendering semester end date:", semester.end);
-
               return (
                 <SemesterComponent
                   key={semester.name}

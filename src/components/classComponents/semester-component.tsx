@@ -38,52 +38,32 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({ index, name, star
 
 
     useEffect(() => {
-        console.log("REACHED!");
-        setLoading(true);
+        setLoading(true);  // Set loading to true at the start
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
           if (user) {
             try {
-              console.log("REACHED 2!");
               const userDocRef = doc(db, "users", user.uid);
               const userDocSnap = await getDoc(userDocRef);
-              console.log("USER DOC SNAP",userDocSnap);
-              console.log("USER DOC REF",userDocRef);
-
-
-              console.log("REACHED 3!");
-
       
               if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
-                console.log("REACHED 4!");
-
-      
-                // Log the raw user data to check if "classes" exists
-                console.log("Raw user data:", userData);
-      
                 const validatedClasses = z
-                  .array(classSchema)
-                  .parse(userData.classes || []);
-      
-                // Log the validated classes
-                console.log("Validated Classes:", validatedClasses);
-      
+                    .array(classSchema)
+                    .parse(userData.classes || []);
                 const filteredClasses = validatedClasses.filter((cls) => cls.semesterName === name);
-      
-                // Log the filtered classes to ensure filtering works
-                console.log(`Filtered Classes for semester "${name}":`, filteredClasses);
-      
                 setClasses(filteredClasses);
               } else {
                 console.error("No user document found!");
+              }        
+            } catch (error: unknown) {
+              if (error instanceof Error) {
+                setError(error);
+              } else {
+                setError(new Error("An error occurred while fetching classes"));
               }
-            } catch (error) {
-                setError(error instanceof Error ? error : new Error("Unknown error occurred"));
-                console.error("Caught error during data fetching:", error);
-                console.error("Failed to fetch classes:", error.message);
-                console.error(error.stack);
+              console.error("Failed to fetch classes:", error);
             } finally {
-              setLoading(false);
+              setLoading(false);  // Set loading to false after data is fetched
             }
           } else {
             router.push("/login");
@@ -91,25 +71,15 @@ const SemesterComponent: React.FC<SemesterComponentProps> = ({ index, name, star
         });
       
         return unsubscribe;
-      }, [name]);
-      
-      if (loading) {
-        return <div>Loading classes...</div>;
-      }
+      }, []);
 
-      // Handle no classes case
-      if (!loading && !error && classes.length === 0) {
-        return <div>No classes found for this semester</div>;
-      }
-      
-      if (error) {
-        console.error("Rendering error:", error);
+    if (loading) {
+        return <div>Loading classes...</div>;
+    }
+
+    if (error) {
         return <div>Failed to load classes</div>;
-      }
-      
-      
-      
-      
+    }
 
     const handleClassNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setClassName(event.target.value);

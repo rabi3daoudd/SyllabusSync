@@ -1,13 +1,14 @@
 // classes.test.tsx
 
 import React from 'react';
-import { render, screen, waitFor, act, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, act, waitForElementToBeRemoved, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ClassPage from '../../app/classes/page.tsx';
 import { onAuthStateChanged } from 'firebase/auth';
-import { getDoc, Timestamp } from 'firebase/firestore';
+import { getDoc} from 'firebase/firestore';
 import { z } from 'zod';
-import { assignmentSchema, classSchema, semesterSchema } from '../../data/classesSchema.ts';
+import {semesterSchema } from '../../data/classesSchema.ts';
+import { useRouter } from 'next/navigation';
 
 // Mocking external dependencies
 jest.mock('firebase/auth');
@@ -16,31 +17,23 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn().mockReturnValue({ push: jest.fn() }),
 }));
 
-// Mocking SemesterComponent to simplify the test
-jest.mock('@/components/classComponents/semester-component', () => ({
-  __esModule: true,
-  default: ({ name }: { name: string }) => <div>{name}</div>,
-}));
 
 const mockUser = { uid: 'test-user-id' };
 
 // Adjusted mockSemesters to use Timestamp for start and end dates
-const mockSemestersData = [
+const mockSemesters: z.infer<typeof semesterSchema>[] = [
   {
     name: 'Fall 2024',
-    start: new Date(2024, 8, 6), // September 6, 2024
-    end: new Date(2024, 11, 6),  // December 6, 2024
+    start: new Date("2024-09-06"), // September 6, 2024
+    end: new Date("2024-11-06"),  // December 6, 2024
   },
   {
     name: 'Spring 2024',
-    start: new Date(2024, 0, 10), // January 10, 2024
-    end: new Date(2024, 4, 15),   // May 15, 2024
+    start: new Date("2024-01-10"), // January 10, 2024
+    end: new Date("2024-04-15"),   // May 15, 2024
   },
 ];
 
-const mockClasses: z.infer<typeof classSchema>[] = [
-  { semesterName: 'Fall 2024', name: 'Biology' },
-];
 
 // Mock scrollTo function
 window.scrollTo = jest.fn();
@@ -57,7 +50,7 @@ describe('ClassPage Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Remove this line to see console errors during tests
-    // jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   test('renders semesters when user is authenticated and semesters are fetched', async () => {
@@ -73,8 +66,7 @@ describe('ClassPage Component', () => {
     (getDoc as jest.Mock).mockResolvedValue({
       exists: () => true, // Simulate document exists
       data: () => ({
-        semesters: mockSemestersData, // Returning mock semesters with Timestamps
-        classes: mockClasses,         // Returning mock classes
+        semesters: mockSemesters
       }),
     });
 
@@ -91,5 +83,48 @@ describe('ClassPage Component', () => {
 
     // Assert that "Spring 2024" is rendered in the document
     expect(screen.getByText('Spring 2024')).toBeInTheDocument();
+  });
+
+  test('renders loading state initially', async () => {
+    const mockPush = jest.fn();
+    (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+    (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
+      setTimeout(() => {
+        if (typeof callback === 'function') {
+          callback(mockUser);
+        }
+      }, 0);
+      return jest.fn();
+    });
+
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: () => true });
+
+    await act(async () => {
+      render(<ClassPage />);
+    });
+
+    expect(await screen.findByText(/Loading semesters/i)).toBeInTheDocument();
+  });
+
+  test('redirects to login if no user is authenticated', async () => {
+    const mockPush = jest.fn();
+    (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+
+    (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
+      setTimeout(() => {
+        if (typeof callback === 'function') {
+          callback(null);
+        }
+      }, 0);
+      return jest.fn();
+    });
+
+    await act(async () => {
+      render(<ClassPage />);
+    });
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/login');
+    });
   });
 });
