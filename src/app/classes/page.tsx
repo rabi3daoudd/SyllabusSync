@@ -122,6 +122,7 @@ const ClassPage: React.FC = () => {
       });
 
       setSemesters([...semesters, newSemester]);
+      console.log('Updated semesters:', [...semesters, newSemester]);
       // Clear the form
       setSemesterName("");
       setDateRange({ from: new Date(), to: addDays(new Date(), 120) });
