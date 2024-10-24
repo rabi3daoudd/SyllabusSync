@@ -304,7 +304,10 @@ describe('ClassPage Component', () => {
       return jest.fn();
     });
 
-    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: () => true });
+    (getDoc as jest.Mock).mockResolvedValueOnce({
+       exists: () => true, 
+       data: () => ({ semesters: []})
+    });
 
     await act(async () => {
       render(<ClassPage />);
