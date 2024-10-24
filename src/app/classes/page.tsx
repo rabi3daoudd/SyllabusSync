@@ -122,6 +122,7 @@ const ClassPage: React.FC = () => {
       });
 
       setSemesters([...semesters, newSemester]);
+      console.log('Updated semesters:', [...semesters, newSemester]);
       // Clear the form
       setSemesterName("");
       setDateRange({ from: new Date(), to: addDays(new Date(), 120) });
@@ -212,19 +213,16 @@ const ClassPage: React.FC = () => {
             </DrawerContent>
           </Drawer>
           <Accordion type="single" collapsible className="w-full mt-10">
-            {semesters.map((semester, index) => {
-              return (
-                <SemesterComponent
-                  key={semester.name}
-                  index={index + 1}
-                  name={semester.name}
-                  startDate={semester.start}
-                  endDate={semester.end}
-                />
-              );
-            })}
+            {semesters.map((semester, index) => (
+              <SemesterComponent
+                key={semester.name}
+                index={index + 1}
+                name={semester.name}
+                startDate={semester.start}
+                endDate={semester.end}
+              />
+            ))}
           </Accordion>
-
         </div>
       </div>
     </>

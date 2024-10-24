@@ -403,12 +403,12 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
                                         <Label>Starting Time:</Label>
                                         <div className="flex items-center">
                                             <Select value={startingTimeHour} onValueChange={handleStartingTimeHourChange}>
-                                                <SelectTrigger className="w-[120px]"> {/* Adjusted width for tighter fit */}
+                                                <SelectTrigger className="w-[120px]" id="starting-time-hour" aria-label="Starting Time Hour"> {/* Adjusted width for tighter fit */}
                                                     <SelectValue placeholder="Hour" />
                                                 </SelectTrigger>
-                                                <SelectContent>
+                                                <SelectContent role= "listbox">
                                                     {Array.from({ length: 12 }, (_, i) => i + 1).map((number) => (
-                                                        <SelectItem key={number} value={String(number)}>
+                                                        <SelectItem key={number} value={String(number)} role="option" aria-label={String(number)}>
                                                             {number}
                                                         </SelectItem>
                                                     ))}
@@ -416,24 +416,24 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
                                             </Select>
                                             <span className="mx-2">:</span> {/* Colon between hour and minute */}
                                             <Select value={startingTimeMinute} onValueChange={handleStartingTimeMinuteChange}>
-                                                <SelectTrigger className="w-[120px]"> {/* Adjusted width for tighter fit */}
+                                                <SelectTrigger className="w-[120px]" id="starting-time-minute" aria-label="Starting Time Minute"> {/* Adjusted width for tighter fit */}
                                                     <SelectValue placeholder="Minute" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {Array.from({ length: 60 }, (_, i) => i).map((number) => ( // Changed to start at 0
-                                                        <SelectItem key={number} value={String(number).padStart(2, '0')}>
+                                                        <SelectItem key={number} value={String(number).padStart(2, '0')} role="option">
                                                             {String(number).padStart(2, '0')}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                             <Select value={startingTimeAmOrPm} onValueChange={handleStartingTimeAmOrPmChange}>
-                                                <SelectTrigger className="w-[120px]"> {/* Adjusted width for tighter fit */}
+                                                <SelectTrigger className="w-[120px]" id="starting-time-am-pm" aria-label="Starting Time AM OR PM"> {/* Adjusted width for tighter fit */}
                                                     <SelectValue placeholder="AM OR PM" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="AM">AM</SelectItem>
-                                                    <SelectItem value="PM">PM</SelectItem>
+                                                    <SelectItem value="AM" role="option">AM</SelectItem>
+                                                    <SelectItem value="PM" role="option">PM</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -443,7 +443,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
                                         <Label>Finishing Time:</Label>
                                         <div className="flex items-center">
                                             <Select value={finishingTimeHour} onValueChange= {handleFinishingTimeHourChange}>
-                                                <SelectTrigger className="w-[120px]"> {/* Adjusted width for tighter fit */}
+                                                <SelectTrigger className="w-[120px]" id="finishing-time-hour" aria-label="Finishing Time Hour"> {/* Adjusted width for tighter fit */}
                                                     <SelectValue placeholder="Hour" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -457,7 +457,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
                                             </Select>
                                             <span className="mx-2">:</span> {/* Colon between hour and minute */}
                                             <Select value={finishingTimeMinute} onValueChange= {handleFinishingTimeMinuteChange}>
-                                                <SelectTrigger className="w-[120px]"> {/* Adjusted width for tighter fit */}
+                                                <SelectTrigger className="w-[120px]" id="finishing-time-minute" aria-label="Finishing Time Minute"> {/* Adjusted width for tighter fit */}
                                                     <SelectValue placeholder="Minute" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -469,7 +469,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
                                                 </SelectContent>
                                             </Select>
                                             <Select value={finishingTimeAmOrPm} onValueChange={handleFinishingTimeAmOrPmChange}>
-                                                <SelectTrigger className="w-[120px]"> {/* Adjusted width for tighter fit */}
+                                                <SelectTrigger className="w-[120px]" id="finishing-time-am-pm" aria-label="Finishing Time AM OR PM"> {/* Adjusted width for tighter fit */}
                                                     <SelectValue placeholder="AM OR PM" />
                                                 </SelectTrigger>
                                                 <SelectContent>
