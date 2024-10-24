@@ -199,7 +199,7 @@ export default function Settings() {
     <>
       <GoogleOAuthProvider clientId={clientId}>
         <div className="flex flex-col min-h-screen z-40">
-          <div className="flex-1 overflow-auto p-4 space-y-4 mt-40 z-40">
+          <div className="flex-1 overflow-auto p-4 space-y-4 z-40">
             <Tabs className="w-4/5 mx-auto" defaultValue="info">
               <div className="mb-4">
                 <h1 className="text-4xl font-bold">Settings</h1>
@@ -360,7 +360,17 @@ export default function Settings() {
                       </div>
                       <div className="ml-8">
                         {isGoogleCalendarSynced ? (
-                          <Button disabled>Google Calendar Synced</Button>
+                          <div className="space-x-2">
+                            <Button disabled>Google Calendar Synced</Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                setIsGoogleCalendarSynced(false);
+                              }}
+                            >
+                              Resync
+                            </Button>
+                          </div>
                         ) : (
                           <AuthProvider>
                             <SignInButton />

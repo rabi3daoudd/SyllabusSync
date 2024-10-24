@@ -108,7 +108,7 @@ export default function Home() {
   return (
     <>
       <div className="flex flex-col min-h-screen">
-        <div className="flex-grow py-8 mt-30 z-40">
+        <div className="flex-grow py-8 z-40">
           <div className="w-4/5 mx-auto">
             {userName && (
               <h1 className="text-5xl font-bold mb-5">

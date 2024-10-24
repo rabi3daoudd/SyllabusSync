@@ -28,3 +28,4 @@ dist-ssr
 .next-env.d.ts
 /build/
 firebase-adminsdk.json
+/coverage
