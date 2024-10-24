@@ -10,12 +10,12 @@ jest.mock("firebase-admin/firestore", () => ({
   getFirestore: jest.fn(),
 }));
 
-jest.mock("../../app/lib/firebaseHelper");
+jest.mock("@/lib/firebaseHelper");
 jest.mock("googleapis");
 
-import { GET } from "../../app/api/list-user-calendars/route";
+import { GET } from "@/app/api/list-user-calendars/route";
 import { NextRequest } from "next/server";
-import { getRefreshToken } from "../../lib/firebaseHelper";
+import { getRefreshToken } from "@/lib/firebaseHelper";
 import { google } from "googleapis";
 
 describe("GET /api/list-user-calendars", () => {
@@ -27,7 +27,7 @@ describe("GET /api/list-user-calendars", () => {
     (getRefreshToken as jest.Mock).mockResolvedValue("mockRefreshToken");
 
     const setCredentialsMock = jest.fn();
-    (google.auth.OAuth2 as jest.Mock).mockImplementation(() => ({
+    (google.auth.OAuth2 as unknown as jest.Mock).mockImplementation(() => ({
       setCredentials: setCredentialsMock,
     }));
 
@@ -104,7 +104,7 @@ describe("GET /api/list-user-calendars", () => {
     (getRefreshToken as jest.Mock).mockResolvedValue("mockRefreshToken");
 
     const setCredentialsMock = jest.fn();
-    (google.auth.OAuth2 as jest.Mock).mockImplementation(() => ({
+    (google.auth.OAuth2 as unknown as jest.Mock).mockImplementation(() => ({
       setCredentials: setCredentialsMock,
     }));
 

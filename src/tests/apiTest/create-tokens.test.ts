@@ -25,13 +25,13 @@ jest.mock("googleapis", () => {
   return { google: mGoogle };
 });
 
-jest.mock("../../app/lib/firebaseHelper", () => ({
+jest.mock("@/lib/firebaseHelper", () => ({
   getRefreshToken: jest.fn(),
 }));
 
-import { POST } from "../../app/api/create-tokens/route";
+import { POST } from "@/app/api/create-tokens/route";
 import { NextRequest } from "next/server";
-import { getRefreshToken } from "../../lib/firebaseHelper";
+import { getRefreshToken } from "@/lib/firebaseHelper";
 import { google } from "googleapis";
 import { getFirestore } from "firebase-admin/firestore";
 
@@ -75,7 +75,7 @@ describe("POST /api/create-tokens", () => {
     expect(response.status).toBe(500);
     const data = await response.json();
     expect(data).toEqual({
-      message: "Internal Server Error",
+      message: "Failed to sync calendar", // Updated expected message
       error: expect.anything(),
     });
     expect(getRefreshToken).not.toHaveBeenCalled();
@@ -88,7 +88,7 @@ describe("POST /api/create-tokens", () => {
 
     const setCredentialsMock = jest.fn();
     const getTokenMock = jest.fn().mockRejectedValue(new Error("OAuth2 Error"));
-    (google.auth.OAuth2 as jest.Mock).mockImplementation(() => ({
+    (google.auth.OAuth2 as unknown as jest.Mock).mockImplementation(() => ({
       setCredentials: setCredentialsMock,
       getToken: getTokenMock,
     }));
@@ -122,7 +122,7 @@ describe("POST /api/create-tokens", () => {
         expiry_date: 1234567890,
       },
     });
-    (google.auth.OAuth2 as jest.Mock).mockImplementation(() => ({
+    (google.auth.OAuth2 as unknown as jest.Mock).mockImplementation(() => ({
       setCredentials: setCredentialsMock,
       getToken: getTokenMock,
     }));

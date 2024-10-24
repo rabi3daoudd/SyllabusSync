@@ -10,12 +10,12 @@ jest.mock("firebase-admin/firestore", () => ({
   getFirestore: jest.fn(),
 }));
 
-jest.mock("../../app/lib/firebaseHelper");
+jest.mock("@/lib/firebaseHelper");
 jest.mock("googleapis");
 
-import { POST } from "../../app/api/create-calendar/route";
+import { POST } from "@/app/api/create-calendar/route";
 import { NextRequest } from "next/server";
-import { getRefreshToken } from "../../lib/firebaseHelper";
+import { getRefreshToken } from "@/lib/firebaseHelper";
 import { google } from "googleapis";
 
 describe("POST /api/create-calendar", () => {

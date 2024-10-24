@@ -10,12 +10,12 @@ jest.mock("firebase-admin/firestore", () => ({
   getFirestore: jest.fn(),
 }));
 
-jest.mock("../../app/lib/firebaseHelper");
+jest.mock("@/lib/firebaseHelper");
 jest.mock("googleapis");
 
-import { POST } from "../../app/api/create-event/route";
+import { POST } from "@/app/api/create-event/route";
 import { NextRequest } from "next/server";
-import { getRefreshToken } from "../../lib/firebaseHelper";
+import { getRefreshToken } from "@/lib/firebaseHelper";
 import { google } from "googleapis";
 
 describe("POST /api/create-event", () => {
@@ -26,7 +26,7 @@ describe("POST /api/create-event", () => {
     (getRefreshToken as jest.Mock).mockResolvedValue("mockRefreshToken");
 
     const setCredentialsMock = jest.fn();
-    (google.auth.OAuth2 as jest.Mock).mockImplementation(() => ({
+    (google.auth.OAuth2 as unknown as jest.Mock).mockImplementation(() => ({
       setCredentials: setCredentialsMock,
     }));
 
@@ -156,7 +156,7 @@ describe("POST /api/create-event", () => {
     (getRefreshToken as jest.Mock).mockResolvedValue("mockRefreshToken");
 
     const setCredentialsMock = jest.fn();
-    (google.auth.OAuth2 as jest.Mock).mockImplementation(() => ({
+    (google.auth.OAuth2 as unknown as jest.Mock).mockImplementation(() => ({
       setCredentials: setCredentialsMock,
     }));
     const mockInsert = jest

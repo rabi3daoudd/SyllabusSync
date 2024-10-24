@@ -11,12 +11,12 @@ jest.mock("firebase-admin/firestore", () => ({
 }));
 
 // Mock other dependencies
-jest.mock("../../app/lib/firebaseHelper");
+jest.mock("@/lib/firebaseHelper");
 jest.mock("googleapis");
 
-import { GET } from "../../app/api/list-events/route";
+import { GET } from "@/app/api/list-events/route";
 import { NextRequest } from "next/server";
-import { getRefreshToken } from "../../lib/firebaseHelper";
+import { getRefreshToken } from "@/lib/firebaseHelper";
 import { google } from "googleapis";
 import { getFirestore } from "firebase-admin/firestore";
 
