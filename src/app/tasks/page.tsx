@@ -175,7 +175,7 @@ function TaskPage() {
   return (
     <>
       <div className="flex justify-center w-4/5 mx-auto z-40">
-        <div className="flex-1 flex-col space-y-8 mt-30 p-8 md:flex z-40">
+        <div className="flex-1 flex-col space-y-8 p-8 md:flex z-40">
           <div className="flex items-center justify-between space-y-2">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">

@@ -1,30 +1,51 @@
-// Use client directive if using client-side hooks like usePathname
-"use client"; 
+"use client";
 
-// Import necessary modules and components
-import React from "react";
-import Navbar from "@/components/navigation/Navbar"; // Import Navbar component
-import { usePathname } from "next/navigation"; // Import usePathname hook from Next.js
-import { Toaster } from "@/components/ui/toaster"; // Import Toaster component
+import React, { useState, useEffect } from "react";
+import { SidebarNavigation } from "@/components/navigation/sidebar";
+import { usePathname } from "next/navigation";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
+import { ReactNode } from "react";
 
-// Define the RootLayout component
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname(); // Get the current path using the usePathname hook
+interface RootLayoutProps {
+  children: ReactNode;
+}
 
-  // Determine whether to show the Navbar
-  // Navbar should not be shown on the login and signup pages
-  const shouldShowNavbar = pathname !== "/login" && pathname !== "/signup";
+export default function RootLayout({ children }: RootLayoutProps) {
+  const pathname = usePathname();
+  const shouldShowSidebar = pathname !== "/login" && pathname !== "/signup";
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <html lang="en">
-      <head>
-        {/* Place global head elements here if needed */}
-      </head>
       <body>
-        {shouldShowNavbar && <Navbar />}
-        <main>{children}</main>
+        {shouldShowSidebar ? (
+          <SidebarNavigation
+            isOpen={isSidebarOpen}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            {children}
+          </SidebarNavigation>
+        ) : (
+          <main className="flex-grow overflow-auto">{children}</main>
+        )}
         <Toaster />
       </body>
     </html>

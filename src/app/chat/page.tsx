@@ -21,10 +21,8 @@ export default function Chat() {
   }, [router]);
 
   return (
-    <div className="flex flex-col min-h-screen z-45">
-      <div className="flex flex-col space-y-4 items-center justify-center h-screen z-45">
-        <ChatBot />
-      </div>
-    </div>
+    <>
+      <ChatBot />
+    </>
   );
 }

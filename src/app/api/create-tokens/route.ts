@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { clientId, clientSecret } from '../../config/config';
-import { db } from "../../lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 
 const oauth2Client = new google.auth.OAuth2(
     clientId,
@@ -19,14 +19,33 @@ export async function POST(req: NextRequest) {
         }
 
         const { tokens } = await oauth2Client.getToken(code);
+        
+        if (!tokens.refresh_token) {
+            return NextResponse.json(
+                { message: "No refresh token received. Please revoke app access and try again." },
+                { status: 400 }
+            );
+        }
+
         oauth2Client.setCredentials(tokens);
 
         const userRef = db.collection('users').doc(uid);
-        await userRef.set({ refresh_token: tokens.refresh_token }, { merge: true });
+        
+        // Update the refresh token and add a timestamp
+        await userRef.set({
+            refresh_token: tokens.refresh_token,
+            token_updated_at: new Date().toISOString()
+        }, { merge: true });
 
-        return NextResponse.json(tokens);
+        return NextResponse.json({
+            message: "Calendar sync successful",
+            tokenUpdated: true
+        });
     } catch (error) {
         console.error("Error creating tokens:", error);
-        return NextResponse.json({ message: 'Internal Server Error', error }, { status: 500 });
+        return NextResponse.json(
+            { message: 'Failed to sync calendar', error: error instanceof Error ? error.message : 'Unknown error' },
+            { status: 500 }
+        );
     }
 }
