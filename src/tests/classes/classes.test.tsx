@@ -1,7 +1,7 @@
 // classes.test.tsx
 
 import React from 'react';
-import { render, screen, act, waitForElementToBeRemoved, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, act, waitFor, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ClassPage from '../../app/classes/page.tsx';
 import { onAuthStateChanged } from 'firebase/auth';
