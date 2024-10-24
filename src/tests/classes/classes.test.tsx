@@ -80,6 +80,7 @@ jest.mock('../../firebase-config', () => ({
 describe('ClassPage Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Remove this line to see console errors during tests
     jest.spyOn(console, 'error').mockImplementation(() => {});
     mockSemesters = JSON.parse(JSON.stringify(originalMockSemesters));
     mockClasses = JSON.parse(JSON.stringify(originalMockClasses));
