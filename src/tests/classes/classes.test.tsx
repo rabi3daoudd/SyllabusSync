@@ -148,6 +148,7 @@ describe('ClassPage Component', () => {
 
     // Wait for the loading message to disappear before making assertions
     await waitFor(() => expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryAllByText(/Loading classes/i)).toHaveLength(0));
 
     // Assert that "Fall 2024" is rendered in the document
     expect(screen.getByText('Fall 2024')).toBeInTheDocument();
