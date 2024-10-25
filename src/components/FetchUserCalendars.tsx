@@ -18,8 +18,10 @@ const FetchUserCalendars = () => {
 
         const queryParams = new URLSearchParams({ uid: firebaseUser.uid });
 
-        //TODO change url to actual server url
-        axios.get(`http://localhost:3001/api/list-user-calendars?${queryParams}`)
+        // load BASE_URL from .env
+        const baseUrl = process.env.BASE_URL;
+
+        axios.get(`${baseUrl}/api/list-user-calendars?${queryParams}`)
             .then(response => {
                 console.log('User Calendar events fetched:', response.data);
             })
