@@ -3,48 +3,9 @@ import { z } from "zod";
 import { customModel } from "@/ai/index";
 import { fetchAllEventsFromAllCalendars } from "@/components/api";
 
-// Helper function to fetch events from a specific calendar
-async function fetchCalendarEvents(
-  uid: string,
-  calendarId: string,
-  baseUrl: string,
-  signal?: AbortSignal
-) {
-  const url = `${baseUrl}/api/list-events?uid=${encodeURIComponent(
-    uid
-  )}&calendarId=${encodeURIComponent(calendarId)}`;
-  const response = await fetch(url, signal ? { signal } : undefined);
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch calendar events for calendar ${calendarId}`
-    );
-  }
-
-  return await response.json();
-}
-
-// Helper function to fetch all user calendars
-async function fetchUserCalendars(
-  uid: string,
-  baseUrl: string,
-  signal?: AbortSignal
-) {
-  const url = `${baseUrl}/api/list-user-calendars?uid=${encodeURIComponent(
-    uid
-  )}`;
-  const response = await fetch(url, signal ? { signal } : undefined);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch user calendars");
-  }
-
-  return await response.json();
-}
-
 export async function POST(request: Request) {
   // Get the Authorization header
-  const authHeader = request.headers.get("Authorization");
+  const authHeader = request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return new Response("Unauthorized", { status: 401 });
   }
@@ -57,7 +18,6 @@ export async function POST(request: Request) {
 
   const {
     messages,
-    calendarId,
   }: { messages: Array<Message>; calendarId: string } = await request.json();
 
   const coreMessages = convertToCoreMessages(messages);
@@ -94,7 +54,7 @@ export async function POST(request: Request) {
         parameters: z.object({
           uid: z.string().describe("The user ID"),
         }),
-        execute: async ({ uid: requestedUid }, { abortSignal }) => {
+        execute: async ({ uid: requestedUid }) => {
           try {
             // Fetch all events from all calendars
             const allEvents = await fetchAllEventsFromAllCalendars(

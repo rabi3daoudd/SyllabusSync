@@ -1,15 +1,12 @@
 // src/tests/chat/chatbot.test.tsx
 
-import React from 'react';
+import React, { PropsWithChildren, ComponentProps } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ChatBot from '@/components/assistant/Chat'; 
+import ChatBot from '@/components/assistant/Chat';
 import { onAuthStateChanged, getAuth } from 'firebase/auth';
 import { findOrCreateSyallbusSyncCalendar } from '@/components/FindOrCreateSyallbusSyncCalendar';
 import { useChat } from 'ai/react';
-import { auth, db, storage } from '../../firebase-config';
-import userEvent from '@testing-library/user-event';
-import ReactMarkdown from 'react-markdown';
 
 // Mock Firebase Auth
 jest.mock('firebase/auth', () => ({
@@ -40,26 +37,48 @@ jest.mock('ai/react', () => ({
   useChat: jest.fn(),
 }));
 
-// Mock ReactMarkdown to simplify rendering in tests
-jest.mock('react-markdown', () => (props: any) => <div>{props.children}</div>);
+// Define types for mock components
+interface ReactMarkdownProps {
+  children: string;
+}
 
-// Mock UI Components to prevent rendering issues
+interface ButtonProps extends ComponentProps<'button'> {
+  variant?: string;
+  size?: string;
+}
+
+interface InputProps extends ComponentProps<'input'> {
+  variant?: string;
+}
+
+interface CardProps extends PropsWithChildren {
+  className?: string;
+}
+
+// Mock ReactMarkdown with proper typing
+jest.mock('react-markdown', () => (props: ReactMarkdownProps) => <div>{props.children}</div>);
+
+// Mock UI Components with proper typing
 jest.mock('@/components/ui/button', () => ({
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: ButtonProps) => <button {...props}>{children}</button>,
 }));
+
 jest.mock('@/components/ui/input', () => ({
-  Input: ({ ...props }: any) => <input {...props} />,
+  Input: (props: InputProps) => <input {...props} />,
 }));
+
 jest.mock('@/components/ui/scroll-area', () => ({
-  ScrollArea: ({ children }: any) => <div>{children}</div>,
+  ScrollArea: ({ children }: PropsWithChildren) => <div>{children}</div>,
 }));
+
 jest.mock('@/components/ui/card', () => ({
-  Card: ({ children }: any) => <div>{children}</div>,
-  CardContent: ({ children }: any) => <div>{children}</div>,
-  CardFooter: ({ children }: any) => <div>{children}</div>,
-  CardHeader: ({ children }: any) => <div>{children}</div>,
-  CardTitle: ({ children }: any) => <h2>{children}</h2>,
+  Card: ({ children, className }: CardProps) => <div className={className}>{children}</div>,
+  CardContent: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  CardFooter: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  CardHeader: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  CardTitle: ({ children }: PropsWithChildren) => <h2>{children}</h2>,
 }));
+
 jest.mock('@/components/ui/separator', () => ({
   Separator: () => <hr />,
 }));
@@ -84,32 +103,14 @@ describe('ChatBot Component', () => {
     // Add other auth methods if used
   };
 
-  const mockFirestore = {
-    // Mock Firestore methods if used
-    // Example:
-    // collection: jest.fn(),
-    // doc: jest.fn(),
-  };
-
-  const mockStorage = {
-    // Mock Storage methods if used
-    // Example:
-    // ref: jest.fn(),
-    // uploadBytes: jest.fn(),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Mock getAuth to return mockAuthInstance
     (getAuth as jest.Mock).mockReturnValue(mockAuthInstance);
 
-    // Mock Firestore and Storage if necessary
-    // (getFirestore as jest.Mock).mockReturnValue(mockFirestore);
-    // (getStorage as jest.Mock).mockReturnValue(mockStorage);
-
     // Mock onAuthStateChanged to immediately call the callback with a user
-    (onAuthStateChanged as jest.Mock).mockImplementation((authInstance, callback) => {
+    (onAuthStateChanged as jest.Mock).mockImplementation((_authInstance, callback) => {
       callback(mockUser);
       return jest.fn(); // unsubscribe function
     });
@@ -129,7 +130,7 @@ describe('ChatBot Component', () => {
 
   test('renders nothing if user is not authenticated', async () => {
     // Override the onAuthStateChanged mock to simulate no user
-    (onAuthStateChanged as jest.Mock).mockImplementation((authInstance, callback) => {
+    (onAuthStateChanged as jest.Mock).mockImplementation((_authInstance, callback) => {
       callback(null);
       return jest.fn();
     });
@@ -168,7 +169,7 @@ describe('ChatBot Component', () => {
   });
 
   test('handles form submission', async () => {
-    const mockHandleSubmit = jest.fn((e) => e.preventDefault());
+    const mockHandleSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
     (useChat as jest.Mock).mockReturnValue({
       messages: mockMessages,
       input: 'New message',
