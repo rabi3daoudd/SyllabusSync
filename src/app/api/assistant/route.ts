@@ -16,13 +16,26 @@ export async function POST(request: Request) {
     return new Response("Invalid authorization token", { status: 401 });
   }
 
-  // Define language instructions
   const languageInstructions = {
     en: 'All your responses should be in English.',
     es: 'Todas tus respuestas deben estar en Español.',
     fr: 'Toutes vos réponses doivent être en Français.',
+    de: 'Alle deine Antworten sollten auf Deutsch sein.',
+    it: 'Le tue risposte dovrebbero essere in Italiano.',
+    zh: '你的所有回复都应该用中文。',
+    ja: 'あなたのすべての回答は日本語である必要があります。',
+    ru: 'Все ваши ответы должны быть на русском языке.',
+    ar: 'يجب أن تكون جميع إجاباتك باللغة العربية.',
+    pt: 'Todas as suas respostas devem ser em Português.',
+    hi: 'आपके सभी उत्तर हिंदी में होने चाहिए।',
+    ko: '모든 답변은 한국어로 작성해야 합니다.',
+    tr: 'Tüm yanıtlarınız Türkçe olmalıdır.',
+    nl: 'Al je antwoorden moeten in het Nederlands zijn.',
+    pl: 'Wszystkie twoje odpowiedzi powinny być po polsku.',
+    sv: 'Alla dina svar ska vara på Svenska.',
     // Add more languages as needed
-  };
+  }
+
 
   // Define the type for the language keys
   type LanguageKey = keyof typeof languageInstructions;
