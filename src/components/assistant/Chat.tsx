@@ -12,6 +12,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Send, Loader2, Globe } from 'lucide-react'
@@ -58,6 +59,13 @@ export default function ChatBot() {
     // Add more languages as needed
   }
 
+  const languageOptions = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Español' },
+    { value: 'fr', label: 'Français' },
+    // Add more languages as needed
+  ]
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -77,22 +85,11 @@ export default function ChatBot() {
     return () => unsubscribe()
   }, [])
 
-  const handleLanguageChange = (value: string) => {
-    setLanguage(value)
-  }
-
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    setMessages, // Added setMessages to reset messages when language changes
-  } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/assistant',
     body: {
       calendarId,
-      language,
+      language, // Include the selected language
     },
     headers: userId
         ? {
@@ -100,11 +97,6 @@ export default function ChatBot() {
         }
         : undefined,
   })
-
-  // Reset messages when language changes
-  useEffect(() => {
-    setMessages([])
-  }, [language, setMessages])
 
   const [extractedInfo, setExtractedInfo] = useState<string | null>(null)
 
@@ -117,9 +109,7 @@ export default function ChatBot() {
   }, [messages])
 
   const handleExtractedInfo = (content: string) => {
-    const match = content.match(
-        /<calendar_api_call>([\s\S]*?)<\/calendar_api_call>/
-    )
+    const match = content.match(/<calendar_api_call>([\s\S]*?)<\/calendar_api_call>/)
     if (match) {
       setExtractedInfo(match[1])
     }
@@ -129,23 +119,15 @@ export default function ChatBot() {
     return null // Or a loading state
   }
 
-  const languageOptions = [
-    { value: 'en', label: 'English' },
-    { value: 'es', label: 'Español' },
-    { value: 'fr', label: 'Français' },
-    // Add more languages as needed
-  ]
-
   return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
         <Card className="w-full max-w-4xl h-[90vh] flex flex-col">
-          <CardHeader className="flex flex-col space-y-1.5 p-6 bg-primary text-primary-foreground">
-            <div className="flex justify-between items-center w-full">
-              <h3 className="font-semibold tracking-tight text-2xl">
-                SyllabusSync Assistant
-              </h3>
+          {/* Updated CardHeader */}
+          <CardHeader className="bg-primary text-primary-foreground p-6">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl">SyllabusSync Assistant</CardTitle>
               <div className="w-32">
-                <Select value={language} onValueChange={handleLanguageChange}>
+                <Select value={language} onValueChange={(value) => setLanguage(value)}>
                   <SelectTrigger className="h-8 w-full flex items-center justify-between rounded-md border border-primary bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                     <div className="flex items-center">
                       <Globe className="w-4 h-4 mr-1 text-white" />
@@ -185,15 +167,11 @@ export default function ChatBot() {
                     <div
                         key={message.id}
                         className={`mb-4 p-3 rounded-lg ${
-                            isAssistant
-                                ? 'bg-[#A5F8F1] text-black'
-                                : 'bg-gray-100 text-gray-800'
+                            isAssistant ? 'bg-[#A5F8F1] text-black' : 'bg-gray-100 text-gray-800'
                         }`}
                     >
                       <strong className="block mb-1">
-                        {isAssistant
-                            ? translations[language].assistant
-                            : translations[language].you}
+                        {isAssistant ? translations[language].assistant : translations[language].you}
                       </strong>
                       {isAssistant ? (
                           <ReactMarkdown className="prose prose-sm max-w-none">
@@ -222,11 +200,7 @@ export default function ChatBot() {
           )}
           <Separator />
           <CardFooter className="p-4">
-            <form
-                onSubmit={handleSubmit}
-                className="flex w-full space-x-2"
-                data-testid="chat-form"
-            >
+            <form onSubmit={handleSubmit} className="flex w-full space-x-2" data-testid="chat-form">
               <Input
                   value={input}
                   onChange={handleInputChange}
@@ -242,9 +216,7 @@ export default function ChatBot() {
                     <Send className="w-4 h-4" />
                 )}
                 <span className="ml-2">
-                {isLoading
-                    ? translations[language].sending
-                    : translations[language].send}
+                {isLoading ? translations[language].sending : translations[language].send}
               </span>
               </Button>
             </form>
