@@ -84,7 +84,6 @@ jest.mock('@/components/ui/separator', () => ({
 }));
 
 // Mock Lucide Icons
-// Mock Lucide Icons
 jest.mock('lucide-react', () => ({
   Send: () => <svg data-testid="send-icon" />,
   Loader2: () => <svg data-testid="loader-icon" />,
@@ -93,31 +92,33 @@ jest.mock('lucide-react', () => ({
 
 // Mock the Select components with proper typing
 jest.mock('@/components/ui/select', () => {
-  const React = require('react');
   return {
-    Select: ({ children }) => <div>{children}</div>,
-    SelectTrigger: React.forwardRef(({ children }, ref) => <div ref={ref}>{children}</div>),
-    SelectValue: React.forwardRef(({ children, placeholder }, ref) => (
-        <span ref={ref}>{children || placeholder}</span>
+    Select: ({ children }: PropsWithChildren) => <div>{children}</div>,
+    SelectTrigger: React.forwardRef<HTMLButtonElement, PropsWithChildren>(({ children }, ref) => (
+        <div ref={ref}>{children}</div>
     )),
-    SelectContent: React.forwardRef(({ children }, ref) => <div ref={ref}>{children}</div>),
-    SelectItem: React.forwardRef(({ children, value }, ref) => (
-        <div ref={ref} data-value={value}>
-          {children}
-        </div>
+    SelectValue: React.forwardRef<HTMLSpanElement, { children?: React.ReactNode; placeholder?: string }>(
+        ({ children, placeholder }, ref) => <span ref={ref}>{children || placeholder}</span>
+    ),
+    SelectContent: React.forwardRef<HTMLDivElement, PropsWithChildren>(({ children }, ref) => (
+        <div ref={ref}>{children}</div>
     )),
+    SelectItem: React.forwardRef<HTMLDivElement, { children: React.ReactNode; value: string }>(
+        ({ children, value }, ref) => (
+            <div ref={ref} data-value={value}>
+              {children}
+            </div>
+        )
+    ),
   };
 });
-
 
 // Mock Radix UI Slot component
 jest.mock('@radix-ui/react-slot', () => {
-  const React = require('react');
   return {
-    Slot: React.forwardRef(({ children }, ref) => <>{children}</>),
+    Slot: React.forwardRef<HTMLDivElement, PropsWithChildren>(({ children }, _ref) => <>{children}</>),
   };
 });
-
 
 describe('ChatBot Component', () => {
   const mockUser = { uid: 'test-user-id' };

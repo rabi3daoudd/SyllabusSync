@@ -29,7 +29,6 @@ import {
 export default function ChatBot() {
   const [calendarId, setCalendarId] = useState<string>('')
   const [userId, setUserId] = useState<string | null>(null)
-  const [language, setLanguage] = useState<string>('en')
 
   const translations = {
     en: {
@@ -58,6 +57,12 @@ export default function ChatBot() {
     },
     // Add more languages as needed
   }
+
+  // Define the type for language keys
+  type LanguageKey = keyof typeof translations;
+
+  // Update the language state to use LanguageKey
+  const [language, setLanguage] = useState<LanguageKey>('en')
 
   const languageOptions = [
     { value: 'en', label: 'English' },
@@ -127,7 +132,7 @@ export default function ChatBot() {
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl">SyllabusSync Assistant</CardTitle>
               <div className="w-32">
-                <Select value={language} onValueChange={(value) => setLanguage(value)}>
+                <Select value={language} onValueChange={(value) => setLanguage(value as LanguageKey)}>
                   <SelectTrigger className="h-8 w-full flex items-center justify-between rounded-md border border-primary bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                     <div className="flex items-center">
                       <Globe className="w-4 h-4 mr-1 text-white" />
@@ -193,8 +198,8 @@ export default function ChatBot() {
                     {translations[language].extractedInfoTitle}
                   </h3>
                   <pre className="bg-white p-2 rounded text-sm overflow-x-auto border border-green-200">
-                {extractedInfo}
-              </pre>
+                    {extractedInfo}
+                  </pre>
                 </CardContent>
               </>
           )}
@@ -216,8 +221,8 @@ export default function ChatBot() {
                     <Send className="w-4 h-4" />
                 )}
                 <span className="ml-2">
-                {isLoading ? translations[language].sending : translations[language].send}
-              </span>
+                  {isLoading ? translations[language].sending : translations[language].send}
+                </span>
               </Button>
             </form>
           </CardFooter>

@@ -16,20 +16,6 @@ export async function POST(request: Request) {
     return new Response("Invalid authorization token", { status: 401 });
   }
 
-  // Extract messages, language, and calendarId from the request body
-  const {
-    messages,
-    language,
-    calendarId,
-  }: { messages: Array<Message>; language: string; calendarId: string } = await request.json();
-
-  const coreMessages = convertToCoreMessages(messages);
-  const baseUrl = process.env.BASE_URL;
-
-  if (!baseUrl) {
-    throw new Error("Base URL is not defined in environment variables.");
-  }
-
   // Define language instructions
   const languageInstructions = {
     en: 'All your responses should be in English.',
@@ -38,8 +24,29 @@ export async function POST(request: Request) {
     // Add more languages as needed
   };
 
+  // Define the type for the language keys
+  type LanguageKey = keyof typeof languageInstructions;
+
+  // Extract messages, language, and calendarId from the request body
+  const {
+    messages,
+    language,
+  }: {
+    messages: Array<Message>;
+    language: LanguageKey;
+    calendarId: string;
+  } = await request.json();
+
+  const coreMessages = convertToCoreMessages(messages);
+  const baseUrl = process.env.BASE_URL;
+
+  if (!baseUrl) {
+    throw new Error("Base URL is not defined in environment variables.");
+  }
+
   // Get the language instruction or default to English
-  const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+  const languageInstruction =
+      languageInstructions[language] || languageInstructions['en'];
 
   const result = await streamText({
     model: customModel,
