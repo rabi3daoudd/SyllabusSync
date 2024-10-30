@@ -7,9 +7,14 @@ import { findOrCreateSyallbusSyncCalendar } from '@/components/FindOrCreateSyall
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Send, Loader2, Globe } from 'lucide-react' // Ensure Globe is correctly imported
+import { Send, Loader2, Globe } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { onAuthStateChanged } from 'firebase/auth'
 import {
@@ -18,7 +23,7 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-} from '@/components/ui/select' // Removed SelectIcon import
+} from '@/components/ui/select'
 
 export default function ChatBot() {
   const [calendarId, setCalendarId] = useState<string>('')
@@ -76,18 +81,19 @@ export default function ChatBot() {
     setLanguage(value)
   }
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/assistant',
-    body: {
-      calendarId,
-      language,
-    },
-    headers: userId
-        ? {
-          Authorization: `Bearer ${userId}`,
-        }
-        : undefined,
-  })
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+      useChat({
+        api: '/api/assistant',
+        body: {
+          calendarId,
+          language,
+        },
+        headers: userId
+            ? {
+              Authorization: `Bearer ${userId}`,
+            }
+            : undefined,
+      })
 
   const [extractedInfo, setExtractedInfo] = useState<string | null>(null)
 
@@ -100,7 +106,9 @@ export default function ChatBot() {
   }, [messages])
 
   const handleExtractedInfo = (content: string) => {
-    const match = content.match(/<calendar_api_call>([\s\S]*?)<\/calendar_api_call>/)
+    const match = content.match(
+        /<calendar_api_call>([\s\S]*?)<\/calendar_api_call>/
+    )
     if (match) {
       setExtractedInfo(match[1])
     }
@@ -122,15 +130,17 @@ export default function ChatBot() {
         <Card className="w-full max-w-4xl h-[90vh] flex flex-col">
           <CardHeader className="flex flex-col space-y-1.5 p-6 bg-primary text-primary-foreground">
             <div className="flex justify-between items-center w-full">
-              <h3 className="font-semibold tracking-tight text-2xl">SyllabusSync Assistant</h3>
+              <h3 className="font-semibold tracking-tight text-2xl">
+                SyllabusSync Assistant
+              </h3>
               <div className="w-32">
                 <Select value={language} onValueChange={handleLanguageChange}>
-                  <SelectTrigger className="h-8 w-full flex items-center justify-between rounded-md border border-input bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                  <SelectTrigger className="h-8 w-full flex items-center justify-between rounded-md border border-primary bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                     <div className="flex items-center">
                       <Globe className="w-4 h-4 mr-1 text-white" />
                       <SelectValue placeholder="Language" />
                     </div>
-                    {/* Manually add chevron down icon */}
+                    {/* Chevron icon */}
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-3 w-3 text-white opacity-50"
@@ -164,18 +174,24 @@ export default function ChatBot() {
                     <div
                         key={message.id}
                         className={`mb-4 p-3 rounded-lg ${
-                            isAssistant ? 'bg-[#A5F8F1] text-black' : 'bg-gray-100 text-gray-800'
+                            isAssistant
+                                ? 'bg-[#A5F8F1] text-black'
+                                : 'bg-gray-100 text-gray-800'
                         }`}
                     >
                       <strong className="block mb-1">
-                        {isAssistant ? translations[language].assistant : translations[language].you}
+                        {isAssistant
+                            ? translations[language].assistant
+                            : translations[language].you}
                       </strong>
                       {isAssistant ? (
                           <ReactMarkdown className="prose prose-sm max-w-none">
                             {message.content}
                           </ReactMarkdown>
                       ) : (
-                          <p className="whitespace-pre-wrap">{message.content}</p>
+                          <p className="whitespace-pre-wrap">
+                            {message.content}
+                          </p>
                       )}
                     </div>
                 )
@@ -197,7 +213,11 @@ export default function ChatBot() {
           )}
           <Separator />
           <CardFooter className="p-4">
-            <form onSubmit={handleSubmit} className="flex w-full space-x-2" data-testid="chat-form">
+            <form
+                onSubmit={handleSubmit}
+                className="flex w-full space-x-2"
+                data-testid="chat-form"
+            >
               <Input
                   value={input}
                   onChange={handleInputChange}
@@ -206,14 +226,20 @@ export default function ChatBot() {
                   className="flex-grow"
                   data-testid="chat-input"
               />
-              <Button type="submit" disabled={isLoading} className="w-24">
+              <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-24"
+              >
                 {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                     <Send className="w-4 h-4" />
                 )}
                 <span className="ml-2">
-                {isLoading ? translations[language].sending : translations[language].send}
+                {isLoading
+                    ? translations[language].sending
+                    : translations[language].send}
               </span>
               </Button>
             </form>
