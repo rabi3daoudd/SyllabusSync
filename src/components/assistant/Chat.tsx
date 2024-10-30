@@ -81,19 +81,30 @@ export default function ChatBot() {
     setLanguage(value)
   }
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-      useChat({
-        api: '/api/assistant',
-        body: {
-          calendarId,
-          language,
-        },
-        headers: userId
-            ? {
-              Authorization: `Bearer ${userId}`,
-            }
-            : undefined,
-      })
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    setMessages, // Added setMessages to reset messages when language changes
+  } = useChat({
+    api: '/api/assistant',
+    body: {
+      calendarId,
+      language,
+    },
+    headers: userId
+        ? {
+          Authorization: `Bearer ${userId}`,
+        }
+        : undefined,
+  })
+
+  // Reset messages when language changes
+  useEffect(() => {
+    setMessages([])
+  }, [language, setMessages])
 
   const [extractedInfo, setExtractedInfo] = useState<string | null>(null)
 
@@ -189,9 +200,7 @@ export default function ChatBot() {
                             {message.content}
                           </ReactMarkdown>
                       ) : (
-                          <p className="whitespace-pre-wrap">
-                            {message.content}
-                          </p>
+                          <p className="whitespace-pre-wrap">{message.content}</p>
                       )}
                     </div>
                 )
@@ -226,11 +235,7 @@ export default function ChatBot() {
                   className="flex-grow"
                   data-testid="chat-input"
               />
-              <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-24"
-              >
+              <Button type="submit" disabled={isLoading} className="w-24">
                 {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
