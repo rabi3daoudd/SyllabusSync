@@ -13,6 +13,7 @@ module.exports = {
         '**/tests/classes/**/*.test.(ts|tsx|js|jsx)',
         '**/tests/tasks/**/*.test.(ts|tsx|js|jsx)',
         '**/tests/chat/**/*.test.(ts|tsx|js|jsx)',
+        '**/tests/auth/**/*.test.(ts|tsx|js|jsx)',
       ],
       transformIgnorePatterns: [
         "node_modules/(?!firebase|@firebase)"
