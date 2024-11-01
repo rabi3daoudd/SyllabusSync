@@ -1,21 +1,13 @@
-import { useEffect } from "react";
-import { RadioGroup } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes';
-import { auth, db } from "../../../firebase-config";
-import { doc, updateDoc } from "firebase/firestore";
-import {
-  CardTitle,
-  CardDescription,
-  CardHeader,
-  CardContent,
-  Card,
-} from '@/components/ui/card';
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useTheme } from "next-themes";
+import { useState, useEffect, createContext, ReactNode } from "react";
+import { auth, db } from "../firebase-config";
 
-interface AppearanceSettingsProps {
-  accentColor: string;
-  handleColorChange: (value: string) => Promise<void>;
+// Define the ColorContext type to avoid TypeScript errors
+interface ColorContextType {
+  color: string | undefined;
+  updateColors: (value: string) => Promise<void>;
 }
 
 interface ColorConfig {
@@ -258,85 +250,57 @@ const colors: ColorConfig[] = [
   }
 ];
 
-const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ 
-  accentColor, 
-  handleColorChange 
-}) => {
+
+// Create and export ColorContext
+export const ColorContext = createContext<ColorContextType | undefined>(undefined);
+
+export const ColorProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [color, setColor] = useState("blue"); // Default color
   const { theme, setTheme } = useTheme();
-  
-  const updateColors = async (value: string) => {
-    const selectedColor = colors.find(c => c.value === value);
+
+  // Define applyColorTheme outside of useEffect to use it in other places
+  const applyColorTheme = (colorValue: string) => {
+    const selectedColor = colors.find((c) => c.value === colorValue);
     if (selectedColor) {
-      const variables = theme === 'dark' ? selectedColor.dark : selectedColor.light;
-      
-      // Update all CSS variables for the accent color
+      const variables = theme === "dark" ? selectedColor.dark : selectedColor.light;
       Object.entries(variables).forEach(([key, value]) => {
         document.documentElement.style.setProperty(`--${key}`, value);
       });
-
-      // Update color in Firebase for the current user
-      const user = auth.currentUser;
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        await updateDoc(userDocRef, { color: value });
-      }
-      
-      await handleColorChange(value);
     }
   };
 
-  // Update colors only when accentColor changes
   useEffect(() => {
-    if (accentColor) {
-      updateColors(accentColor);
+    const fetchUserColor = async (userId: string) => {
+      const userDocRef = doc(db, "users", userId);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        const savedColor = userDoc.data().color;
+        applyColorTheme(savedColor);
+        setColor(savedColor);
+        setTheme(userDoc.data().theme);
+      }
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) fetchUserColor(user.uid);
+    });
+
+    return () => unsubscribe();
+  }, [theme]);
+
+  const updateColors = async (colorValue: string) => {
+    const user = auth.currentUser;
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, { color: colorValue });
     }
-  }, [accentColor]);
+    applyColorTheme(colorValue); // Apply color theme here as well
+    setColor(colorValue);
+  };
 
   return (
-    <Card className="p-6">
-      <CardHeader>
-        <CardTitle>Appearance</CardTitle>
-        <CardDescription>
-          Customize the look and feel of the application.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div>
-            <Label>Accent Color</Label>
-            <RadioGroup
-              defaultValue={accentColor}
-              onValueChange={updateColors}
-              className="grid grid-cols-4 gap-4 mt-2"
-            >
-              {colors.map((color) => (
-                <Label
-                  key={color.value}
-                  className={cn(
-                    "cursor-pointer flex items-center space-x-2 rounded-md border-2 border-muted bg-popover p-4",
-                    accentColor === color.value && "border-primary"
-                  )}
-                >
-                  <input
-                    type="radio"
-                    value={color.value}
-                    checked={accentColor === color.value}
-                    onChange={() => updateColors(color.value)}
-                    className="sr-only"
-                  />
-                  <span
-                    className="h-4 w-4 rounded-full"
-                    style={{ backgroundColor: `hsl(${theme === 'dark' ? color.dark.primary : color.light.primary})` }}
-                  />
-                  <span>{color.name}</span>
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <ColorContext.Provider value={{ color, updateColors }}>
+      {children}
+    </ColorContext.Provider>
   );
 };
-
-export default AppearanceSettings;
