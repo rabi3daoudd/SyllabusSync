@@ -4,24 +4,194 @@ import { useState, useEffect } from 'react'
 import { useChat } from 'ai/react'
 import { auth, db } from "../../firebase-config"
 import { findOrCreateSyallbusSyncCalendar } from '@/components/FindOrCreateSyallbusSyncCalendar'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Send, Loader2, Sun, Moon } from 'lucide-react'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Send, Loader2, Sun, Moon, Globe } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
 
 export default function ChatBot() {
-  const [calendarId, setCalendarId] = useState<string>("")
+  const [calendarId, setCalendarId] = useState<string>('')
   const [userId, setUserId] = useState<string | null>(null)
   const [theme, setTheme] = useState("light")
   const [assistantTextColor, setAssistantTextColor] = useState("#000000") // Text color for assistant messages
   const [backgroundColor, setBackgroundColor] = useState("#A5F8F1") // Background color for assistant messages and CardHeader
   const [extractedInfo, setExtractedInfo] = useState<string | null>(null) // Extracted info state
+
+  const translations = {
+    en: {
+      placeholder: 'Type your message here...',
+      send: 'Send',
+      sending: 'Sending',
+      you: 'You:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Extracted Calendar Information:',
+    },
+    es: {
+      placeholder: 'Escribe tu mensaje aquí...',
+      send: 'Enviar',
+      sending: 'Enviando',
+      you: 'Tú:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Información de Calendario Extraída:',
+    },
+    fr: {
+      placeholder: 'Tapez votre message ici...',
+      send: 'Envoyer',
+      sending: 'Envoi',
+      you: 'Vous :',
+      assistant: 'SyllabusSync :',
+      extractedInfoTitle: 'Informations du Calendrier Extraites :',
+    },
+    de: {
+      placeholder: 'Geben Sie hier Ihre Nachricht ein...',
+      send: 'Senden',
+      sending: 'Wird gesendet',
+      you: 'Sie:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Extrahierte Kalenderinformationen:',
+    },
+    it: {
+      placeholder: 'Digita qui il tuo messaggio...',
+      send: 'Invia',
+      sending: 'Invio',
+      you: 'Tu:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Informazioni del Calendario Estratte:',
+    },
+    zh: {
+      placeholder: '在此输入您的消息...',
+      send: '发送',
+      sending: '发送中',
+      you: '您：',
+      assistant: 'SyllabusSync：',
+      extractedInfoTitle: '提取的日历信息：',
+    },
+    ja: {
+      placeholder: 'ここにメッセージを入力してください...',
+      send: '送信',
+      sending: '送信中',
+      you: 'あなた:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: '抽出されたカレンダー情報:',
+    },
+    ru: {
+      placeholder: 'Введите ваше сообщение здесь...',
+      send: 'Отправить',
+      sending: 'Отправка',
+      you: 'Вы:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Извлеченная информация из календаря:',
+    },
+    ar: {
+      placeholder: 'اكتب رسالتك هنا...',
+      send: 'إرسال',
+      sending: 'جارٍ الإرسال',
+      you: 'أنت:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'معلومات التقويم المستخرجة:',
+    },
+    pt: {
+      placeholder: 'Digite sua mensagem aqui...',
+      send: 'Enviar',
+      sending: 'Enviando',
+      you: 'Você:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Informações do Calendário Extraídas:',
+    },
+    hi: {
+      placeholder: 'अपना संदेश यहाँ टाइप करें...',
+      send: 'भेजें',
+      sending: 'भेजा जा रहा है',
+      you: 'आप:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'निकाली गई कैलेंडर जानकारी:',
+    },
+    ko: {
+      placeholder: '여기에 메시지를 입력하세요...',
+      send: '보내기',
+      sending: '보내는 중',
+      you: '당신:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: '추출된 캘린더 정보:',
+    },
+    tr: {
+      placeholder: 'Mesajınızı buraya yazın...',
+      send: 'Gönder',
+      sending: 'Gönderiliyor',
+      you: 'Sen:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Çıkarılan Takvim Bilgileri:',
+    },
+    nl: {
+      placeholder: 'Typ hier uw bericht...',
+      send: 'Versturen',
+      sending: 'Bezig met verzenden',
+      you: 'U:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Opgehaalde Kalenderinformatie:',
+    },
+    pl: {
+      placeholder: 'Wpisz tutaj swoją wiadomość...',
+      send: 'Wyślij',
+      sending: 'Wysyłanie',
+      you: 'Ty:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Wyodrębnione Informacje z Kalendarza:',
+    },
+    sv: {
+      placeholder: 'Skriv ditt meddelande här...',
+      send: 'Skicka',
+      sending: 'Skickar',
+      you: 'Du:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Utdragen Kalenderinformation:',
+    },
+  }
+
+  // Define the type for language keys
+  type LanguageKey = keyof typeof translations;
+
+  // Update the language state to use LanguageKey
+  const [language, setLanguage] = useState<LanguageKey>('en')
+
+  const languageOptions = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Español' },
+    { value: 'fr', label: 'Français' },
+    { value: 'de', label: 'Deutsch' },
+    { value: 'it', label: 'Italiano' },
+    { value: 'zh', label: '中文' },
+    { value: 'ja', label: '日本語' },
+    { value: 'ru', label: 'Русский' },
+    { value: 'ar', label: 'العربية' },
+    { value: 'pt', label: 'Português' },
+    { value: 'hi', label: 'हिन्दी' },
+    { value: 'ko', label: '한국어' },
+    { value: 'tr', label: 'Türkçe' },
+    { value: 'nl', label: 'Nederlands' },
+    { value: 'pl', label: 'Polski' },
+    { value: 'sv', label: 'Svenska' },
+    // Add more languages as needed
+  ]
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -46,11 +216,11 @@ export default function ChatBot() {
           const syncCalendarId = await findOrCreateSyallbusSyncCalendar()
           setCalendarId(syncCalendarId)
         } catch (error) {
-          console.error("Error initializing calendar:", error)
+          console.error('Error initializing calendar:', error)
         }
       } else {
         setUserId(null)
-        setCalendarId("")
+        setCalendarId('')
       }
     })
 
@@ -59,8 +229,15 @@ export default function ChatBot() {
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/assistant',
-    body: { calendarId },
-    headers: userId ? { 'Authorization': `Bearer ${userId}` } : undefined
+    body: {
+      calendarId,
+      language, // Include the selected language
+    },
+    headers: userId
+        ? {
+          Authorization: `Bearer ${userId}`,
+        }
+        : undefined,
   })
 
   const handleColorChange = async (colorType: string, colorValue: string) => {
