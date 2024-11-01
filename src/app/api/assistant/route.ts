@@ -16,9 +16,39 @@ export async function POST(request: Request) {
     return new Response("Invalid authorization token", { status: 401 });
   }
 
+  const languageInstructions = {
+    en: 'All your responses should be in English.',
+    es: 'Todas tus respuestas deben estar en Español.',
+    fr: 'Toutes vos réponses doivent être en Français.',
+    de: 'Alle deine Antworten sollten auf Deutsch sein.',
+    it: 'Le tue risposte dovrebbero essere in Italiano.',
+    zh: '你的所有回复都应该用中文。',
+    ja: 'あなたのすべての回答は日本語である必要があります。',
+    ru: 'Все ваши ответы должны быть на русском языке.',
+    ar: 'يجب أن تكون جميع إجاباتك باللغة العربية.',
+    pt: 'Todas as suas respostas devem ser em Português.',
+    hi: 'आपके सभी उत्तर हिंदी में होने चाहिए।',
+    ko: '모든 답변은 한국어로 작성해야 합니다.',
+    tr: 'Tüm yanıtlarınız Türkçe olmalıdır.',
+    nl: 'Al je antwoorden moeten in het Nederlands zijn.',
+    pl: 'Wszystkie twoje odpowiedzi powinny być po polsku.',
+    sv: 'Alla dina svar ska vara på Svenska.',
+    // Add more languages as needed
+  }
+
+
+  // Define the type for the language keys
+  type LanguageKey = keyof typeof languageInstructions;
+
+  // Extract messages, language, and calendarId from the request body
   const {
     messages,
-  }: { messages: Array<Message>; calendarId: string } = await request.json();
+    language,
+  }: {
+    messages: Array<Message>;
+    language: LanguageKey;
+    calendarId: string;
+  } = await request.json();
 
   const coreMessages = convertToCoreMessages(messages);
   const baseUrl = process.env.BASE_URL;
@@ -27,9 +57,16 @@ export async function POST(request: Request) {
     throw new Error("Base URL is not defined in environment variables.");
   }
 
+  // Get the language instruction or default to English
+  const languageInstruction =
+      languageInstructions[language] || languageInstructions['en'];
+
   const result = await streamText({
     model: customModel,
-    system: `You are SyllabusSync, an AI assistant specialized in helping university students manage their academic schedules. Your primary function is to extract key dates from course syllabi and integrate them with Google Calendar. Follow these instructions carefully to assist students effectively.
+    system: `${languageInstruction}
+
+You are SyllabusSync, an AI assistant specialized in helping university students manage their academic schedules. Your primary function is to extract key dates from course syllabi and integrate them with Google Calendar. Follow these instructions carefully to assist students effectively.
+
 To begin, you will be provided with the full text of a course syllabus and, if available, information about the user's existing commitments. Analyze this information thoroughly:
 <syllabus>
 {{SYLLABUS_TEXT}}
@@ -93,6 +130,7 @@ Remember to wrap your thought process in <analysis> tags to show your reasoning 
 1. Identify and list all types of events mentioned in the syllabus.
 2. Note any potential conflicts or overlaps between syllabus events and existing user commitments.
 3. Prioritize events based on their importance or weight.`,
+
     messages: coreMessages,
     maxSteps: 15,
     tools: {
@@ -104,7 +142,7 @@ Remember to wrap your thought process in <analysis> tags to show your reasoning 
         }),
         execute: async ({ latitude, longitude }) => {
           const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
+              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
           );
 
           const weatherData = await response.json();
@@ -113,7 +151,7 @@ Remember to wrap your thought process in <analysis> tags to show your reasoning 
       },
       getCalendarEvents: {
         description:
-          "Fetches all events from all calendars for a specific user",
+            "Fetches all events from all calendars for a specific user",
         parameters: z.object({
           uid: z.string().describe("The user ID"),
         }),
@@ -121,7 +159,7 @@ Remember to wrap your thought process in <analysis> tags to show your reasoning 
           try {
             // Fetch all events from all calendars
             const allEvents = await fetchAllEventsFromAllCalendars(
-              requestedUid,
+                requestedUid
             );
             return allEvents;
           } catch (error) {
@@ -135,14 +173,20 @@ Remember to wrap your thought process in <analysis> tags to show your reasoning 
       isEnabled: true,
       functionId: "stream-text",
     },
-    onStepFinish: ({ text, toolCalls, toolResults, finishReason, usage }) => {
+    onStepFinish: ({
+                     text,
+                     toolCalls,
+                     toolResults,
+                     finishReason,
+                     usage,
+                   }) => {
       // Log tool calls
       if (toolCalls?.length) {
         toolCalls.forEach((toolCall) => {
           const toolNotification: Message = {
             role: "system",
             content: `🔧 **Tool Called:** ${
-              toolCall.toolName
+                toolCall.toolName
             }\n**Arguments:** ${JSON.stringify(toolCall.args, null, 2)}`,
             id: "",
           };

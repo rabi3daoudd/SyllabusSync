@@ -87,7 +87,38 @@ jest.mock('@/components/ui/separator', () => ({
 jest.mock('lucide-react', () => ({
   Send: () => <svg data-testid="send-icon" />,
   Loader2: () => <svg data-testid="loader-icon" />,
+  Globe: () => <svg data-testid="globe-icon" />,
 }));
+
+// Mock the Select components with proper typing
+jest.mock('@/components/ui/select', () => {
+  return {
+    Select: ({ children }: PropsWithChildren) => <div>{children}</div>,
+    SelectTrigger: React.forwardRef<HTMLButtonElement, PropsWithChildren>(({ children }, ref) => (
+        <div ref={ref}>{children}</div>
+    )),
+    SelectValue: React.forwardRef<HTMLSpanElement, { children?: React.ReactNode; placeholder?: string }>(
+        ({ children, placeholder }, ref) => <span ref={ref}>{children || placeholder}</span>
+    ),
+    SelectContent: React.forwardRef<HTMLDivElement, PropsWithChildren>(({ children }, ref) => (
+        <div ref={ref}>{children}</div>
+    )),
+    SelectItem: React.forwardRef<HTMLDivElement, { children: React.ReactNode; value: string }>(
+        ({ children, value }, ref) => (
+            <div ref={ref} data-value={value}>
+              {children}
+            </div>
+        )
+    ),
+  };
+});
+
+// Mock Radix UI Slot component
+jest.mock('@radix-ui/react-slot', () => {
+  return {
+    Slot: React.forwardRef<HTMLDivElement, PropsWithChildren>(({ children }, _ref) => <>{children}</>),
+  };
+});
 
 describe('ChatBot Component', () => {
   const mockUser = { uid: 'test-user-id' };
