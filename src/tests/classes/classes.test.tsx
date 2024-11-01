@@ -337,5 +337,4 @@ describe('ClassPage Component', () => {
       expect(mockPush).toHaveBeenCalledWith('/login');
     });
   });
-
 });

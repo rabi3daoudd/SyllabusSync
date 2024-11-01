@@ -1,9 +1,10 @@
-"use client";
+"use client"; 
 
 import { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db, auth } from "../../firebase-config";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+
 import { TabsTrigger, TabsList, TabsContent, Tabs } from "@/components/ui/tabs";
 import {
   CardTitle,
@@ -18,9 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/use-toast";
+
 import { AuthProvider } from "@/components/AuthContext";
 import SignInButton from "@/components/SignInButton";
-import AppearanceSettings from "./components/appearance-settings";
 
 export default function Settings() {
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID!;
@@ -35,82 +36,8 @@ export default function Settings() {
   const [isSaving, setIsSaving] = useState(false);
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
   const [isGoogleCalendarSynced, setIsGoogleCalendarSynced] = useState(false);
-  const [accentColor, setAccentColor] = useState<string>("blue");
 
   const { toast } = useToast(); // Use the useToast hook to show toasts
-
-  // Add this type near the top of the file
-  type ColorConfig = {
-    name: string;
-    value: string;
-    foreground: string;
-  };
-
-  // Add this constant for color options
-  const colors: ColorConfig[] = [
-    {
-      name: "Blue",
-      value: "blue",
-      foreground: "hsl(212 100% 47%)",
-    },
-    {
-      name: "Green",
-      value: "green",
-      foreground: "hsl(142 76% 36%)",
-    },
-    {
-      name: "Purple",
-      value: "purple",
-      foreground: "hsl(272 51% 54%)",
-    },
-    {
-      name: "Red",
-      value: "red",
-      foreground: "hsl(346 84% 46%)",
-    },
-  ];
-
-  const handleColorChange = async (value: string) => {
-    console.log("Changing accent color to:", value); // Debug log
-    setAccentColor(value);
-
-    // Update CSS variable
-    const color = colors.find((c) => c.value === value)?.foreground;
-    if (color) {
-      document.documentElement.style.setProperty("--accent", color);
-      document.documentElement.style.setProperty(
-        "--accent-foreground",
-        "white"
-      );
-    }
-
-    // Save to Firestore
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-          accentColor: value,
-        });
-      }
-    } catch (error) {
-      console.error("Error saving accent color:", error);
-    }
-  };
-
-  useEffect(() => {
-    const loadAccentColor = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().accentColor) {
-          handleColorChange(userDoc.data().accentColor);
-        }
-      }
-    };
-    loadAccentColor();
-  }, []);
 
   useEffect(() => {
     // Fetch the user data from Firestore when the component mounts and set the state
@@ -285,10 +212,6 @@ export default function Settings() {
                   <Icons.UserIcon className="w-6 h-5" />
                   Personal Information
                 </TabsTrigger>
-                <TabsTrigger value="appearance">
-                  <Icons.PaintBrushIcon className="w-6 h-5" />
-                  Appearance
-                </TabsTrigger>
                 <TabsTrigger value="preferences">
                   <Icons.PreferencesIcon className="w-6 h-5" /> Preferences
                 </TabsTrigger>
@@ -439,7 +362,7 @@ export default function Settings() {
                         {isGoogleCalendarSynced ? (
                           <div className="space-x-2">
                             <Button disabled>Google Calendar Synced</Button>
-                            <Button
+                            <Button 
                               variant="outline"
                               onClick={() => {
                                 setIsGoogleCalendarSynced(false);
@@ -457,12 +380,6 @@ export default function Settings() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-              <TabsContent value="appearance">
-                <AppearanceSettings
-                  accentColor={accentColor}
-                  handleColorChange={handleColorChange}
-                />
               </TabsContent>
             </Tabs>
           </div>

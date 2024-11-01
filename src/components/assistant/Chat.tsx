@@ -25,7 +25,6 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { GradientPicker } from '@/app/picker/GradientPicker'
 
 export default function ChatBot() {
   const [calendarId, setCalendarId] = useState<string>('')
@@ -242,7 +241,7 @@ export default function ChatBot() {
   }
 
   return (
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
         <Card className="w-full max-w-4xl h-[90vh] flex flex-col">
           {/* Updated CardHeader */}
           <CardHeader className="bg-primary text-primary-foreground p-6">
