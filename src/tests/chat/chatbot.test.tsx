@@ -87,6 +87,8 @@ jest.mock('@/components/ui/separator', () => ({
 jest.mock('lucide-react', () => ({
   Send: () => <svg data-testid="send-icon" />,
   Loader2: () => <svg data-testid="loader-icon" />,
+  Sun: () => <div data-testid="mock-sun-icon" />,
+  Moon: () => <div data-testid="mock-moon-icon" />,
   Globe: () => <svg data-testid="globe-icon" />,
 }));
 

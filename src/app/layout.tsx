@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { SidebarNavigation } from "@/components/navigation/sidebar";
 import { usePathname } from "next/navigation";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
@@ -36,17 +37,24 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
-        {shouldShowSidebar ? (
-          <SidebarNavigation
-            isOpen={isSidebarOpen}
-            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          >
-            {children}
-          </SidebarNavigation>
-        ) : (
-          <main className="flex-grow overflow-auto">{children}</main>
-        )}
-        <Toaster />
+      <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem={true}
+          disableTransitionOnChange
+        >
+          {shouldShowSidebar ? (
+            <SidebarNavigation
+              isOpen={isSidebarOpen}
+              onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              {children}
+            </SidebarNavigation>
+          ) : (
+            <main className="flex-grow overflow-auto">{children}</main>
+          )}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
