@@ -262,7 +262,7 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   accentColor, 
   handleColorChange 
 }) => {
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   
   const updateColors = async (value: string) => {
     const selectedColor = colors.find(c => c.value === value);

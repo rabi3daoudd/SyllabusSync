@@ -90,7 +90,7 @@ export default function Settings() {
       if (user) {
         const userDocRef = doc(db, "users", user.uid);
         await updateDoc(userDocRef, {
-          accentColor: value,
+          color: value,
         });
       }
     } catch (error) {

@@ -57,11 +57,6 @@ interface ColorConfig {
   };
 }
 
-interface AppearanceSettingsProps {
-  accentColor: string;
-  handleColorChange: (value: string) => Promise<void>;
-}
-
 const colors: ColorConfig[] = [
   {
     name: "Blue",
