@@ -1,7 +1,7 @@
 import React, { ComponentProps, PropsWithChildren } from 'react';
 import { fireEvent, render, screen, waitFor} from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { getDoc, updateDoc } from 'firebase/firestore';
 import ChatBot from '@/components/assistant/Chat';
 import userEvent from '@testing-library/user-event';
