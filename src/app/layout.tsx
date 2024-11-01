@@ -2,30 +2,38 @@
 
 import React, { useState, useEffect } from "react";
 import { SidebarNavigation } from "@/components/navigation/sidebar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
+import { auth } from "../firebase-config";
 import "./globals.css";
 
-import { ReactNode } from "react";
-
 interface RootLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
   const pathname = usePathname();
-  const shouldShowSidebar = pathname !== "/login" && pathname !== "/signup";
-
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setIsAuthenticated(!!user);
+      if (user && pathname === '/') {
+        router.push('/dashboard');
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [pathname, router]);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      setIsSidebarOpen(window.innerWidth >= 768);
     };
 
     window.addEventListener("resize", handleResize);
@@ -34,10 +42,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  if (isLoading) {
+    return <div>Loading...</div>; // Or a more sophisticated loading component
+  }
+
+  const isLandingPage = pathname === '/';
+  const shouldShowSidebar = !isLandingPage && pathname !== "/login" && pathname !== "/signup";
+
   return (
     <html lang="en">
       <body>
-      <ThemeProvider
+        <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem={true}
