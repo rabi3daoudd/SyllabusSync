@@ -35,7 +35,7 @@ export default function Settings() {
   const [isSaving, setIsSaving] = useState(false);
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
   const [isGoogleCalendarSynced, setIsGoogleCalendarSynced] = useState(false);
-  const [accentColor, setAccentColor] = useState<string>("blue");
+  const [accentColor, setAccentColor] = useState<string>("");
 
   const { toast } = useToast(); // Use the useToast hook to show toasts
 
@@ -104,8 +104,8 @@ export default function Settings() {
       if (user) {
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().accentColor) {
-          handleColorChange(userDoc.data().accentColor);
+        if (userDoc.exists() && userDoc.data().color) {
+          handleColorChange(userDoc.data().color);
         }
       }
     };
