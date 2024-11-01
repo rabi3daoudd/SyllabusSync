@@ -27,6 +27,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { GradientPicker } from '@/app/picker/GradientPicker'
 
 export default function ChatBot() {
   const [calendarId, setCalendarId] = useState<string>('')
@@ -35,6 +36,9 @@ export default function ChatBot() {
   const [assistantTextColor, setAssistantTextColor] = useState("#000000") // Text color for assistant messages
   const [backgroundColor, setBackgroundColor] = useState("#A5F8F1") // Background color for assistant messages and CardHeader
   const [extractedInfo, setExtractedInfo] = useState<string | null>(null) // Extracted info state
+  const [background, setBackground] = useState(
+    'linear-gradient(to top left,#ff75c3,#ffa647,#ffe83f,#9fff5b,#70e2ff,#cd93ff)'
+  )
 
   const translations = {
     en: {
@@ -305,6 +309,11 @@ export default function ChatBot() {
         <div className="flex justify-between items-center">
             <CardTitle className="text-2xl">SyllabusSync Assistant</CardTitle>
             <div className="w-32">
+                <GradientPicker
+                className="w-full truncate"
+                background={background}
+                setBackground={setBackground}
+              />
               <Select value={language} onValueChange={(value) => setLanguage(value as LanguageKey)}>
                 <SelectTrigger className="h-8 w-full flex items-center justify-between rounded-md border border-primary bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                   <div className="flex items-center">
@@ -384,7 +393,7 @@ export default function ChatBot() {
               data-testid="chat-input"
               style={{ color: assistantTextColor }}
             />
-            <Button type="submit" disabled={isLoading} className="w-24" style={{ backgroundColor: backgroundColor }}>
+            <Button type="submit" disabled={isLoading} className="w-24" style={{ backgroundColor: background }}>
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               <span className="ml-2">{isLoading ? 'Sending' : 'Send'}</span>
             </Button>
