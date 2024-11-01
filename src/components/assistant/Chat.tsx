@@ -302,7 +302,40 @@ export default function ChatBot() {
       </div>
       <Card className="w-full max-w-4xl h-[90vh] flex flex-col">
         <CardHeader style={{ backgroundColor: backgroundColor, color: "#FFFFFF" }}>
-          <CardTitle className="text-2xl">SyllabusSync Assistant</CardTitle>
+        <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl">SyllabusSync Assistant</CardTitle>
+            <div className="w-32">
+              <Select value={language} onValueChange={(value) => setLanguage(value as LanguageKey)}>
+                <SelectTrigger className="h-8 w-full flex items-center justify-between rounded-md border border-primary bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                  <div className="flex items-center">
+                    <Globe className="w-4 h-4 mr-1 text-white" />
+                    <SelectValue placeholder="Language" />
+                  </div>
+                  {/* Chevron icon */}
+                  <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3 w-3 text-white opacity-50"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </SelectTrigger>
+                <SelectContent className="bg-primary text-primary-foreground">
+                  {languageOptions.map((option) => (
+                      <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="text-primary-foreground"
+                      >
+                        {option.label}
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent data-testid="chatbot-container" className={`flex-grow overflow-hidden p-0 ${theme === "light" ? "bg-gray-100" : "bg-gray-900"}`}>
           <ScrollArea className="h-full p-4">
