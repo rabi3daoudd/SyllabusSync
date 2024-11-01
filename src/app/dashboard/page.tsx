@@ -1,7 +1,7 @@
 "use client"; 
 
 import { useEffect, useState } from "react";
-import { auth, db } from "../firebase-config";
+import { auth, db } from "../../firebase-config";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import {
@@ -11,13 +11,13 @@ import {
   Card,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "../components/ui/button";
+import { Button } from "../../components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import MyCalendar from "@/components/MyCalendar";
 import { fetchAllEventsFromAllCalendars } from "@/components/api";
 import Link from "next/link";
-import "./globals.css";
+import "@/app/globals.css";
 
 interface CalendarEvent {
   title: string;
