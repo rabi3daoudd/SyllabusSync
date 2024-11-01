@@ -25,7 +25,6 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { GradientPicker } from '@/app/picker/GradientPicker'
 
 export default function ChatBot() {
   const [calendarId, setCalendarId] = useState<string>('')
