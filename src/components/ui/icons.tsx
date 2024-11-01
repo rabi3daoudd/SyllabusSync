@@ -9,7 +9,8 @@ import {
 import {
   CalendarIcon,
   AdjustmentsVerticalIcon,
-  PuzzlePieceIcon
+  PuzzlePieceIcon,
+  PaintBrushIcon
 } from "@heroicons/react/24/outline"; //settings
 
 export const Icons = {
@@ -29,4 +30,6 @@ export const Icons = {
   CalendarIcon: CalendarIcon,
   PreferencesIcon: AdjustmentsVerticalIcon,
   IntegrationIcon: PuzzlePieceIcon,
+  PaintBrushIcon: PaintBrushIcon,
+
 };
