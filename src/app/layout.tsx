@@ -9,8 +9,6 @@ import { auth } from "../firebase-config";
 import "./globals.css";
 import {ColorProvider} from "@/components/ColorProvider"
 
-import { ReactNode } from "react";
-
 interface RootLayoutProps {
   children: React.ReactNode;
 }
