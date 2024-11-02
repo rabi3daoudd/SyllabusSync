@@ -10,10 +10,9 @@ import { ColorProvider } from "@/components/ColorProvider";
 
 interface LayoutClientProps {
   children: React.ReactNode;
-  shouldShowSidebar: boolean;
 }
 
-export function LayoutClient({ children, shouldShowSidebar }: LayoutClientProps) {
+export function LayoutClient({ children }: LayoutClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,6 +21,7 @@ export function LayoutClient({ children, shouldShowSidebar }: LayoutClientProps)
 
   // Public routes that don't require authentication
   const publicRoutes = ['/', '/login', '/signup'];
+  const isPublicRoute = publicRoutes.includes(pathname);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -36,7 +36,7 @@ export function LayoutClient({ children, shouldShowSidebar }: LayoutClientProps)
     });
 
     return () => unsubscribe();
-  }, [pathname, publicRoutes, router]);
+  }, [pathname, router]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -61,7 +61,7 @@ export function LayoutClient({ children, shouldShowSidebar }: LayoutClientProps)
       disableTransitionOnChange
     >
       <ColorProvider>
-        {shouldShowSidebar && isAuthenticated ? (
+        {!isPublicRoute && isAuthenticated ? (
           <SidebarNavigation
             isOpen={isSidebarOpen}
             onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
