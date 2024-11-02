@@ -59,6 +59,52 @@ interface ColorConfig {
 
 const colors: ColorConfig[] = [
   {
+    name: "Default",
+    value: "default",
+    light: {
+      background: "",
+      foreground: "",
+      card: "",
+      'card-foreground': "",
+      popover: "",
+      'popover-foreground': "",
+      primary: "",
+      'primary-foreground': "",
+      secondary: "",
+      'secondary-foreground': "",
+      muted: "",
+      'muted-foreground': "",
+      accent: "",
+      'accent-foreground': "",
+      destructive: "",
+      'destructive-foreground': "",
+      border: "",
+      input: "",
+      ring: ""
+    },
+    dark: {
+      background: "",
+      foreground: "",
+      card: "",
+      'card-foreground': "",
+      popover: "",
+      'popover-foreground': "",
+      primary: "",
+      'primary-foreground': "",
+      secondary: "",
+      'secondary-foreground': "",
+      muted: "",
+      'muted-foreground': "",
+      accent: "",
+      'accent-foreground': "",
+      destructive: "",
+      'destructive-foreground': "",
+      border: "",
+      input: "",
+      ring: ""
+    }
+  },
+  {
     name: "Blue",
     value: "blue",
     light: {
@@ -255,11 +301,21 @@ export const ColorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Define applyColorTheme outside of useEffect to use it in other places
   const applyColorTheme = (colorValue: string) => {
+    if (colorValue === 'default') {
+      // Remove all custom CSS variables
+      Object.keys(colors[1].light).forEach(key => {
+        document.documentElement.style.removeProperty(`--${key}`);
+      });
+      return;
+    }
+
     const selectedColor = colors.find((c) => c.value === colorValue);
     if (selectedColor) {
       const variables = theme === "dark" ? selectedColor.dark : selectedColor.light;
       Object.entries(variables).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(`--${key}`, value);
+        if (value) { // Only set property if value exists
+          document.documentElement.style.setProperty(`--${key}`, value);
+        }
       });
     }
   };

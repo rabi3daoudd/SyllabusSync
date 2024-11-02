@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             console.log("Logged in successfully!");
-            router.push('/');
+            router.push('/dashboard');
         } catch (error) {
             if (error instanceof Error) {
                 console.error(error.message);
@@ -36,22 +36,19 @@ const LoginPage: React.FC = () => {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // Check if the user's data already exists in Firestore
+            // Check if user data exists in Firestore
             const userRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(userRef);
 
-            // If the user's data doesn't exist, add it to Firestore
             if (!docSnap.exists()) {
                 await setDoc(userRef, {
-                    firstName: user.displayName?.split(' ')[0] || '', // Attempt to split the displayName to get the first name
-                    lastName: user.displayName?.split(' ').slice(1).join(' ') || '', // Get the last name, if any
+                    firstName: user.displayName?.split(' ')[0] || '',
+                    lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
                     email: user.email,
                 });
-                console.log("User data added to Firestore");
             }
 
-            console.log("Signed in with Google:", user);
-            router.push('/'); // Redirect to the home page
+            router.push('/dashboard');
         } catch (error) {
             console.error(error);
         }
@@ -63,20 +60,16 @@ const LoginPage: React.FC = () => {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // Check if the user's data already exists in Firestore
             const userRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(userRef);
 
-            // Store only the email for GitHub users
             if (!docSnap.exists()) {
                 await setDoc(userRef, {
                     email: user.email,
                 });
-                console.log("GitHub user data added to Firestore");
             }
 
-            console.log("Signed in with GitHub:", user);
-            router.push('/'); // Redirect to the home page
+            router.push('/dashboard');
         } catch (error) {
             console.error(error);
         }
