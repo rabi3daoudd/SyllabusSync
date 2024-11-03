@@ -48,7 +48,7 @@
     --radius: 0.75rem;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -56,4 +56,14 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes blink {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
 }

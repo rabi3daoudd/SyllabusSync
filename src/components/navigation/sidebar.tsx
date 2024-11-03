@@ -60,8 +60,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import { auth, db } from "../../firebase-config";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 
@@ -69,7 +71,7 @@ const data = {
   navMain: [
     {
       title: "Home",
-      url: "/",
+      url: "/dashboard",
       icon: Home,
     },
     {
@@ -218,13 +220,14 @@ type SidebarNavigationProps = {
   children: React.ReactNode;
 };
 
-export function SidebarNavigation({ children }: SidebarNavigationProps){
+export function SidebarNavigation({ children }: SidebarNavigationProps) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userInitial, setUserInitial] = useState<string | null>(null);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { setTheme, theme } = useTheme();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -247,8 +250,11 @@ export function SidebarNavigation({ children }: SidebarNavigationProps){
               userData.firstName && userData.lastName
                 ? `${userData.firstName} ${userData.lastName}`
                 : "";
+            const theme = userData.theme;
+            
             setUserName(fullName);
             setUserAvatarUrl(userData.avatarUrl || null);
+            setTheme(theme)
           }
         }
       } else {
@@ -268,90 +274,112 @@ export function SidebarNavigation({ children }: SidebarNavigationProps){
   };
 
   return (
-      <SidebarProvider>
-        <Sidebar variant="floating">
-          <SidebarHeader>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton size="lg" asChild>
-                  <a href="#">
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                      <img
-                        src="/logo.png"
-                        alt="SyllabusSync Logo"
-                        className="w-10 h-10"
-                      />
-                    </div>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">
-                        SyllabusSync
-                      </span>
-                      <span className="truncate text-xs">Pro</span>
-                    </div>
+    <SidebarProvider>
+      <Sidebar variant="floating">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild>
+                <a href="#">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <img
+                      src="/logo.png"
+                      alt="SyllabusSync Logo"
+                      className="w-10 h-10"
+                    />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">SyllabusSync</span>
+                    <span className="truncate text-xs">Pro</span>
+                  </div>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu className="mt-4">
+            {data.navMain.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  isActive={pathname === item.url}
+                >
+                  <a href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu className="mt-4">
-              {data.navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.title}
-                    isActive={pathname === item.url}
-                  >
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+            ))}
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>
+                    <Wrench />
+                    <span>Tools</span>
+                    <ChevronRight className="ml-auto h-4 w-4" />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton>
-                      <Wrench />
-                      <span>Tools</span>
-                      <ChevronRight className="ml-auto h-4 w-4" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                {data.tools.map((tool) => (
+                  <SidebarMenuItem key={tool.title}>
+                    <SidebarMenuButton asChild className="pl-8">
+                      <a href={tool.url}>{tool.title}</a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  {data.tools.map((tool) => (
-                    <SidebarMenuItem key={tool.title}>
-                      <SidebarMenuButton asChild className="pl-8">
-                        <a href={tool.url}>{tool.title}</a>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarMenu>
-            <SidebarMenu className="mt-auto">
-              <SidebarMenuItem>
-                <BugReportDialog />
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild size="sm">
-                  <a href={data.navSecondary[1].url}>
-                    <span>{data.navSecondary[1].title}</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      size="lg"
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                    >
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarMenu>
+          <SidebarMenu className="mt-auto">
+            <SidebarMenuItem>
+              <BugReportDialog />
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild size="sm">
+                <a href={data.navSecondary[1].url}>
+                  <span>{data.navSecondary[1].title}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    size="lg"
+                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  >
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage
+                        src={userAvatarUrl ?? ""}
+                        alt={userName ?? ""}
+                      />
+                      <AvatarFallback className="rounded-lg">
+                        {userInitial}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">{userName}</span>
+                      <span className="truncate text-xs">{userEmail}</span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto size-4" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                  side="bottom"
+                  align="end"
+                  sideOffset={4}
+                >
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarImage
                           src={userAvatarUrl ?? ""}
@@ -367,73 +395,74 @@ export function SidebarNavigation({ children }: SidebarNavigationProps){
                         </span>
                         <span className="truncate text-xs">{userEmail}</span>
                       </div>
-                      <ChevronsUpDown className="ml-auto size-4" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                    side="bottom"
-                    align="end"
-                    sideOffset={4}
-                  >
-                    <DropdownMenuLabel className="p-0 font-normal">
-                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                        <Avatar className="h-8 w-8 rounded-lg">
-                          <AvatarImage
-                            src={userAvatarUrl ?? ""}
-                            alt={userName ?? ""}
-                          />
-                          <AvatarFallback className="rounded-lg">
-                            {userInitial}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="grid flex-1 text-left text-sm leading-tight">
-                          <span className="truncate font-semibold">
-                            {userName}
-                          </span>
-                          <span className="truncate text-xs">{userEmail}</span>
-                        </div>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Upgrade to Pro
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem>
-                        <Bell className="mr-2 h-4 w-4" />
-                        Notifications
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Link href="/settings" className="flex items-center">
-                          <Settings2 className="mr-2 h-4 w-4" />
-                          Settings
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Log out
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Upgrade to Pro
                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset>
-          <header className="flex h-16 sticky top-0 shrink-0 items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-          </header>
-          <main className="flex-grow overflow-auto">
-            {children}
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href="/settings" className="flex items-center">
+                        <Settings2 className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        const user = auth.currentUser;
+                        if (!user) {
+                            console.error("No user logged in!");
+                            return;
+                        }
+                        const newTheme = theme === "dark" ? "light" : "dark";
+                        const userDocRef = doc(db, 'users', user.uid);
+                        await updateDoc(userDocRef, {
+                            theme: newTheme,
+                        });
+                        setTheme(newTheme);
+                      }}
+                    >
+                      {theme === "dark" ? (
+                        <>
+                          <Sun className="mr-2 h-4 w-4" />
+                          Light Mode
+                        </>
+                      ) : (
+                        <>
+                          <Moon className="mr-2 h-4 w-4" />
+                          Dark Mode
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-16 sticky top-0 shrink-0 items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="flex-grow overflow-auto">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
