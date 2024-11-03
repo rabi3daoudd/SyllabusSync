@@ -26,6 +26,64 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onaudiostart: ((ev: Event) => void) | null;
+  onaudioend: ((ev: Event) => void) | null;
+  onend: ((ev: Event) => void) | null;
+  onerror: ((ev: SpeechRecognitionErrorEvent) => void) | null;
+  onnomatch: ((ev: SpeechRecognitionEvent) => void) | null;
+  onresult: ((ev: SpeechRecognitionEvent) => void) | null;
+  onsoundstart: ((ev: Event) => void) | null;
+  onsoundend: ((ev: Event) => void) | null;
+  onspeechstart: ((ev: Event) => void) | null;
+  onspeechend: ((ev: Event) => void) | null;
+  onstart: ((ev: Event) => void) | null;
+  abort(): void;
+  start(): void;
+  stop(): void;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultList;
+  readonly interpretation: unknown;
+  readonly emma: Document;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  readonly length: number;
+  readonly isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error:
+      | 'no-speech'
+      | 'aborted'
+      | 'audio-capture'
+      | 'network'
+      | 'not-allowed'
+      | 'service-not-allowed'
+      | 'bad-grammar'
+      | 'language-not-supported';
+  message: string;
+}
+
 export default function ChatBot() {
   const [calendarId, setCalendarId] = useState<string>('');
   const [userId, setUserId] = useState<string | null>(null);
@@ -217,6 +275,7 @@ export default function ChatBot() {
     handleInputChange,
     handleSubmit,
     isLoading,
+    setInput, // Destructure setInput from useChat
   } = useChat({
     api: '/api/assistant',
     body: {
@@ -230,7 +289,7 @@ export default function ChatBot() {
         : undefined,
   });
 
-  // Now 'handleInputChange' is initialized, we can use it in useEffect
+  // Initialize Speech Recognition
   useEffect(() => {
     if (
         typeof window !== 'undefined' &&
@@ -238,9 +297,9 @@ export default function ChatBot() {
     ) {
       setIsSpeechRecognitionSupported(true);
 
-      const SpeechRecognition =
+      const SpeechRecognitionConstructor =
           window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
+      const recognition = new SpeechRecognitionConstructor();
 
       recognition.continuous = false;
       recognition.lang = languageCodes[language] || 'en-US';
@@ -258,9 +317,9 @@ export default function ChatBot() {
         const newValue = inputRef.current
             ? inputRef.current + ' ' + transcript
             : transcript;
-        handleInputChange({
-          target: { value: newValue },
-        } as React.ChangeEvent<HTMLInputElement>);
+
+        // Use setInput directly to update the input value
+        setInput(newValue);
       };
 
       recognitionRef.current = recognition;
@@ -268,7 +327,7 @@ export default function ChatBot() {
       setIsSpeechRecognitionSupported(false);
       console.error('Speech recognition not supported in this browser.');
     }
-  }, [language, handleInputChange]);
+  }, [language, setInput]);
 
   const handleSpeech = () => {
     const recognition = recognitionRef.current;
