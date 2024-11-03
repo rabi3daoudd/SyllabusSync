@@ -1,34 +1,37 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useChat } from 'ai/react'
-import { auth } from '../../firebase-config'
-import { findOrCreateSyallbusSyncCalendar } from '@/components/FindOrCreateSyallbusSyncCalendar'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { useState, useEffect, useRef } from 'react';
+import { useChat } from 'ai/react';
+import { auth } from '../../firebase-config';
+import { findOrCreateSyallbusSyncCalendar } from '@/components/FindOrCreateSyallbusSyncCalendar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Send, Loader2, Globe } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import { onAuthStateChanged } from 'firebase/auth'
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Send, Loader2, Globe, Mic } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { onAuthStateChanged } from 'firebase/auth';
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 
 export default function ChatBot() {
-  const [calendarId, setCalendarId] = useState<string>('')
-  const [userId, setUserId] = useState<string | null>(null)
+  const [calendarId, setCalendarId] = useState<string>('');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [listening, setListening] = useState<boolean>(false);
+  const [isSpeechRecognitionSupported, setIsSpeechRecognitionSupported] =
+      useState<boolean>(false);
 
   const translations = {
     en: {
@@ -159,13 +162,13 @@ export default function ChatBot() {
       assistant: 'SyllabusSync:',
       extractedInfoTitle: 'Utdragen Kalenderinformation:',
     },
-  }
+  };
 
   // Define the type for language keys
   type LanguageKey = keyof typeof translations;
 
   // Update the language state to use LanguageKey
-  const [language, setLanguage] = useState<LanguageKey>('en')
+  const [language, setLanguage] = useState<LanguageKey>('en');
 
   const languageOptions = [
     { value: 'en', label: 'English' },
@@ -184,29 +187,37 @@ export default function ChatBot() {
     { value: 'nl', label: 'Nederlands' },
     { value: 'pl', label: 'Polski' },
     { value: 'sv', label: 'Svenska' },
-    // Add more languages as needed
-  ]
+  ];
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUserId(user.uid)
-        try {
-          const syncCalendarId = await findOrCreateSyallbusSyncCalendar()
-          setCalendarId(syncCalendarId)
-        } catch (error) {
-          console.error('Error initializing calendar:', error)
-        }
-      } else {
-        setUserId(null)
-        setCalendarId('')
-      }
-    })
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const inputRef = useRef<string>('');
 
-    return () => unsubscribe()
-  }, [])
+  const languageCodes: { [key in LanguageKey]: string } = {
+    en: 'en-US',
+    es: 'es-ES',
+    fr: 'fr-FR',
+    de: 'de-DE',
+    it: 'it-IT',
+    zh: 'zh-CN',
+    ja: 'ja-JP',
+    ru: 'ru-RU',
+    ar: 'ar-SA',
+    pt: 'pt-PT',
+    hi: 'hi-IN',
+    ko: 'ko-KR',
+    tr: 'tr-TR',
+    nl: 'nl-NL',
+    pl: 'pl-PL',
+    sv: 'sv-SE',
+  };
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+  } = useChat({
     api: '/api/assistant',
     body: {
       calendarId,
@@ -217,27 +228,105 @@ export default function ChatBot() {
           Authorization: `Bearer ${userId}`,
         }
         : undefined,
-  })
+  });
 
-  const [extractedInfo, setExtractedInfo] = useState<string | null>(null)
+  // Now 'handleInputChange' is initialized, we can use it in useEffect
+  useEffect(() => {
+    if (
+        typeof window !== 'undefined' &&
+        ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+    ) {
+      setIsSpeechRecognitionSupported(true);
+
+      const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+
+      recognition.continuous = false;
+      recognition.lang = languageCodes[language] || 'en-US';
+
+      recognition.onstart = () => {
+        setListening(true);
+      };
+
+      recognition.onend = () => {
+        setListening(false);
+      };
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results[0][0].transcript;
+        const newValue = inputRef.current
+            ? inputRef.current + ' ' + transcript
+            : transcript;
+        handleInputChange({
+          target: { value: newValue },
+        } as React.ChangeEvent<HTMLInputElement>);
+      };
+
+      recognitionRef.current = recognition;
+    } else {
+      setIsSpeechRecognitionSupported(false);
+      console.error('Speech recognition not supported in this browser.');
+    }
+  }, [language, handleInputChange]);
+
+  const handleSpeech = () => {
+    const recognition = recognitionRef.current;
+    if (recognition) {
+      if (listening) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    } else {
+      console.error('Speech recognition not initialized.');
+    }
+  };
+
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        try {
+          const syncCalendarId = await findOrCreateSyallbusSyncCalendar();
+          setCalendarId(syncCalendarId);
+        } catch (error) {
+          console.error('Error initializing calendar:', error);
+        }
+      } else {
+        setUserId(null);
+        setCalendarId('');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const [extractedInfo, setExtractedInfo] = useState<string | null>(null);
 
   useEffect(() => {
     messages.forEach((message) => {
       if (message.role === 'assistant') {
-        handleExtractedInfo(message.content)
+        handleExtractedInfo(message.content);
       }
-    })
-  }, [messages])
+    });
+  }, [messages]);
 
   const handleExtractedInfo = (content: string) => {
-    const match = content.match(/<calendar_api_call>([\s\S]*?)<\/calendar_api_call>/)
+    const match = content.match(
+        /<calendar_api_call>([\s\S]*?)<\/calendar_api_call>/
+    );
     if (match) {
-      setExtractedInfo(match[1])
+      setExtractedInfo(match[1]);
     }
-  }
+  };
 
   if (!userId) {
-    return null // Or a loading state
+    return null;
   }
 
   return (
@@ -248,10 +337,19 @@ export default function ChatBot() {
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl">SyllabusSync Assistant</CardTitle>
               <div className="w-32">
-                <Select value={language} onValueChange={(value) => setLanguage(value as LanguageKey)}>
-                  <SelectTrigger className="h-8 w-full flex items-center justify-between rounded-md border border-primary bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                <Select
+                    value={language}
+                    onValueChange={(value) => setLanguage(value as LanguageKey)}
+                >
+                  <SelectTrigger
+                      className="h-8 w-full flex items-center justify-between rounded-md border border-primary bg-primary text-primary-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                      aria-label="Language selection"
+                  >
                     <div className="flex items-center">
-                      <Globe className="w-4 h-4 mr-1 text-white" />
+                      <Globe
+                          className="w-4 h-4 mr-1 text-white"
+                          aria-label="Select language"
+                      />
                       <SelectValue placeholder="Language" />
                     </div>
                     {/* Chevron icon */}
@@ -261,6 +359,7 @@ export default function ChatBot() {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
+                        aria-hidden="true"
                     >
                       <path d="M6 9l6 6 6-6" />
                     </svg>
@@ -283,16 +382,20 @@ export default function ChatBot() {
           <CardContent className="flex-grow overflow-hidden p-0">
             <ScrollArea className="h-full p-4">
               {messages.map((message) => {
-                const isAssistant = message.role === 'assistant'
+                const isAssistant = message.role === 'assistant';
                 return (
                     <div
                         key={message.id}
                         className={`mb-4 p-3 rounded-lg ${
-                            isAssistant ? 'bg-[#A5F8F1] text-black' : 'bg-gray-100 text-gray-800'
+                            isAssistant
+                                ? 'bg-[#A5F8F1] text-black'
+                                : 'bg-gray-100 text-gray-800'
                         }`}
                     >
                       <strong className="block mb-1">
-                        {isAssistant ? translations[language].assistant : translations[language].you}
+                        {isAssistant
+                            ? translations[language].assistant
+                            : translations[language].you}
                       </strong>
                       {isAssistant ? (
                           <ReactMarkdown className="prose prose-sm max-w-none">
@@ -302,7 +405,7 @@ export default function ChatBot() {
                           <p className="whitespace-pre-wrap">{message.content}</p>
                       )}
                     </div>
-                )
+                );
               })}
             </ScrollArea>
           </CardContent>
@@ -314,14 +417,18 @@ export default function ChatBot() {
                     {translations[language].extractedInfoTitle}
                   </h3>
                   <pre className="bg-white p-2 rounded text-sm overflow-x-auto border border-green-200">
-                    {extractedInfo}
-                  </pre>
+                {extractedInfo}
+              </pre>
                 </CardContent>
               </>
           )}
           <Separator />
           <CardFooter className="p-4">
-            <form onSubmit={handleSubmit} className="flex w-full space-x-2" data-testid="chat-form">
+            <form
+                onSubmit={handleSubmit}
+                className="flex w-full space-x-2"
+                data-testid="chat-form"
+            >
               <Input
                   value={input}
                   onChange={handleInputChange}
@@ -330,19 +437,47 @@ export default function ChatBot() {
                   className="flex-grow"
                   data-testid="chat-input"
               />
-              <Button type="submit" disabled={isLoading} className="w-24">
+              {isSpeechRecognitionSupported && (
+                  <Button
+                      type="button"
+                      onClick={handleSpeech}
+                      className="w-12"
+                      aria-label={listening ? 'Stop recording' : 'Start recording'}
+                  >
+                    {listening ? (
+                        <Mic className="w-4 h-4 text-red-500" aria-hidden="true" />
+                    ) : (
+                        <Mic className="w-4 h-4" aria-hidden="true" />
+                    )}
+                  </Button>
+              )}
+              <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-24"
+                  aria-label={
+                    isLoading
+                        ? translations[language].sending
+                        : translations[language].send
+                  }
+              >
                 {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2
+                        className="w-4 h-4 animate-spin"
+                        aria-hidden="true"
+                    />
                 ) : (
-                    <Send className="w-4 h-4" />
+                    <Send className="w-4 h-4" aria-hidden="true" />
                 )}
                 <span className="ml-2">
-                  {isLoading ? translations[language].sending : translations[language].send}
-                </span>
+                {isLoading
+                    ? translations[language].sending
+                    : translations[language].send}
+              </span>
               </Button>
             </form>
           </CardFooter>
         </Card>
       </div>
-  )
+  );
 }
