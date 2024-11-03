@@ -72,6 +72,52 @@ interface AppearanceSettingsProps {
 
 const colors: ColorConfig[] = [
   {
+    name: "Default",
+    value: "default",
+    light: {
+      background: "",
+      foreground: "",
+      card: "",
+      'card-foreground': "",
+      popover: "",
+      'popover-foreground': "",
+      primary: "",
+      'primary-foreground': "",
+      secondary: "",
+      'secondary-foreground': "",
+      muted: "",
+      'muted-foreground': "",
+      accent: "",
+      'accent-foreground': "",
+      destructive: "",
+      'destructive-foreground': "",
+      border: "",
+      input: "",
+      ring: ""
+    },
+    dark: {
+      background: "",
+      foreground: "",
+      card: "",
+      'card-foreground': "",
+      popover: "",
+      'popover-foreground': "",
+      primary: "",
+      'primary-foreground': "",
+      secondary: "",
+      'secondary-foreground': "",
+      muted: "",
+      'muted-foreground': "",
+      accent: "",
+      'accent-foreground': "",
+      destructive: "",
+      'destructive-foreground': "",
+      border: "",
+      input: "",
+      ring: ""
+    }
+  },
+  {
     name: "Blue",
     value: "blue",
     light: {

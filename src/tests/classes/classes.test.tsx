@@ -1,15 +1,19 @@
 // classes.test.tsx
 
-import React from 'react';
-import { render, screen, act, waitFor, cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import ClassPage from '../../app/classes/page.tsx';
-import { onAuthStateChanged } from 'firebase/auth';
-import { getDoc, updateDoc} from 'firebase/firestore';
-import { z } from 'zod';
-import {assignmentSchema, classSchema, semesterSchema } from '../../data/classesSchema.ts';
-import { useRouter } from 'next/navigation';
-import userEvent from '@testing-library/user-event';
+import React from "react";
+import { render, screen, act, waitFor, cleanup } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import ClassPage from "../../app/classes/page.tsx";
+import { onAuthStateChanged } from "firebase/auth";
+import { getDoc, updateDoc } from "firebase/firestore";
+import { z } from "zod";
+import {
+  assignmentSchema,
+  classSchema,
+  semesterSchema,
+} from "../../data/classesSchema.ts";
+import { useRouter } from "next/navigation";
+import userEvent from "@testing-library/user-event";
 
 beforeAll(() => {
   if (Element.prototype.setPointerCapture === undefined) {
@@ -18,24 +22,23 @@ beforeAll(() => {
 });
 
 // Mocking external dependencies
-jest.mock('firebase/auth');
-jest.mock('firebase/firestore');
-jest.mock('next/navigation', () => ({
+jest.mock("firebase/auth");
+jest.mock("firebase/firestore");
+jest.mock("next/navigation", () => ({
   useRouter: jest.fn().mockReturnValue({ push: jest.fn() }),
 }));
 
-
-const mockUser = { uid: 'test-user-id' };
+const mockUser = { uid: "test-user-id" };
 
 // Adjusted mockSemesters to use Timestamp for start and end dates
 const originalMockSemesters: z.infer<typeof semesterSchema>[] = [
   {
-    name: 'Fall 2024',
+    name: "Fall 2024",
     start: new Date("2024-09-06"),
     end: new Date("2024-11-06"),
   },
   {
-    name: 'Spring 2024',
+    name: "Spring 2024",
     start: new Date("2024-01-10"),
     end: new Date("2024-04-15"),
   },
@@ -43,10 +46,10 @@ const originalMockSemesters: z.infer<typeof semesterSchema>[] = [
 
 const originalMockClasses: z.infer<typeof classSchema>[] = [
   {
-    semesterName: 'Fall 2024',
-    name: 'Biology'
-  }
-]
+    semesterName: "Fall 2024",
+    name: "Biology",
+  },
+];
 
 const originalMockAssignments: z.infer<typeof assignmentSchema>[] = [
   {
@@ -54,45 +57,43 @@ const originalMockAssignments: z.infer<typeof assignmentSchema>[] = [
     className: "Biology",
     name: "Lecture",
     day: "Wednesday",
-    startingTime:"8:30PM",
-    finishingTime:"9:50PM",
-    location:"SITE",
-    occurance:"OnceAWeek"
-  }
-]
+    startingTime: "8:30PM",
+    finishingTime: "9:50PM",
+    location: "SITE",
+    occurance: "OnceAWeek",
+  },
+];
 
 let mockSemesters: z.infer<typeof semesterSchema>[];
 let mockClasses: z.infer<typeof classSchema>[];
 let mockAssignments: z.infer<typeof assignmentSchema>[];
 
-
 // Mock scrollTo function
 window.scrollTo = jest.fn();
 
 // Mocking firebase-config
-jest.mock('../../firebase-config', () => ({
+jest.mock("../../firebase-config", () => ({
   auth: {
-    currentUser: { uid: 'test-user-id' }, // Mock authenticated user
+    currentUser: { uid: "test-user-id" }, // Mock authenticated user
   },
   db: jest.fn(), // Mock Firestore database instance
 }));
 
-describe('ClassPage Component', () => {
+describe("ClassPage Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Remove this line to see console errors during tests
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockSemesters = JSON.parse(JSON.stringify(originalMockSemesters));
     mockClasses = JSON.parse(JSON.stringify(originalMockClasses));
     mockAssignments = JSON.parse(JSON.stringify(originalMockAssignments));
-
   });
 
-  afterEach(() =>{
+  afterEach(() => {
     cleanup();
-  })
+  });
 
-  test('renders semesters when user is authenticated and semesters are fetched', async () => {
+  test("renders semesters when user is authenticated and semesters are fetched", async () => {
     // Mock onAuthStateChanged to simulate a logged-in user
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       setTimeout(() => {
@@ -105,7 +106,7 @@ describe('ClassPage Component', () => {
     (getDoc as jest.Mock).mockResolvedValue({
       exists: () => true, // Simulate document exists
       data: () => ({
-        semesters: mockSemesters
+        semesters: mockSemesters,
       }),
     });
 
@@ -115,13 +116,15 @@ describe('ClassPage Component', () => {
     });
 
     // Wait for the loading message to disappear before making assertions
-    await waitFor(() => expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument()
+    );
 
     // Assert that "Fall 2024" is rendered in the document
-    expect(screen.getByText('Fall 2024')).toBeInTheDocument();
+    expect(screen.getByText("Fall 2024")).toBeInTheDocument();
 
     // Assert that "Spring 2024" is rendered in the document
-    expect(screen.getByText('Spring 2024')).toBeInTheDocument();
+    expect(screen.getByText("Spring 2024")).toBeInTheDocument();
   });
 
   test("renders classes when user is authenticated and classes are fetched", async () => {
@@ -137,7 +140,7 @@ describe('ClassPage Component', () => {
       exists: () => true, // Simulate document exists
       data: () => ({
         semesters: mockSemesters,
-        classes: mockClasses
+        classes: mockClasses,
       }),
     });
 
@@ -147,18 +150,21 @@ describe('ClassPage Component', () => {
     });
 
     // Wait for the loading message to disappear before making assertions
-    await waitFor(() => expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument());
-    await waitFor(() => expect(screen.queryAllByText(/Loading classes/i)).toHaveLength(0));
+    await waitFor(() =>
+      expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument()
+    );
+    await waitFor(() =>
+      expect(screen.queryAllByText(/Loading classes/i)).toHaveLength(0)
+    );
 
     // Assert that "Fall 2024" is rendered in the document
-    expect(screen.getByText('Fall 2024')).toBeInTheDocument();
+    expect(screen.getByText("Fall 2024")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByText('Fall 2024'));
+    await userEvent.click(screen.getByText("Fall 2024"));
 
     await waitFor(() => {
-      expect(screen.getByText('Biology')).toBeInTheDocument();
+      expect(screen.getByText("Biology")).toBeInTheDocument();
     });
-
   });
 
   test("renders assignments when user is authenticated and assignments are fetched", async () => {
@@ -175,7 +181,7 @@ describe('ClassPage Component', () => {
       data: () => ({
         semesters: mockSemesters,
         classes: mockClasses,
-        assignments: mockAssignments
+        assignments: mockAssignments,
       }),
     });
 
@@ -185,28 +191,31 @@ describe('ClassPage Component', () => {
     });
 
     // Wait for the loading message to disappear before making assertions
-    await waitFor(() => expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument()
+    );
 
-    await waitFor(() => expect(screen.queryAllByText(/Loading classes/i)).toHaveLength(0));
+    await waitFor(() =>
+      expect(screen.queryAllByText(/Loading classes/i)).toHaveLength(0)
+    );
 
     // Assert that "Fall 2024" is rendered in the document
-    expect(screen.getByText('Fall 2024')).toBeInTheDocument();
+    expect(screen.getByText("Fall 2024")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByText('Fall 2024'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Biology')).toBeInTheDocument();
-    });
-
-    await userEvent.click(screen.getByText('Biology'));
+    await userEvent.click(screen.getByText("Fall 2024"));
 
     await waitFor(() => {
-      expect(screen.getByText('Lecture')).toBeInTheDocument();
+      expect(screen.getByText("Biology")).toBeInTheDocument();
     });
 
+    await userEvent.click(screen.getByText("Biology"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Lecture")).toBeInTheDocument();
+    });
   });
 
-  test('creates a new semester and adds it to the semester list', async () => {
+  test("creates a new semester and adds it to the semester list", async () => {
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       setTimeout(() => {
         callback(mockUser);
@@ -220,7 +229,7 @@ describe('ClassPage Component', () => {
       data: () => ({
         semesters: mockSemesters,
         classes: mockClasses,
-        assignments: mockAssignments
+        assignments: mockAssignments,
       }),
     });
 
@@ -230,22 +239,23 @@ describe('ClassPage Component', () => {
       render(<ClassPage />);
     });
 
-    await waitFor(() => expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument()
+    );
 
-    await userEvent.click(screen.getByText('+ New Semester'));
+    await userEvent.click(screen.getByText("+ New Semester"));
 
-    const nameInput = screen.getByPlaceholderText('Enter Semester Name');
+    const nameInput = screen.getByPlaceholderText("Enter Semester Name");
     await userEvent.type(nameInput, "TEST SEMESTER");
 
     await userEvent.click(screen.getByText("Submit"));
 
     await waitFor(() => {
-      expect(screen.getByText('TEST SEMESTER')).toBeInTheDocument();
+      expect(screen.getByText("TEST SEMESTER")).toBeInTheDocument();
     });
-
   });
 
-  test('creates a new class and adds it to the correct semester', async () => {
+  test("creates a new class and adds it to the correct semester", async () => {
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       setTimeout(() => {
         callback(mockUser);
@@ -259,8 +269,7 @@ describe('ClassPage Component', () => {
       data: () => ({
         semesters: mockSemesters,
         classes: mockClasses,
-        assignments: mockAssignments
-
+        assignments: mockAssignments,
       }),
     });
 
@@ -270,59 +279,76 @@ describe('ClassPage Component', () => {
       render(<ClassPage />);
     });
 
-    await waitFor(() => expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText(/Loading semesters/i)).not.toBeInTheDocument()
+    );
 
-    await waitFor(() => expect(screen.queryAllByText(/Loading classes/i)).toHaveLength(0));
+    await waitFor(() =>
+      expect(screen.queryAllByText(/Loading classes/i)).toHaveLength(0)
+    );
 
-    expect(screen.getByText('Fall 2024')).toBeInTheDocument();
+    expect(screen.getByText("Fall 2024")).toBeInTheDocument();
 
-    
+    await userEvent.click(screen.getByText("Fall 2024"));
 
-    await userEvent.click(screen.getByText('Fall 2024'));
-    
-    await userEvent.click(screen.getByText('+ Add Class'));
+    await userEvent.click(screen.getByText("+ Add Class"));
 
-    const nameInput = screen.getByPlaceholderText('Enter Class Name');
+    const nameInput = screen.getByPlaceholderText("Enter Class Name");
     await userEvent.type(nameInput, "TEST CLASS");
 
     await userEvent.click(screen.getByText("Submit"));
 
     await waitFor(() => {
-      expect(screen.getByText('TEST CLASS')).toBeInTheDocument();
+      expect(screen.getByText("TEST CLASS")).toBeInTheDocument();
     });
   });
 
-  test('renders loading state initially', async () => {
+  test("renders loading state initially", async () => {
     const mockPush = jest.fn();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+
+    // Create a promise that we can control
+    let resolveAuthState: (value: unknown) => void = () => {};
+    const authStatePromise = new Promise((resolve) => {
+      resolveAuthState = resolve;
+    });
+
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
-      setTimeout(() => {
-        if (typeof callback === 'function') {
-          callback(mockUser);
-        }
-      }, 0);
+      authStatePromise.then(() => callback(mockUser));
       return jest.fn();
     });
 
-    (getDoc as jest.Mock).mockResolvedValueOnce({
-       exists: () => true, 
-       data: () => ({ semesters: []})
-    });
+    // Delay the Firestore response
+    (getDoc as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                exists: () => true,
+                data: () => ({ semesters: [] }),
+              }),
+            100
+          )
+        )
+    );
 
-    await act(async () => {
-      render(<ClassPage />);
-    });
+    render(<ClassPage />);
 
-    expect(await screen.findByText(/Loading semesters/i)).toBeInTheDocument();
+    // Assert loading state is shown
+    expect(screen.getByText(/Loading semesters/i)).toBeInTheDocument();
+
+    // Resolve the auth state
+    resolveAuthState(mockUser);
   });
 
-  test('redirects to login if no user is authenticated', async () => {
+  test("redirects to login if no user is authenticated", async () => {
     const mockPush = jest.fn();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
 
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       setTimeout(() => {
-        if (typeof callback === 'function') {
+        if (typeof callback === "function") {
           callback(null);
         }
       }, 0);
@@ -334,8 +360,7 @@ describe('ClassPage Component', () => {
     });
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login');
+      expect(mockPush).toHaveBeenCalledWith("/login");
     });
   });
-
 });
