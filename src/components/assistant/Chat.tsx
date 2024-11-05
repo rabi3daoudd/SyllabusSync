@@ -27,6 +27,64 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onaudiostart: ((ev: Event) => void) | null;
+  onaudioend: ((ev: Event) => void) | null;
+  onend: ((ev: Event) => void) | null;
+  onerror: ((ev: SpeechRecognitionErrorEvent) => void) | null;
+  onnomatch: ((ev: SpeechRecognitionEvent) => void) | null;
+  onresult: ((ev: SpeechRecognitionEvent) => void) | null;
+  onsoundstart: ((ev: Event) => void) | null;
+  onsoundend: ((ev: Event) => void) | null;
+  onspeechstart: ((ev: Event) => void) | null;
+  onspeechend: ((ev: Event) => void) | null;
+  onstart: ((ev: Event) => void) | null;
+  abort(): void;
+  start(): void;
+  stop(): void;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultList;
+  readonly interpretation: unknown;
+  readonly emma: Document;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  readonly length: number;
+  readonly isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error:
+      | 'no-speech'
+      | 'aborted'
+      | 'audio-capture'
+      | 'network'
+      | 'not-allowed'
+      | 'service-not-allowed'
+      | 'bad-grammar'
+      | 'language-not-supported';
+  message: string;
+}
+
 export default function ChatBot() {
   const [calendarId, setCalendarId] = useState<string>('');
   const [userId, setUserId] = useState<string | null>(null);
