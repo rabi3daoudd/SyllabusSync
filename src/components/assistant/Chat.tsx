@@ -104,7 +104,126 @@ export default function ChatBot() {
       assistant: 'SyllabusSync:',
       extractedInfoTitle: 'Extracted Calendar Information:',
     },
-    // ... other translations
+    es: {
+      placeholder: 'Escribe tu mensaje aquí...',
+      send: 'Enviar',
+      sending: 'Enviando',
+      you: 'Tú:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Información de Calendario Extraída:',
+    },
+    fr: {
+      placeholder: 'Tapez votre message ici...',
+      send: 'Envoyer',
+      sending: 'Envoi',
+      you: 'Vous :',
+      assistant: 'SyllabusSync :',
+      extractedInfoTitle: 'Informations du Calendrier Extraites :',
+    },
+    de: {
+      placeholder: 'Geben Sie hier Ihre Nachricht ein...',
+      send: 'Senden',
+      sending: 'Wird gesendet',
+      you: 'Sie:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Extrahierte Kalenderinformationen:',
+    },
+    it: {
+      placeholder: 'Digita qui il tuo messaggio...',
+      send: 'Invia',
+      sending: 'Invio',
+      you: 'Tu:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Informazioni del Calendario Estratte:',
+    },
+    zh: {
+      placeholder: '在此输入您的消息...',
+      send: '发送',
+      sending: '发送中',
+      you: '您：',
+      assistant: 'SyllabusSync：',
+      extractedInfoTitle: '提取的日历信息：',
+    },
+    ja: {
+      placeholder: 'ここにメッセージを入力してください...',
+      send: '送信',
+      sending: '送信中',
+      you: 'あなた:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: '抽出されたカレンダー情報:',
+    },
+    ru: {
+      placeholder: 'Введите ваше сообщение здесь...',
+      send: 'Отправить',
+      sending: 'Отправка',
+      you: 'Вы:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Извлеченная информация из календаря:',
+    },
+    ar: {
+      placeholder: 'اكتب رسالتك هنا...',
+      send: 'إرسال',
+      sending: 'جارٍ الإرسال',
+      you: 'أنت:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'معلومات التقويم المستخرجة:',
+    },
+    pt: {
+      placeholder: 'Digite sua mensagem aqui...',
+      send: 'Enviar',
+      sending: 'Enviando',
+      you: 'Você:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Informações do Calendário Extraídas:',
+    },
+    hi: {
+      placeholder: 'अपना संदेश यहाँ टाइप करें...',
+      send: 'भेजें',
+      sending: 'भेजा जा रहा है',
+      you: 'आप:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'निकाली गई कैलेंडर जानकारी:',
+    },
+    ko: {
+      placeholder: '여기에 메시지를 입력하세요...',
+      send: '보내기',
+      sending: '보내는 중',
+      you: '당신:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: '추출된 캘린더 정보:',
+    },
+    tr: {
+      placeholder: 'Mesajınızı buraya yazın...',
+      send: 'Gönder',
+      sending: 'Gönderiliyor',
+      you: 'Sen:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Çıkarılan Takvim Bilgileri:',
+    },
+    nl: {
+      placeholder: 'Typ hier uw bericht...',
+      send: 'Versturen',
+      sending: 'Bezig met verzenden',
+      you: 'U:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Opgehaalde Kalenderinformatie:',
+    },
+    pl: {
+      placeholder: 'Wpisz tutaj swoją wiadomość...',
+      send: 'Wyślij',
+      sending: 'Wysyłanie',
+      you: 'Ty:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Wyodrębnione Informacje z Kalendarza:',
+    },
+    sv: {
+      placeholder: 'Skriv ditt meddelande här...',
+      send: 'Skicka',
+      sending: 'Skickar',
+      you: 'Du:',
+      assistant: 'SyllabusSync:',
+      extractedInfoTitle: 'Utdragen Kalenderinformation:',
+    },
   };
 
   type LanguageKey = keyof typeof translations;
@@ -236,6 +355,29 @@ export default function ChatBot() {
     };
   }, []);
 
+  const [extractedInfo, setExtractedInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    messages.forEach((message) => {
+      if (message.role === 'assistant') {
+        handleExtractedInfo(message.content);
+      }
+    });
+  }, [messages]);
+
+  const handleExtractedInfo = (content: string) => {
+    const match = content.match(
+        /<calendar_api_call>([\s\S]*?)<\/calendar_api_call>/
+    );
+    if (match) {
+      setExtractedInfo(match[1]);
+    }
+  };
+
+  if (!userId) {
+    return null;
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <Card className="w-full max-w-4xl h-[90vh] flex flex-col">
@@ -276,6 +418,19 @@ export default function ChatBot() {
             ))}
           </ScrollArea>
         </CardContent>
+        {extractedInfo && (
+              <>
+                <Separator />
+                <CardContent className="p-4 bg-green-50">
+                  <h3 className="font-semibold mb-2 text-green-800">
+                    {translations[language].extractedInfoTitle}
+                  </h3>
+                  <pre className="bg-white p-2 rounded text-sm overflow-x-auto border border-green-200">
+                {extractedInfo}
+              </pre>
+                </CardContent>
+              </>
+          )}
 
         {showDropzone && (
           <div
