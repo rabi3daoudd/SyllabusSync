@@ -247,6 +247,25 @@ export default function ChatBot() {
     { value: 'sv', label: 'Svenska' },
   ];
 
+  const languageCodes: { [key in LanguageKey]: string } = {
+    en: 'en-US',
+    es: 'es-ES',
+    fr: 'fr-FR',
+    de: 'de-DE',
+    it: 'it-IT',
+    zh: 'zh-CN',
+    ja: 'ja-JP',
+    ru: 'ru-RU',
+    ar: 'ar-SA',
+    pt: 'pt-PT',
+    hi: 'hi-IN',
+    ko: 'ko-KR',
+    tr: 'tr-TR',
+    nl: 'nl-NL',
+    pl: 'pl-PL',
+    sv: 'sv-SE',
+  };
+
   const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
     api: '/api/assistant',
     body: { calendarId, language },
@@ -279,7 +298,7 @@ export default function ChatBot() {
       const recognition = new SpeechRecognitionConstructor();
 
       recognition.continuous = false;
-      recognition.lang = language;
+      recognition.lang = languageCodes[language] || 'en-US';
       recognition.onstart = () => setListening(true);
       recognition.onend = () => setListening(false);
 
@@ -461,7 +480,7 @@ export default function ChatBot() {
         <Separator />
 
         <CardFooter className="p-4">
-          <form onSubmit={handleSubmit} className="flex w-full space-x-2">
+          <form onSubmit={handleSubmit} className="flex w-full space-x-2" data-testid="chat-form">
             <Input value={input} onChange={handleInputChange} placeholder={translations[language].placeholder} disabled={isLoading} className="flex-grow" />
             {isSpeechRecognitionSupported && (
               <Button
