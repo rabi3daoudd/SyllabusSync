@@ -33,8 +33,7 @@ export default function ChatBot() {
   const [listening, setListening] = useState<boolean>(false);
   const [isSpeechRecognitionSupported, setIsSpeechRecognitionSupported] = useState<boolean>(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [showDropzone, setShowDropzone] = useState<boolean>(false); // Global state for window-level drag
-  const [isDraggingOverDropzone, setIsDraggingOverDropzone] = useState<boolean>(false); // Local state for drop zone
+  const [showDropzone, setShowDropzone] = useState<boolean>(false); // Control global drop zone visibility
   
   let dragCounter = 0; // Counter to track drag events
 
@@ -85,8 +84,6 @@ export default function ChatBot() {
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     noClick: true, // Disable click to open file dialog
-    onDragEnter: () => setIsDraggingOverDropzone(true), // Local drag enter for drop zone
-    onDragLeave: () => setIsDraggingOverDropzone(false), // Local drag leave for drop zone
   });
 
   const deleteFile = (index: number) => {
@@ -211,41 +208,21 @@ export default function ChatBot() {
         </CardHeader>
         <CardContent className="flex-grow overflow-hidden p-0">
           <ScrollArea className="h-full p-4">
-              {messages.map((message) => {
-                const isAssistant = message.role === 'assistant';
-                return (
-                    <div
-                        key={message.id}
-                        className={`mb-4 p-3 rounded-lg ${
-                            isAssistant
-                                ? 'bg-[#A5F8F1] text-black'
-                                : 'bg-gray-100 text-gray-800'
-                        }`}
-                    >
-                      <strong className="block mb-1">
-                        {isAssistant
-                            ? translations[language].assistant
-                            : translations[language].you}
-                      </strong>
-                      {isAssistant ? (
-                          <ReactMarkdown className="prose prose-sm max-w-none">
-                            {message.content}
-                          </ReactMarkdown>
-                      ) : (
-                          <p className="whitespace-pre-wrap">{message.content}</p>
-                      )}
-                    </div>
-                );
-              })}
-            </ScrollArea>
-          </CardContent>
+            {messages.map((message) => (
+              <div key={message.id} className={`mb-4 p-3 rounded-lg ${message.role === 'assistant' ? 'bg-[#A5F8F1] text-black' : 'bg-gray-100 text-gray-800'}`}>
+                <strong className="block mb-1">
+                  {message.role === 'assistant' ? translations[language].assistant : translations[language].you}
+                </strong>
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              </div>
+            ))}
+          </ScrollArea>
+        </CardContent>
 
         {showDropzone && (
           <div
             {...getRootProps()}
             className="p-4 border-dashed border-2 bg-primary rounded-lg text-center mb-4 text-primary-foreground"
-            onDragEnter={() => setIsDraggingOverDropzone(true)}
-            onDragLeave={() => setIsDraggingOverDropzone(false)}
           >
             <input {...getInputProps()} />
             <p>Drag & drop files here</p>
@@ -293,3 +270,4 @@ export default function ChatBot() {
     </div>
   );
 }
+
