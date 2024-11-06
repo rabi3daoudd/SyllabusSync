@@ -480,7 +480,10 @@ export default function ChatBot() {
         <AnimatePresence>
           {showDropzone && (
             <motion.div
-              {...getRootProps()}
+              {...getRootProps({
+                onClick: (e) => e.stopPropagation(),
+                // you can add other events here if necessary
+              })}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -489,14 +492,9 @@ export default function ChatBot() {
               style={{
                 boxShadow: "0 0 0 2px rgba(var(--primary-rgb), 0.1)",
               }}
-              as={motion.div as any}
             >
               <input {...getInputProps()} />
-              <motion.div
-                initial={{ y: 10 }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
+              <motion.div initial={{ y: 10 }} animate={{ y: 0 }} transition={{ duration: 0.2 }}>
                 <p className="text-primary dark:text-primary-foreground font-medium">
                   Drop your files here
                 </p>
