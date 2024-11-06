@@ -26,7 +26,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, HTMLMotionProps } from "framer-motion";
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
@@ -96,6 +96,7 @@ export default function ChatBot() {
   const [showDropzone, setShowDropzone] = useState<boolean>(false); // Control global drop zone visibility
 
   let dragCounter = 0; // Counter to track drag events
+  type DropzoneProps = HTMLMotionProps<"div"> & ReturnType<typeof getRootProps>;
 
   const translations = {
     en: {
@@ -480,10 +481,7 @@ export default function ChatBot() {
         <AnimatePresence>
           {showDropzone && (
             <motion.div
-              {...getRootProps({
-                onClick: (e) => e.stopPropagation(),
-                // you can add other events here if necessary
-              })}
+              {...(getRootProps() as DropzoneProps)} // Apply the type explicitly
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
