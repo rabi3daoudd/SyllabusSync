@@ -489,6 +489,7 @@ export default function ChatBot() {
               style={{
                 boxShadow: "0 0 0 2px rgba(var(--primary-rgb), 0.1)",
               }}
+              as={motion.div as any}
             >
               <input {...getInputProps()} />
               <motion.div
