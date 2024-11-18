@@ -45,12 +45,10 @@ export async function POST(request: Request) {
   const {
     messages,
     language,
-    calendarId,
     fileContents,
   }: {
     messages: Array<Message>;
     language: LanguageKey;
-    calendarId: string;
     fileContents: string[];
   } = await request.json();
 
@@ -137,7 +135,6 @@ Remember to wrap your thought process in <analysis> tags to show your reasoning 
 2. Note any potential conflicts or overlaps between syllabus events and existing user commitments.
 3. Prioritize events based on their importance or weight.`;
 
-let finalSyllabusText = syllabusText;
 
 if (syllabusText.length > 5000) {
   // If the text is too long, summarize it

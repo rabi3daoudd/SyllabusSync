@@ -30,6 +30,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 
+interface TextItem {
+  str: string;
+  dir?: string;
+  width?: number;
+  height?: number;
+  transform?: number[];
+  fontName?: string;
+}
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
 interface SpeechRecognition extends EventTarget {
@@ -99,6 +108,8 @@ export default function ChatBot() {
   const [files, setFiles] = useState<File[]>([]);
   const [showDropzone, setShowDropzone] = useState<boolean>(false); // Control global drop zone visibility
   const [fileContents, setFileContents] = useState<string[]>([]);
+  const MAX_FILES = 5;
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;  
 
   let dragCounter = 0; // Counter to track drag events
 
@@ -287,7 +298,18 @@ export default function ChatBot() {
   });
 
   const onDrop = (acceptedFiles: File[]) => {
-    const supportedFiles = acceptedFiles.filter((file) => {
+    // Calculate how many more files can be added
+    const filesLeft = MAX_FILES - files.length;
+  
+    if (filesLeft <= 0) {
+      alert("You have reached the maximum number of files (5).");
+      return;
+    }
+  
+    // Limit the accepted files to the number of files left
+    const filesToAdd = acceptedFiles.slice(0, filesLeft);
+  
+    const supportedFiles = filesToAdd.filter((file) => {
       const isSupported =
         file.type === "application/pdf" ||
         file.type ===
@@ -295,15 +317,24 @@ export default function ChatBot() {
         file.type === "application/msword" ||
         file.type.startsWith("text/");
   
+      const isWithinSizeLimit = file.size <= MAX_FILE_SIZE;
+  
       if (!isSupported) {
         alert(`Unsupported file type: ${file.name}`);
       }
   
-      return isSupported;
+      if (!isWithinSizeLimit) {
+        alert(`File "${file.name}" exceeds the 5MB size limit.`);
+      }
+  
+      return isSupported && isWithinSizeLimit;
     });
   
+    if (supportedFiles.length === 0) {
+      return;
+    }
+  
     setFiles((prevFiles) => [...prevFiles, ...supportedFiles]);
-    console.log("files", files)
     setShowDropzone(false); // Hide dropzone after dropping files
   };
 
@@ -476,7 +507,7 @@ const readPDF = async (file: File): Promise<string> => {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const strings = content.items.map((item: any) => item.str);
+    const strings = (content.items as TextItem[]).map((item) => item.str);
     text += strings.join(" ");
   }
 
@@ -502,6 +533,16 @@ const readPDF = async (file: File): Promise<string> => {
       };
       reader.readAsText(file);
     });
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  
+    // Call the original handleSubmit function to send the message
+    await handleSubmit(e);
+  
+    // Clear the files array to remove the uploaded files from the UI
+    setFiles([]);
   };
   
   return (
@@ -601,6 +642,7 @@ const readPDF = async (file: File): Promise<string> => {
               </motion.div>
             </motion.div>
           )}
+          
         </AnimatePresence>
 
         <AnimatePresence>
@@ -615,6 +657,9 @@ const readPDF = async (file: File): Promise<string> => {
               <h3 className="font-semibold mb-2 text-primary dark:text-primary-foreground">
                 Uploaded Files:
               </h3>
+              <h3 className="font-semibold mb-2 text-primary dark:text-primary-foreground">
+                  ({files.length}/{MAX_FILES}):
+                </h3>
               <ul className="space-y-2">
                 {files.map((file, index) => (
                   <motion.li
@@ -647,7 +692,7 @@ const readPDF = async (file: File): Promise<string> => {
 
         <CardFooter className="p-4">
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleFormSubmit}
             className="flex w-full space-x-2"
             data-testid="chat-form"
           >
