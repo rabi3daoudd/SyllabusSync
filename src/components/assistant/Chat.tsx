@@ -30,16 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 
-interface TextItem {
-  str: string;
-  dir?: string;
-  width?: number;
-  height?: number;
-  transform?: number[];
-  fontName?: string;
-}
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.js";
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
@@ -60,6 +51,15 @@ interface SpeechRecognition extends EventTarget {
   abort(): void;
   start(): void;
   stop(): void;
+}
+
+interface TextItem {
+  str: string;
+  dir?: string;
+  width?: number;
+  height?: number;
+  transform?: number[];
+  fontName?: string;
 }
 
 interface SpeechRecognitionEvent extends Event {
