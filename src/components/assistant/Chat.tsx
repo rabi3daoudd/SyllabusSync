@@ -27,6 +27,10 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
+import * as pdfjsLib from "pdfjs-dist";
+import mammoth from "mammoth";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
@@ -94,6 +98,7 @@ export default function ChatBot() {
     useState<boolean>(false);
   const [files, setFiles] = useState<File[]>([]);
   const [showDropzone, setShowDropzone] = useState<boolean>(false); // Control global drop zone visibility
+  const [fileContents, setFileContents] = useState<string[]>([]);
 
   let dragCounter = 0; // Counter to track drag events
 
@@ -277,12 +282,28 @@ export default function ChatBot() {
     setInput,
   } = useChat({
     api: "/api/assistant",
-    body: { calendarId, language },
+    body: { calendarId, language, fileContents },
     headers: userId ? { Authorization: `Bearer ${userId}` } : undefined,
   });
 
   const onDrop = (acceptedFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
+    const supportedFiles = acceptedFiles.filter((file) => {
+      const isSupported =
+        file.type === "application/pdf" ||
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.type === "application/msword" ||
+        file.type.startsWith("text/");
+  
+      if (!isSupported) {
+        alert(`Unsupported file type: ${file.name}`);
+      }
+  
+      return isSupported;
+    });
+  
+    setFiles((prevFiles) => [...prevFiles, ...supportedFiles]);
+    console.log("files", files)
     setShowDropzone(false); // Hide dropzone after dropping files
   };
 
@@ -351,6 +372,45 @@ export default function ChatBot() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const parseFiles = async () => {
+      const contents: string[] = [];
+  
+      for (const file of files) {
+        try {
+          let text = "";
+          if (file.type === "application/pdf") {
+            text = await readPDF(file);
+          } else if (
+            file.type ===
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+            file.type === "application/msword"
+          ) {
+            text = await readDOCX(file);
+          } else if (file.type.startsWith("text/")) {
+            text = await readTextFile(file);
+          } else {
+            console.warn(`Unsupported file type: ${file.type}`);
+            continue; // Skip unsupported file types
+          }
+  
+          contents.push(text);
+        } catch (error) {
+          console.error(`Error reading file ${file.name}:`, error);
+        }
+      }
+  
+      setFileContents(contents);
+      console.log("contents", contents)
+    };
+  
+    if (files.length > 0) {
+      parseFiles();
+    } else {
+      setFileContents([]); // Clear file contents when files are removed
+    }
+  }, [files]);
+
   // Global event listeners for drag events to control drop zone visibility
   useEffect(() => {
     const handleDragEnter = (event: DragEvent) => {
@@ -407,6 +467,43 @@ export default function ChatBot() {
     return null;
   }
 
+// Function to read and parse PDF files
+const readPDF = async (file: File): Promise<string> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = "";
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const strings = content.items.map((item: any) => item.str);
+    text += strings.join(" ");
+  }
+
+  return text;
+};
+
+  // Function to read and parse DOCX files
+  const readDOCX = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value; // The extracted text
+  };
+
+  // Function to read and parse plain text files
+  const readTextFile = (file: File): Promise<string> => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = () => {
+        reject(reader.error);
+      };
+      reader.readAsText(file);
+    });
+  };
+  
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <Card className="w-full max-w-4xl h-[90vh] flex flex-col">
