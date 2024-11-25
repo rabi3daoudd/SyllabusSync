@@ -10,7 +10,7 @@ import {
 } from "../ui/accordion"
 
 import { auth, db } from '../../firebase-config';
-import { doc, updateDoc, arrayUnion, getDoc, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, getDoc, Timestamp, arrayRemove } from 'firebase/firestore';
 
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer";
 import { Label } from "../ui/label";
@@ -24,7 +24,7 @@ import {
     SelectValue,
   } from "../ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {CalendarIcon } from "lucide-react";
+import {CalendarIcon, PencilIcon, TrashIcon } from "lucide-react";
 import {Calendar} from "../ui/calendar"
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
@@ -40,6 +40,9 @@ interface ClassComponentProps{
     index:number;
     name:string;
     semesterName:string;
+    onEdit: () => void;
+    onDelete: () => void;
+    
     /*
     assignments: Assignment[]; 
     setAssignments: (newAssignment: Assignment) => void; LOL
@@ -48,7 +51,7 @@ interface ClassComponentProps{
 
 
 
-const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}) => {
+const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,onEdit,onDelete}) => {
     type Assignment = z.infer<typeof assignmentSchema>
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [assignmentName, setAssignmentName] = useState("");
@@ -57,6 +60,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
     const [occurance,setOccurance] = useState("");
     const [day, setDay] = useState("");
     const [date, setDate] = React.useState<Date>();
+    const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
     const [startingTimeHour,setStartingTimeHour] = useState("");
     const [startingTimeMinute, setStartingTimeMinute] = useState("");
@@ -169,8 +173,6 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
         else{
             setFinishingTime(newDateString);
         }
-        
-        
      }
 
     const ChooseDayComponent = () =>{
@@ -251,6 +253,44 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
         setLocationName(event.target.value);
     };
 
+    function parseTimeString(timeString: string) {
+        const regex = /^(\d{1,2}):(\d{2})(AM|PM)$/i;
+        const matches = timeString.match(regex);
+      
+        if (matches) {
+          const hour = matches[1];
+          const minute = matches[2];
+          const period = matches[3].toUpperCase();
+          return { hour, minute, period };
+        } else {
+          throw new Error("Invalid time format. Expected format is HH:MMAM or HH:MMPM.");
+        }
+      }
+
+    const handleEditAssignment = (assignmentToEdit: Assignment) => {
+        setEditingAssignment(assignmentToEdit);
+        setAssignmentName(assignmentToEdit.name);
+        setDay(assignmentToEdit.day);
+
+        const { hour: startingHour, minute: startingMinute, period: startingAmOrPm } = parseTimeString(assignmentToEdit.startingTime);
+        setStartingTimeHour(startingHour)
+        setStartingTimeMinute(startingMinute)
+        setStartingTimeAmOrPm(startingAmOrPm)
+
+        const { hour: finishingHour, minute: finishingMinute, period: finishingAmOrPm } = parseTimeString(assignmentToEdit.finishingTime);
+        setFinishingTimeHour(finishingHour)
+        setFinishingTimeMinute(finishingMinute)
+        setFinishingTimeAmOrPm(finishingAmOrPm)
+
+        if(assignmentToEdit.date){
+            setDate(assignmentToEdit.date);
+        }
+        setOccurance(assignmentToEdit.occurance)
+        setLocationName(assignmentToEdit.location)
+
+        setIsDrawerOpen(true);
+    };
+
     const handleSubmit = async () => {
 
         const user = auth.currentUser;
@@ -308,11 +348,12 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
             alert("Please fill in the day that the assignment happens. Ex. Monday,Tuesday, etc.")
             return;
         }
-        const isAssignmentExist = assignments.some(assignment => assignment.name === assignmentName && assignment.day === day && assignment.startingTime === startingTime && assignment.finishingTime === finishingTime && assignment.occurance === occurance && assignment.location === locationName && assignment.date === date );
+        const isAssignmentExist = assignments.some((someAssignment) => someAssignment.name === assignmentName);
         if (isAssignmentExist) {
-            alert("A assignment with the same attributes already exists.");
+            alert("An assignment with the same name already exists in this class.");
             return;
         }
+
         const newAssignment = {
           semesterName: semesterName,
           className: name,
@@ -355,27 +396,184 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
 
     const handleOccuranceChange = (value: string) =>{
         setOccurance(value); 
+        setDay("");
+        setDate(undefined);
     }
+
+    const handleUpdateAssignment = async () => {
+        if (!editingAssignment) return;
+    
+        const user = auth.currentUser;
+    
+        if (!user) {
+          console.error("No user logged in!");
+          return;
+        }
+        
+        if(!startingTimeHour || !startingTimeMinute || !finishingTimeHour || !finishingTimeMinute || !startingTimeAmOrPm || !finishingTimeAmOrPm ){
+            alert("Please fill in the time fields.");
+            return;
+        }
+
+        let startHour24;
+        let finishHour24;
+        
+        if(startingTimeAmOrPm === "PM" && startingTimeHour !== "12"){
+            startHour24 = parseInt(startingTimeHour) + 12;
+        }
+        else if(startingTimeAmOrPm === "AM" && startingTimeHour === "12"){
+            startHour24 = 0;
+
+        }
+        else{
+            startHour24 = parseInt(startingTimeHour);
+        }
+
+        if(finishingTimeAmOrPm === "PM" && finishingTimeHour !== "12"){
+            finishHour24 = parseInt(finishingTimeHour)+12;
+        }
+        else if(finishingTimeAmOrPm === "AM" && finishingTimeHour === "12"){
+            finishHour24 = 0;
+        }
+        else{
+            finishHour24 = parseInt(finishingTimeHour);
+        }
+
+        const startTimeInMinutes = startHour24 * 60 + parseInt(startingTimeMinute);
+        const finishTimeInMinutes = finishHour24*60 +parseInt(finishingTimeMinute);
+
+        if (startTimeInMinutes >= finishTimeInMinutes) {
+            alert("The starting time must be before the finishing time.");
+            return;
+        }
+
+        if (!assignmentName) {
+          alert("Please fill in the assignment name.");
+          return;
+        }
+        const isDuplicateAssignment = assignments.some(
+            (assignment) =>
+              assignment.name === assignmentName && assignment.name !== editingAssignment.name
+          );
+          if (isDuplicateAssignment) {
+            alert("A assignment with the same name already exists in the class. Please choose a different name.");
+            return;
+          }
+        if(!occurance){
+            alert("Please fill in the occurance of the assignment.")
+            return;
+        }
+        if((occurance === "OnceAWeek" || occurance === "OnceEveryTwoWeeks") && !day){
+            alert("Please fill in the day that the assignment happens. Ex. Monday,Tuesday, etc.")
+            return;
+        }
+        const newStartingTime = `${startingTimeHour}:${startingTimeMinute}${startingTimeAmOrPm}`
+        const newFinishingTime = `${finishingTimeHour}:${finishingTimeMinute}${finishingTimeAmOrPm}`
+    
+        const updatedAssignment = {
+          ...editingAssignment,
+          name: assignmentName,
+          day: occurance === "OneTime" ? "" : day,
+          startingTime:newStartingTime,
+          finishingTime:newFinishingTime,
+          location:locationName,
+          occurance:occurance,
+          ...(occurance === "OneTime" && date ? { date } : {})
+        };
+    
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+    
+          // Remove the old class
+          await updateDoc(userDocRef, {
+            assignments: arrayRemove(editingAssignment),
+          });
+    
+          // Add the updated class
+          await updateDoc(userDocRef, {
+            assignments: arrayUnion(updatedAssignment),
+          });
+    
+          setAssignments(
+            assignments.map((assignment) =>
+              assignment.name === editingAssignment.name ? updatedAssignment : assignment
+            )
+          );
+          setEditingAssignment(null);
+          setAssignmentName("");
+          setDay("");
+          if(date){
+            setDate(undefined);
+
+          }
+          setStartingTime("");
+          setFinishingTime("");
+          setStartingTimeHour("");
+          setFinishingTimeHour("");
+          setFinishingTimeMinute("");
+          setStartingTimeMinute("");
+          setStartingTimeAmOrPm("");
+          setFinishingTimeAmOrPm("");
+          setLocationName("");
+          setOccurance("");
+          setIsDrawerOpen(false);
+          console.log(`Updated assignment: ${updatedAssignment.name}`);
+        } catch (error) {
+          console.error("Error updating assignment: ", error);
+        }
+      };
+      const handleDeleteAssignment = async (assignmentNameToDelete: string) => {
+        const user = auth.currentUser;
+    
+        if (!user) {
+          console.error("No user logged in!");
+          return;
+        }
+    
+        const assignmentToDelete = assignments.find((assignment) => assignment.name === assignmentNameToDelete);
+        if (!assignmentToDelete) {
+          console.error("Assignment not found!");
+          return;
+        }
+    
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          await updateDoc(userDocRef, {
+            assignments: arrayRemove(assignmentToDelete),
+          });
+    
+          setAssignments(assignments.filter((assignment) => assignment.name !== assignmentNameToDelete));
+          console.log(`Deleted assignment: ${assignmentNameToDelete}`);
+        } catch (error) {
+          console.error("Error deleting assignment: ", error);
+        }
+      };
 
     return (
         
         <AccordionItem value={`item-${index}`}>
             <div className="space-y-4">
-                <div className="bg-[#127780] rounded-lg p-4 mt-4 overflow-x-auto">
+                <div className="rounded-lg p-4 mt-4 overflow-x-auto">
                     <AccordionTrigger >
-                        <h1 className="text-2xl font-semibold text-[#FFFFFF] text-left mt-[-8px]">{name}</h1>
+                        <h1 className="text-2xl font-semibold text-left mt-[-8px]">{name}</h1>
+                        <div className="flex space-x-2 items-center ml-auto">
+                            <PencilIcon className="w-5 h-5 cursor-pointer" onClick={onEdit} />
+                            <TrashIcon className="w-5 h-5 cursor-pointer" onClick={onDelete} />
+                        </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <Drawer open={isDrawerOpen}>
                             <DrawerTrigger asChild onClick={() => setIsDrawerOpen(true)}>
                                 <div className="flex justify-between items-center mb-4">
-                                    <Button className="bg-[#FFFFFF] text-[#127780] text-sm">+ Add New</Button>
+                                    <Button className="text-sm">+ Add New</Button>
                                 </div>
                             </DrawerTrigger>
                             
                             <DrawerContent>
                                 <DrawerHeader>
-                                    <DrawerTitle>Create a new assignment</DrawerTitle>
+                                    <DrawerTitle>
+                                    {editingAssignment ? "Edit Assignment" : "Create a new assignment"}
+                                    </DrawerTitle>
                                     <DrawerDescription>Enter all of the details of your assignment.</DrawerDescription>
 
                                     <Label>Name of Assignment:</Label>
@@ -485,9 +683,33 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
 
                                 </DrawerHeader>
                                 <DrawerFooter className="pt-2">
-                                    <Button onClick={handleSubmit}>Submit</Button>
+                                    <Button onClick={editingAssignment ? handleUpdateAssignment : handleSubmit}>
+                                    {editingAssignment ? "Update" : "Submit"}
+                                    </Button>
                                     <DrawerClose asChild>
-                                        <Button variant="outline" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
+                                        <Button variant="outline"
+                                        onClick={
+                                            () => {
+                                            setIsDrawerOpen(false);
+                                            setEditingAssignment(null);
+                                            setDay("");
+                                            setDate(undefined);
+                                            setAssignmentName("");
+                                            setStartingTime("");
+                                            setFinishingTime("");
+                                            setStartingTimeHour("");
+                                            setFinishingTimeHour("");
+                                            setFinishingTimeMinute("");
+                                            setStartingTimeMinute("");
+                                            setStartingTimeAmOrPm("");
+                                            setFinishingTimeAmOrPm("");
+                                            setLocationName("");
+                                            setOccurance("");
+
+                                        }}
+                                        >
+                                        Cancel
+                                        </Button>
                                     </DrawerClose>
                                 </DrawerFooter>
                             </DrawerContent>
@@ -499,12 +721,22 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
                                 <AssignmentComponent 
                                 index={index+1}
                                 name={assignmentObject.name}
-                                day={assignmentObject.day}
-                                date={assignmentObject.date || undefined}
+                                day={
+                                    assignmentObject.occurance !== "OneTime"
+                                      ? assignmentObject.day // Display day only for recurring assignments
+                                      : ""
+                                  }
+                                  date={
+                                    assignmentObject.occurance === "OneTime" && assignmentObject.date instanceof Date
+                                      ? assignmentObject.date
+                                      : undefined
+                                  }
                                 startingTime={assignmentObject.startingTime}
                                 finishingTime={assignmentObject.finishingTime}
                                 location={assignmentObject.location}
                                 occurance={assignmentObject.occurance}
+                                onEdit={() => handleEditAssignment(assignmentObject)}
+                                onDelete={() => handleDeleteAssignment(assignmentObject.name)}
                                 />
                                 
                             </>
@@ -520,4 +752,3 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName}
 }
 
 export default ClassComponent;
-
