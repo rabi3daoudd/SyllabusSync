@@ -19,7 +19,7 @@ interface AssignmentComponentProps{
 const AssignmentComponent: React.FC<AssignmentComponentProps> = ({name,day,date, startingTime,finishingTime,location,occurance,onEdit,onDelete}) => {
     return(
             <Card>
-                <div className="bg-[#FFFFFF] rounded-lg p-4 overflow-x-auto">
+                <div className="rounded-lg p-4 overflow-x-auto">
                     <h3 className="font-semibold mb-2 text-left">{name}</h3>
                     {day && <p className="text-sm">{day}</p>}
                     {date && <p className="text-sm">{`${format(date, 'MMM do yyyy')}`}</p>}

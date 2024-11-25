@@ -173,8 +173,6 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
         else{
             setFinishingTime(newDateString);
         }
-        
-        
      }
 
     const ChooseDayComponent = () =>{
@@ -350,11 +348,12 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
             alert("Please fill in the day that the assignment happens. Ex. Monday,Tuesday, etc.")
             return;
         }
-        const isAssignmentExist = assignments.some(assignment => assignment.name === assignmentName && assignment.day === day && assignment.startingTime === startingTime && assignment.finishingTime === finishingTime && assignment.occurance === occurance && assignment.location === locationName && assignment.date === date );
+        const isAssignmentExist = assignments.some((someAssignment) => someAssignment.name === assignmentName);
         if (isAssignmentExist) {
-            alert("A assignment with the same attributes already exists.");
+            alert("An assignment with the same name already exists in this class.");
             return;
         }
+
         const newAssignment = {
           semesterName: semesterName,
           className: name,
@@ -397,6 +396,8 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
 
     const handleOccuranceChange = (value: string) =>{
         setOccurance(value); 
+        setDay("");
+        setDate(undefined);
     }
 
     const handleUpdateAssignment = async () => {
@@ -450,6 +451,14 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
           alert("Please fill in the assignment name.");
           return;
         }
+        const isDuplicateAssignment = assignments.some(
+            (assignment) =>
+              assignment.name === assignmentName && assignment.name !== editingAssignment.name
+          );
+          if (isDuplicateAssignment) {
+            alert("A assignment with the same name already exists in the class. Please choose a different name.");
+            return;
+          }
         if(!occurance){
             alert("Please fill in the occurance of the assignment.")
             return;
@@ -458,13 +467,15 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
             alert("Please fill in the day that the assignment happens. Ex. Monday,Tuesday, etc.")
             return;
         }
+        const newStartingTime = `${startingTimeHour}:${startingTimeMinute}${startingTimeAmOrPm}`
+        const newFinishingTime = `${finishingTimeHour}:${finishingTimeMinute}${finishingTimeAmOrPm}`
     
         const updatedAssignment = {
           ...editingAssignment,
           name: assignmentName,
           day: occurance === "OneTime" ? "" : day,
-          startingTime:startingTime,
-          finishingTime:finishingTime,
+          startingTime:newStartingTime,
+          finishingTime:newFinishingTime,
           location:locationName,
           occurance:occurance,
           ...(occurance === "OneTime" && date ? { date } : {})
@@ -491,7 +502,10 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
           setEditingAssignment(null);
           setAssignmentName("");
           setDay("");
-          setDate(undefined);
+          if(date){
+            setDate(undefined);
+
+          }
           setStartingTime("");
           setFinishingTime("");
           setStartingTimeHour("");
@@ -539,9 +553,9 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
         
         <AccordionItem value={`item-${index}`}>
             <div className="space-y-4">
-                <div className="bg-[#127780] rounded-lg p-4 mt-4 overflow-x-auto">
+                <div className="rounded-lg p-4 mt-4 overflow-x-auto">
                     <AccordionTrigger >
-                        <h1 className="text-2xl font-semibold text-[#FFFFFF] text-left mt-[-8px]">{name}</h1>
+                        <h1 className="text-2xl font-semibold text-left mt-[-8px]">{name}</h1>
                         <div className="flex space-x-2 items-center ml-auto">
                             <PencilIcon className="w-5 h-5 cursor-pointer" onClick={onEdit} />
                             <TrashIcon className="w-5 h-5 cursor-pointer" onClick={onDelete} />
@@ -551,7 +565,7 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
                         <Drawer open={isDrawerOpen}>
                             <DrawerTrigger asChild onClick={() => setIsDrawerOpen(true)}>
                                 <div className="flex justify-between items-center mb-4">
-                                    <Button className="bg-[#FFFFFF] text-[#127780] text-sm">+ Add New</Button>
+                                    <Button className="text-sm">+ Add New</Button>
                                 </div>
                             </DrawerTrigger>
                             
@@ -678,7 +692,20 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
                                             () => {
                                             setIsDrawerOpen(false);
                                             setEditingAssignment(null);
+                                            setDay("");
+                                            setDate(undefined);
                                             setAssignmentName("");
+                                            setStartingTime("");
+                                            setFinishingTime("");
+                                            setStartingTimeHour("");
+                                            setFinishingTimeHour("");
+                                            setFinishingTimeMinute("");
+                                            setStartingTimeMinute("");
+                                            setStartingTimeAmOrPm("");
+                                            setFinishingTimeAmOrPm("");
+                                            setLocationName("");
+                                            setOccurance("");
+
                                         }}
                                         >
                                         Cancel
@@ -694,8 +721,16 @@ const ClassComponent: React.FC<ClassComponentProps> = ({index,name,semesterName,
                                 <AssignmentComponent 
                                 index={index+1}
                                 name={assignmentObject.name}
-                                day={assignmentObject.day}
-                                date={assignmentObject.date || undefined}
+                                day={
+                                    assignmentObject.occurance !== "OneTime"
+                                      ? assignmentObject.day // Display day only for recurring assignments
+                                      : ""
+                                  }
+                                  date={
+                                    assignmentObject.occurance === "OneTime" && assignmentObject.date instanceof Date
+                                      ? assignmentObject.date
+                                      : undefined
+                                  }
                                 startingTime={assignmentObject.startingTime}
                                 finishingTime={assignmentObject.finishingTime}
                                 location={assignmentObject.location}
