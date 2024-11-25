@@ -259,6 +259,8 @@ const ClassPage: React.FC = () => {
       await updateDoc(userDocRef, { semesters: updatedSemesters });
       setSemesters(updatedSemesters);
       setIsEditDrawerOpen(false);
+      setSemesterName("");
+      setDateRange({ from: new Date(), to: addDays(new Date(), 120) });
       console.log(`Updated semester: ${semesterName}`);
     } catch (error) {
       console.error("Error updating semester: ", error);
