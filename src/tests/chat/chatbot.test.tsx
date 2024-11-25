@@ -8,6 +8,26 @@ import { onAuthStateChanged, getAuth } from 'firebase/auth';
 import { findOrCreateSyallbusSyncCalendar } from '@/components/FindOrCreateSyallbusSyncCalendar';
 import { useChat } from 'ai/react';
 
+jest.mock('pdfjs-dist', () => ({
+  GlobalWorkerOptions: {
+    workerSrc: '',
+  },
+  getDocument: jest.fn().mockReturnValue({
+    promise: Promise.resolve({
+      numPages: 1,
+      getPage: jest.fn().mockResolvedValue({
+        getTextContent: jest.fn().mockResolvedValue({
+          items: [{ str: 'Mock PDF text content' }],
+        }),
+      }),
+    }),
+  }),
+}));
+
+jest.mock('mammoth', () => ({
+  extractRawText: jest.fn().mockResolvedValue({ value: 'Mock DOCX text content' }),
+}));
+
 // Mock Firebase Auth
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(),

@@ -4,6 +4,7 @@ import { customModel } from "@/ai/index";
 import { fetchAllEventsFromAllCalendars } from "@/components/api";
 
 export async function POST(request: Request) {
+  
   // Get the Authorization header
   const authHeader = request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -40,15 +41,20 @@ export async function POST(request: Request) {
   // Define the type for the language keys
   type LanguageKey = keyof typeof languageInstructions;
 
-  // Extract messages, language, and calendarId from the request body
+  // Extract messages, language, calendarId and more from the request body
   const {
     messages,
     language,
+    fileContents,
   }: {
     messages: Array<Message>;
     language: LanguageKey;
-    calendarId: string;
+    fileContents: string[];
   } = await request.json();
+
+  const syllabusText = fileContents ? fileContents.join("\n") : "";
+  
+
 
   const coreMessages = convertToCoreMessages(messages);
   const baseUrl = process.env.BASE_URL;
@@ -60,10 +66,8 @@ export async function POST(request: Request) {
   // Get the language instruction or default to English
   const languageInstruction =
       languageInstructions[language] || languageInstructions['en'];
-
-  const result = await streamText({
-    model: customModel,
-    system: `${languageInstruction}
+  
+  const systemPromptTemplate = `${languageInstruction}
 
 You are SyllabusSync, an AI assistant specialized in helping university students manage their academic schedules. Your primary function is to extract key dates from course syllabi and integrate them with Google Calendar. Follow these instructions carefully to assist students effectively.
 
@@ -129,8 +133,20 @@ After completing these steps, thank the user for using SyllabusSync and invite t
 Remember to wrap your thought process in <analysis> tags to show your reasoning process for complex decisions or analyses throughout the task. In your analysis:
 1. Identify and list all types of events mentioned in the syllabus.
 2. Note any potential conflicts or overlaps between syllabus events and existing user commitments.
-3. Prioritize events based on their importance or weight.`,
+3. Prioritize events based on their importance or weight.`;
 
+
+if (syllabusText.length > 5000) {
+  // If the text is too long, summarize it
+  // finalSyllabusText = await summarizeText(syllabusText);
+  console.log('Syl text is TOO long')
+}
+
+const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusText);
+
+  const result = await streamText({
+    model: customModel,
+    system: systemPrompt,
     messages: coreMessages,
     maxSteps: 15,
     tools: {

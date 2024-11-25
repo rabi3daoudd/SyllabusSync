@@ -27,6 +27,10 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
+import * as pdfjsLib from "pdfjs-dist";
+import mammoth from "mammoth";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.js";
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
@@ -47,6 +51,15 @@ interface SpeechRecognition extends EventTarget {
   abort(): void;
   start(): void;
   stop(): void;
+}
+
+interface TextItem {
+  str: string;
+  dir?: string;
+  width?: number;
+  height?: number;
+  transform?: number[];
+  fontName?: string;
 }
 
 interface SpeechRecognitionEvent extends Event {
@@ -94,6 +107,9 @@ export default function ChatBot() {
     useState<boolean>(false);
   const [files, setFiles] = useState<File[]>([]);
   const [showDropzone, setShowDropzone] = useState<boolean>(false); // Control global drop zone visibility
+  const [fileContents, setFileContents] = useState<string[]>([]);
+  const MAX_FILES = 5;
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;  
 
   let dragCounter = 0; // Counter to track drag events
 
@@ -277,12 +293,48 @@ export default function ChatBot() {
     setInput,
   } = useChat({
     api: "/api/assistant",
-    body: { calendarId, language },
+    body: { calendarId, language, fileContents },
     headers: userId ? { Authorization: `Bearer ${userId}` } : undefined,
   });
 
   const onDrop = (acceptedFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
+    // Calculate how many more files can be added
+    const filesLeft = MAX_FILES - files.length;
+  
+    if (filesLeft <= 0) {
+      alert("You have reached the maximum number of files (5).");
+      return;
+    }
+  
+    // Limit the accepted files to the number of files left
+    const filesToAdd = acceptedFiles.slice(0, filesLeft);
+  
+    const supportedFiles = filesToAdd.filter((file) => {
+      const isSupported =
+        file.type === "application/pdf" ||
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.type === "application/msword" ||
+        file.type.startsWith("text/");
+  
+      const isWithinSizeLimit = file.size <= MAX_FILE_SIZE;
+  
+      if (!isSupported) {
+        alert(`Unsupported file type: ${file.name}`);
+      }
+  
+      if (!isWithinSizeLimit) {
+        alert(`File "${file.name}" exceeds the 5MB size limit.`);
+      }
+  
+      return isSupported && isWithinSizeLimit;
+    });
+  
+    if (supportedFiles.length === 0) {
+      return;
+    }
+  
+    setFiles((prevFiles) => [...prevFiles, ...supportedFiles]);
     setShowDropzone(false); // Hide dropzone after dropping files
   };
 
@@ -351,6 +403,45 @@ export default function ChatBot() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const parseFiles = async () => {
+      const contents: string[] = [];
+  
+      for (const file of files) {
+        try {
+          let text = "";
+          if (file.type === "application/pdf") {
+            text = await readPDF(file);
+          } else if (
+            file.type ===
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+            file.type === "application/msword"
+          ) {
+            text = await readDOCX(file);
+          } else if (file.type.startsWith("text/")) {
+            text = await readTextFile(file);
+          } else {
+            console.warn(`Unsupported file type: ${file.type}`);
+            continue; // Skip unsupported file types
+          }
+  
+          contents.push(text);
+        } catch (error) {
+          console.error(`Error reading file ${file.name}:`, error);
+        }
+      }
+  
+      setFileContents(contents);
+      console.log("contents", contents)
+    };
+  
+    if (files.length > 0) {
+      parseFiles();
+    } else {
+      setFileContents([]); // Clear file contents when files are removed
+    }
+  }, [files]);
+
   // Global event listeners for drag events to control drop zone visibility
   useEffect(() => {
     const handleDragEnter = (event: DragEvent) => {
@@ -407,6 +498,53 @@ export default function ChatBot() {
     return null;
   }
 
+// Function to read and parse PDF files
+const readPDF = async (file: File): Promise<string> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = "";
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const strings = (content.items as TextItem[]).map((item) => item.str);
+    text += strings.join(" ");
+  }
+
+  return text;
+};
+
+  // Function to read and parse DOCX files
+  const readDOCX = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value; // The extracted text
+  };
+
+  // Function to read and parse plain text files
+  const readTextFile = (file: File): Promise<string> => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = () => {
+        reject(reader.error);
+      };
+      reader.readAsText(file);
+    });
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  
+    // Call the original handleSubmit function to send the message
+    await handleSubmit(e);
+  
+    // Clear the files array to remove the uploaded files from the UI
+    setFiles([]);
+  };
+  
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <Card className="w-full max-w-4xl h-[90vh] flex flex-col">
@@ -504,6 +642,7 @@ export default function ChatBot() {
               </motion.div>
             </motion.div>
           )}
+          
         </AnimatePresence>
 
         <AnimatePresence>
@@ -518,6 +657,9 @@ export default function ChatBot() {
               <h3 className="font-semibold mb-2 text-primary dark:text-primary-foreground">
                 Uploaded Files:
               </h3>
+              <h3 className="font-semibold mb-2 text-primary dark:text-primary-foreground">
+                  ({files.length}/{MAX_FILES}):
+                </h3>
               <ul className="space-y-2">
                 {files.map((file, index) => (
                   <motion.li
@@ -550,7 +692,7 @@ export default function ChatBot() {
 
         <CardFooter className="p-4">
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleFormSubmit}
             className="flex w-full space-x-2"
             data-testid="chat-form"
           >
