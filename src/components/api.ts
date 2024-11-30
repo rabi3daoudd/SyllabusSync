@@ -57,7 +57,7 @@ export const fetchAllEventsFromAllCalendars = async (uid: string): Promise<Calen
                     recurrence?: string[];
                 }
 
-                const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`api/list-events?${queryParams}`);
+                const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`${baseUrl}/api/list-events?${queryParams}`);
                 const calendarEvents = eventsResponse.data.items.flatMap((event: ApiEvent) => {
                     const baseEvent: CalendarEvent = {
                         id: event.id,
@@ -161,7 +161,7 @@ export const updateCalendarEvent = async (
     uid: string
 ): Promise<{ id: string }> => {
     try {
-        const response = await axios.post('/api/update-event', {
+        const response = await axios.post(`${baseUrl}/api/update-event`, {
             eventId,
             calendarId,
             summary,
