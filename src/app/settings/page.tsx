@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AuthProvider } from "@/components/AuthContext";
 import SignInButton from "@/components/SignInButton";
 import AppearanceSettings from "./components/appearance-settings";
