@@ -60,8 +60,7 @@ describe("GET /api/list-events", () => {
     expect(mockList).toHaveBeenCalledWith({
       auth: expect.anything(),
       calendarId: "primary",
-      timeMin: expect.any(String),
-      maxResults: 10,
+      maxResults: 1000,
       singleEvents: true,
       orderBy: "startTime",
     });
