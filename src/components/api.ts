@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { auth } from '../firebase-config';
 import { RRule } from 'rrule';
 
 interface CalendarEvent {
