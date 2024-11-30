@@ -15,6 +15,7 @@ const CreateCalendarEvent = () => {
     const [location,setLocation] = useState('')
     const [startDateTime, setStartDateTime] = useState('')
     const [endDateTime, setEndDateTime] = useState('')
+    const [recurrence, setRecurrence] = useState('')
     const [calendarId, setCalendarId] = useState('')
     const [triggerEventCreation, setTriggerEventCreation] = useState(false);
 
@@ -28,7 +29,16 @@ const CreateCalendarEvent = () => {
                 return;
             }
 
-            axios.post('/api/create-event', { summary, description, location, startDateTime, endDateTime, calendarId, uid: firebaseUser.uid })
+            axios.post('/api/create-event', { 
+                summary, 
+                description, 
+                location, 
+                startDateTime, 
+                endDateTime, 
+                calendarId, 
+                uid: firebaseUser.uid,
+                recurrence: recurrence ? [recurrence] : []
+            })
                 .then(response => {
                     console.log(response.data);
                     setTriggerEventCreation(false);
@@ -38,11 +48,11 @@ const CreateCalendarEvent = () => {
                     setTriggerEventCreation(false);
                 });
         }
-    }, [calendarId, triggerEventCreation]); // This effect runs whenever `calendarId` changes.
+    }, [calendarId, triggerEventCreation, summary, description, location, startDateTime, endDateTime, recurrence]); // This effect runs whenever `calendarId` changes.
 
     const viewCreateCalendarEventSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(summary, description,location, startDateTime, endDateTime);
+        console.log(summary, description,location, startDateTime, endDateTime, recurrence);
 
 
         //TODO change url to actual server url
@@ -86,6 +96,18 @@ const CreateCalendarEvent = () => {
                     <br />
                     <input type = "datetime-local" id="endDateTime" value={endDateTime} onChange={e=> setEndDateTime(e.target.value)} />
                     <br />
+
+                    <label htmlFor="recurrence">Recurrence Rule (RRULE)</label>
+                    <br />
+                    <input 
+                        type="text" 
+                        id="recurrence" 
+                        value={recurrence} 
+                        onChange={e => setRecurrence(e.target.value)} 
+                        placeholder="e.g., FREQ=WEEKLY;BYDAY=WE;UNTIL=20241211T235959Z" 
+                    />
+                    <br />
+
                     <Button type="submit">Create an Event</Button>
                 </form>
             </div>

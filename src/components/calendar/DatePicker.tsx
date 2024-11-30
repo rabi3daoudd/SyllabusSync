@@ -2,17 +2,12 @@
 "use client"
 
 // Import necessary modules and components
-import * as React from "react" // Import React for component creation
+import { useState } from "react"; // Import useState and useRef from React
 import { format } from "date-fns" // Import format function from date-fns for date formatting
 import { Calendar as CalendarIcon } from "lucide-react" // Import CalendarIcon from lucide-react
 import { cn } from "@/lib/utils" // Import cn utility for class name manipulation
 import { Button } from "@/components/ui/button" // Import Button component
 import { Calendar } from "@/components/ui/calendar" // Import Calendar component
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover" // Import Popover components
 import {
   Select,
   SelectContent,
@@ -29,43 +24,60 @@ interface DatePickerWithPresetsProps {
 
 // Define the DatePickerWithPresets component
 export function DatePickerWithPresets({ date, onChange }: DatePickerWithPresetsProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const togglePicker = () => {
+    setIsOpen(!isOpen)
+  }
+
   return (
-    <Popover> 
-      <PopoverTrigger asChild> 
-        <Button 
-          variant={"outline"} 
-          className={cn(
-            "w-[280px] justify-start text-left font-normal", 
-            !date && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
-        <Select
-          onValueChange={(value) => {
-            const daysToAdd = parseInt(value);
-            const newDate = new Date();
-            newDate.setDate(newDate.getDate() + daysToAdd);
-            onChange(newDate);
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select" />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value="0">Today</SelectItem>
-            <SelectItem value="1">Tomorrow</SelectItem>
-            <SelectItem value="3">In 3 days</SelectItem>
-            <SelectItem value="7">In a week</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="rounded-md border">
-          <Calendar mode="single" selected={date} onSelect={onChange} />
+    <div className="relative">
+      <Button 
+        variant={"outline"} 
+        className={cn(
+          "w-full justify-start text-left font-normal", 
+          !date && "text-muted-foreground"
+        )}
+        onClick={togglePicker}
+      >
+        <CalendarIcon className="mr-2 h-4 w-4" />
+        {date ? format(date, "PPP") : <span>Pick a date</span>}
+      </Button>
+      {isOpen && (
+        <div className="absolute z-50 mt-2 bg-white border rounded-md shadow-lg p-2">
+          <Select
+            onValueChange={(value) => {
+              const daysToAdd = parseInt(value)
+              const newDate = new Date()
+              newDate.setDate(newDate.getDate() + daysToAdd)
+              console.log("Preset Selected:", newDate)
+              onChange(newDate)
+              setIsOpen(false)
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Today</SelectItem>
+              <SelectItem value="1">Tomorrow</SelectItem>
+              <SelectItem value="3">In 3 days</SelectItem>
+              <SelectItem value="7">In a week</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="rounded-md border mt-2">
+            <Calendar 
+              mode="single" 
+              selected={date} 
+              onSelect={(selectedDate) => {
+                console.log("Calendar Date Selected:", selectedDate)
+                onChange(selectedDate)
+                setIsOpen(false)
+              }} 
+            />
+          </div>
         </div>
-      </PopoverContent>
-    </Popover>
-  )
+      )}
+    </div>
+  );
 }

@@ -1,0 +1,254 @@
+/* Base calendar styles */
+.fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-page-bg-color: hsl(var(--background));
+  --fc-neutral-bg-color: hsl(var(--secondary));
+  --fc-list-event-hover-bg-color: hsl(var(--accent));
+  --fc-today-bg-color: hsl(var(--accent) / 0.1);
+  margin-top: 1rem;
+}
+
+/* Header toolbar */
+.fc .fc-toolbar {
+  @apply gap-4 flex-wrap;
+}
+
+.fc .fc-toolbar-title {
+  @apply text-2xl font-semibold;
+}
+
+/* Calendar buttons */
+.fc .fc-button {
+  @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active { 
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
+
+/* Event styling */
+.fc-event {
+  min-height: 24px !important;
+  margin: 1px 2px !important;
+  border-radius: 4px !important;
+  border: none !important;
+  background-color: hsl(var(--primary)) !important;
+}
+
+.fc-event-main {
+  padding: 2px 4px !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Event time display */
+.fc-event-time {
+  display: none; /* Hide the default time display since we're showing it in our custom render */
+}
+
+/* Add hover effect */
+.fc-event:hover {
+  filter: brightness(0.9);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .fc-event {
+  filter: brightness(1.1);
+}
+
+[data-theme="dark"] .fc-event:hover {
+  filter: brightness(1.2);
+}
+
+/* Grid styling */
+.fc-theme-standard td, 
+.fc-theme-standard th {
+  @apply border border-border;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .fc {
+  --fc-neutral-text-color: hsl(var(--foreground));
+  --fc-neutral-bg-color: hsl(var(--secondary));
+  color-scheme: dark;
+}
+
+/* Time grid styling */
+.fc .fc-timegrid {
+  border-right: 1px solid hsl(var(--border));
+}
+
+/* Grid lines and slots */
+.fc .fc-timegrid-slot {
+  height: 25px !important;
+  border-bottom: none !important;
+}
+
+/* Major time slots (hours) - solid line */
+.fc .fc-timegrid-slot.fc-timegrid-slot-lane.fc-timegrid-slot-major {
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+/* Minor time slots (30 min) - lighter line */
+.fc .fc-timegrid-slot-lane {
+  border-bottom: 1px solid hsl(var(--border)/0.1) !important;
+}
+
+/* Time label styling - align with line */
+.fc .fc-timegrid-slot-label {
+  vertical-align: bottom !important;
+  border-right: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--background));
+}
+
+/* Position the time label text on the line */
+.fc .fc-timegrid-slot-label-frame {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+  height: 100% !important;
+  padding-right: 8px !important;
+  padding-bottom: 0 !important;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 500;
+  transform: translateY(50%);
+}
+
+/* Vertical grid lines */
+.fc .fc-timegrid-col {
+  border-left: 1px solid hsl(var(--border)/0.1) !important;
+}
+
+/* Column header styling */
+.fc-col-header-cell {
+  padding: 8px 4px !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--background));
+}
+
+/* Stack day and date in header */
+.fc .fc-col-header-cell-cushion {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  padding: 4px !important;
+}
+
+/* Day name style */
+.fc .fc-col-header-cell-cushion::before {
+  content: attr(data-weekday);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Today column highlight */
+.fc .fc-day-today {
+  background: hsl(var(--accent)/0.05) !important;
+}
+
+/* Current time indicator */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: #ea4335 !important;  /* Google Calendar's red */
+  border-width: 1px !important;
+  z-index: 4 !important;
+  position: relative !important;
+}
+
+/* Sticky header */
+.fc .fc-timegrid-axis-cushion {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Add spacing between header and calendar */
+.fc {
+  margin-top: 1rem;
+}
+
+/* Improve header spacing and alignment */
+.fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+}
+
+/* Optional: Add some padding to the calendar container */
+.fc .fc-view-harness {
+  padding: 0 1rem;
+}
+
+/* Custom header styling */
+.fc-day-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px !important;
+}
+
+.fc-day-name {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: hsl(var(--muted-foreground)) !important;
+  text-transform: uppercase !important;
+}
+
+.fc-day-number {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  margin: 4px 0 !important;
+}
+
+/* Today's date styling */
+.fc .fc-day-today .fc-day-number {
+  width: 35px !important;
+  height: 35px !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Add these styles to handle the license warning */
+.fc-license-message {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 0.75rem !important;
+  color: transparent !important;
+  transform: translateY(-100%) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;  /* Prevents clicking */
+  user-select: none !important;     /* Prevents text selection */
+  -webkit-user-select: none !important;  /* For Safari */
+  -moz-user-select: none !important;     /* For Firefox */
+  -ms-user-select: none !important;      /* For IE/Edge */
+}
+
+/* Optional: Hide the license message completely */
+/* Uncomment this if you want to hide it entirely */
+/*
+.fc-license-message {
+  display: none !important;
+}
+*/
+
+/* Hide the Current Time Indicator Arrow */
+.fc .fc-timegrid-now-indicator-arrow {
+  display: none !important;
+} 

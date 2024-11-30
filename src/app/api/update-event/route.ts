@@ -13,19 +13,19 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
+      eventId,
+      calendarId,
       summary,
       description,
       location,
       startDateTime,
       endDateTime,
-      calendarId,
       uid,
-      recurrence,
     } = body;
 
-    if (!uid) {
+    if (!uid || !eventId) {
       return NextResponse.json(
-        { message: "User ID is missing" },
+        { message: "User ID and Event ID are required" },
         { status: 400 }
       );
     }
@@ -35,26 +35,35 @@ export async function POST(req: NextRequest) {
 
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
-    const eventBody = {
-      summary,
-      description,
-      location,
-      start: { dateTime: new Date(startDateTime).toISOString() },
-      end: { dateTime: new Date(endDateTime).toISOString() },
-    };
-    if (recurrence && recurrence.length > 0) {
-      (eventBody as { recurrence?: string[] })['recurrence'] = recurrence;
+    interface UpdateEventBody {
+      summary?: string;
+      description?: string;
+      location?: string;
+      start?: {
+        dateTime: string;
+      };
+      end?: {
+        dateTime: string;
+      };
     }
 
-    const eventResponse = await calendar.events.insert({
+    const updateBody: UpdateEventBody = {};
+    if (summary) updateBody.summary = summary;
+    if (description) updateBody.description = description;
+    if (location) updateBody.location = location;
+    if (startDateTime) updateBody.start = { dateTime: new Date(startDateTime).toISOString() };
+    if (endDateTime) updateBody.end = { dateTime: new Date(endDateTime).toISOString() };
+
+    const eventResponse = await calendar.events.update({
       calendarId: calendarId || "primary",
-      requestBody: eventBody,
+      eventId: eventId,
+      requestBody: updateBody,
     });
 
     return NextResponse.json(eventResponse.data, { status: 200 });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error("Error creating event:", error.message);
+      console.error("Error updating event:", error.message);
       return NextResponse.json(
         { error: "Internal Server Error" },
         { status: 500 }
@@ -67,4 +76,4 @@ export async function POST(req: NextRequest) {
       );
     }
   }
-}
+} 

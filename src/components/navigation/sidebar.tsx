@@ -10,6 +10,7 @@ import {
   Settings2,
   Sparkles,
   Wrench,
+  Calendar,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -83,6 +84,11 @@ const data = {
       title: "Tasks",
       url: "/tasks",
       icon: ChevronRight,
+    },
+    {
+      title: "Calendar",
+      url: "/calendar",
+      icon: Calendar,
     },
   ],
   tools: [

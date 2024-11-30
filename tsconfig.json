@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/*": ["src/*"],
       "@/components/*": [
         "src/components/*"
       ],
@@ -16,7 +17,7 @@
       ],
       "@/ai/*": [
         "src/ai/*"
-      ]
+      ],
     },
     "target": "ES2020",
     "useDefineForClassFields": true,

@@ -31,8 +31,7 @@ export async function GET(req: NextRequest) {
     const events = await calendar.events.list({
       auth: oauth2Client,
       calendarId,
-      timeMin: new Date().toISOString(),
-      maxResults: 10,
+      maxResults: 1000,
       singleEvents: true,
       orderBy: "startTime",
     });

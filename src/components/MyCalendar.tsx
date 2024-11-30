@@ -1,351 +1,162 @@
-import React, { useEffect, useState } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import { Button } from "./ui/button";
-import { auth } from "../firebase-config";
-import { fetchAllEventsFromAllCalendars, createCalendarEvent } from "./api";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+'use client';
 
-import { onAuthStateChanged } from "firebase/auth";
-import { DatePickerWithPresets } from "@/components/calendar/DatePicker";
-
-const localizer = momentLocalizer(moment);
+import React, { useEffect, useState, useCallback } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import scrollGridPlugin from '@fullcalendar/scrollgrid';
+import { EventClickArg } from '@fullcalendar/core';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { auth } from '../firebase-config';
+import { fetchAllEventsFromAllCalendars } from '@/components/api';
+import { onAuthStateChanged } from 'firebase/auth';
+import { CalendarIcon, MapPin } from 'lucide-react';
+import '@/styles/calendar.css'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 interface CalendarEvent {
+  id: string;
   title: string;
   start: Date;
   end: Date;
   allDay?: boolean;
+  description?: string;
+  location?: string;
+  googleEventId?: string;
+  calendarId?: string;
 }
 
 const MyCalendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [newEvent, setNewEvent] = useState({
-    title: "",
-    startDate: new Date(),
-    startHour: "12",
-    startMinute: "00",
-    startAmPm: "AM",
-    endDate: new Date(),
-    endHour: "12",
-    endMinute: "00",
-    endAmPm: "PM",
-  });
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const router = useRouter();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewEvent({ ...newEvent, [name]: value });
-  };
-
-  const handleStartDateChange = (date: Date | undefined) => {
-    setNewEvent({ ...newEvent, startDate: date || new Date() });
-  };
-
-  const handleEndDateChange = (date: Date | undefined) => {
-    setNewEvent({ ...newEvent, endDate: date || new Date() });
-  };
-
-  const handleDropdownChange = (name: string, value: string) => {
-    setNewEvent({ ...newEvent, [name]: value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const {
-      title,
-      startDate,
-      startHour,
-      startMinute,
-      startAmPm,
-      endDate,
-      endHour,
-      endMinute,
-      endAmPm,
-    } = newEvent;
-    if (!title || !startDate || !endDate) {
-      alert("All fields are required");
-      return;
-    }
-    const start = new Date(startDate);
-    start.setHours(parseInt(startHour) + (startAmPm === "PM" ? 12 : 0));
-    start.setMinutes(parseInt(startMinute));
-    const end = new Date(endDate);
-    end.setHours(parseInt(endHour) + (endAmPm === "PM" ? 12 : 0));
-    end.setMinutes(parseInt(endMinute));
+  const handleEventClick = useCallback((clickInfo: EventClickArg) => {
     const event = {
-      title,
-      start,
-      end,
-      allDay: false,
+        id: clickInfo.event.id,
+        title: clickInfo.event.title,
+        description: clickInfo.event.extendedProps.description || '',
+        location: clickInfo.event.extendedProps.location || '',
+        start: clickInfo.event.start || new Date(),
+        end: clickInfo.event.end || new Date(),
+        googleEventId: clickInfo.event.id, // Make sure this is set
+        calendarId: clickInfo.event.extendedProps.calendarId || 'primary', // Make sure this is set
     };
-    setEvents([...events, event]);
-    setNewEvent({
-      title: "",
-      startDate: new Date(),
-      startHour: "12",
-      startMinute: "00",
-      startAmPm: "AM",
-      endDate: new Date(),
-      endHour: "12",
-      endMinute: "00",
-      endAmPm: "PM",
-    });
-
-    // Call the createCalendarEvent function from api.ts
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        await createCalendarEvent(
-          title,
-          "", // Add the description if available
-          "", // Add the location if available
-          start.toISOString(),
-          end.toISOString(),
-          "primary", // Use the appropriate calendar ID
-          user.uid
-        );
-        console.log("Event created successfully");
-      } else {
-        console.log("No authenticated user found.");
-      }
-    } catch (error) {
-      console.error("Error in creating calendar event:", error);
-    }
-  };
+    setSelectedEvent(event);
+    setIsViewModalOpen(true);
+}, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         console.log("Authenticated user found, fetching events...");
         const fetchedEvents = await fetchAllEventsFromAllCalendars(user.uid);
+        console.log("Fetched Events:", fetchedEvents);
+        fetchedEvents.forEach((event) => {
+          console.log(`Event ID: ${event.id}, Title: ${event.title}, Start: ${event.start}, End: ${event.end}`);
+        });
         setEvents(fetchedEvents);
       } else {
         console.log("No authenticated user found.");
       }
     });
-
+  
     return () => unsubscribe();
   }, []);
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 w-[100%]">
-      <h1 className="text-2xl font-bold mb-4">Calendar</h1>
-      <p className="text-gray-600 mb-6">
-        Add information to add only to react calendar
-      </p>
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="mb-4">
-          <input
-            type="text"
-            name="title"
-            placeholder="Event Title"
-            value={newEvent.title}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="mb-4 flex items-center">
-          <div className="mr-4">
-            <label htmlFor="startDate" className="block mb-1">
-              Start Date
-            </label>
-            <div className="flex items-center">
-              <DatePickerWithPresets
-                date={newEvent.startDate}
-                onChange={handleStartDateChange}
-              />
-              <div className="ml-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-20 justify-start">
-                      {newEvent.startHour}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>Start Hour</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <DropdownMenuCheckboxItem
-                        key={i + 1}
-                        checked={newEvent.startHour === (i + 1).toString()}
-                        onCheckedChange={() =>
-                          handleDropdownChange("startHour", (i + 1).toString())
-                        }
-                      >
-                        {i + 1}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="ml-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-20 justify-start">
-                      {newEvent.startMinute}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>Start Minute</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {["00", "15", "30", "45"].map((minute) => (
-                      <DropdownMenuCheckboxItem
-                        key={minute}
-                        checked={newEvent.startMinute === minute}
-                        onCheckedChange={() =>
-                          handleDropdownChange("startMinute", minute)
-                        }
-                      >
-                        {minute}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="ml-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-20 justify-start">
-                      {newEvent.startAmPm}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>AM/PM</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                      checked={newEvent.startAmPm === "AM"}
-                      onCheckedChange={() =>
-                        handleDropdownChange("startAmPm", "AM")
-                      }
-                    >
-                      AM
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={newEvent.startAmPm === "PM"}
-                      onCheckedChange={() =>
-                        handleDropdownChange("startAmPm", "PM")
-                      }
-                    >
-                      PM
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="mb-4 flex items-center">
-          <div className="mr-4">
-            <label htmlFor="endDate" className="block mb-1">
-              End Date
-            </label>
-            <div className="flex items-center">
-              <DatePickerWithPresets
-                date={newEvent.endDate}
-                onChange={handleEndDateChange}
-              />
-              <div className="ml-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-20 justify-start">
-                      {newEvent.endHour}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>End Hour</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <DropdownMenuCheckboxItem
-                        key={i + 1}
-                        checked={newEvent.endHour === (i + 1).toString()}
-                        onCheckedChange={() =>
-                          handleDropdownChange("endHour", (i + 1).toString())
-                        }
-                      >
-                        {i + 1}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="ml-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-20 justify-start">
-                      {newEvent.endMinute}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>End Minute</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {["00", "15", "30", "45"].map((minute) => (
-                      <DropdownMenuCheckboxItem
-                        key={minute}
-                        checked={newEvent.endMinute === minute}
-                        onCheckedChange={() =>
-                          handleDropdownChange("endMinute", minute)
-                        }
-                      >
-                        {minute}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="ml-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-20 justify-start">
-                      {newEvent.endAmPm}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>AM/PM</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                      checked={newEvent.endAmPm === "AM"}
-                      onCheckedChange={() =>
-                        handleDropdownChange("endAmPm", "AM")
-                      }
-                    >
-                      AM
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={newEvent.endAmPm === "PM"}
-                      onCheckedChange={() =>
-                        handleDropdownChange("endAmPm", "PM")
-                      }
-                    >
-                      PM
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-        </div>
-        <Button type="submit" className="bg-blue-500 text-white">
-          Add Event
+    <div className="w-full h-screen flex flex-col p-4">
+      <div className="flex justify-between items-center p-4 bg-background border-b">
+        <h1 className="text-2xl font-bold">Today's Schedule</h1>
+        <Button onClick={() => router.push('/calendar')}>
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          View Full Calendar
         </Button>
-      </form>
-      <div className="rounded-lg overflow-hidden">
-        <Calendar
-          localizer={localizer}
+      </div>
+      <div className="flex-grow w-full h-[calc(100vh-80px)]">
+        <FullCalendar
+          plugins={[timeGridPlugin, interactionPlugin, scrollGridPlugin]}
+          initialView="timeGridDay"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          }}
           events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 500 }}
-          className="bg-white"
+          eventClick={handleEventClick}
+          height="100%"
+          eventDisplay="auto"
+          eventTimeFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false,
+            hour12: false
+          }}
+          slotLabelFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }}
+          eventBackgroundColor="hsl(var(--primary))"
+          eventBorderColor="hsl(var(--primary))"
+          eventTextColor="hsl(var(--primary-foreground))"
+          eventClassNames="calendar-event"
+          slotMinTime="06:00:00"
+          slotMaxTime="24:00:00"
+          nowIndicator={true}
+          scrollTime={(new Date()).getHours() + ":00:00"}
         />
       </div>
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{selectedEvent?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedEvent?.description && (
+              <div>
+                <Label>Description</Label>
+                <p>{selectedEvent.description}</p>
+              </div>
+            )}
+            {selectedEvent?.location && (
+              <div>
+                <Label>Location</Label>
+                <p className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  {selectedEvent.location}
+                </p>
+              </div>
+            )}
+            <div>
+              <Label>Start</Label>
+              <p>{selectedEvent?.start.toLocaleString()}</p>
+            </div>
+            <div>
+              <Label>End</Label>
+              <p>{selectedEvent?.end.toLocaleString()}</p>
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between items-center mt-4">
+            {selectedEvent?.googleEventId && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const eid = btoa(`${selectedEvent.googleEventId} ${selectedEvent.calendarId}`);
+                  const url = `https://calendar.google.com/calendar/event?eid=${eid}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                View in Google Calendar
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
