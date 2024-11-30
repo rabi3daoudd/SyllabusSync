@@ -1,7 +1,7 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { fetchAllEventsFromAllCalendars } from "@/components/api";
+import { createCalendarEvent, fetchAllEventsFromAllCalendars } from "@/components/api";
 
 export async function POST(request: Request) {
   
@@ -75,9 +75,9 @@ To begin, you will be provided with the full text of a course syllabus and, if a
 <syllabus>
 {{SYLLABUS_TEXT}}
 </syllabus>
-<user_calendar>
-{{USER_CALENDAR_ACCESS}}
-</user_calendar>
+<user_id>
+${uid}
+</user_id>
 Your task is to extract all relevant academic dates and events from the syllabus, create a study schedule, and prepare this information for integration with Google Calendar. Follow these steps:
 1. Syllabus Analysis and Date Extraction:
    - Read the entire syllabus text.
@@ -104,6 +104,7 @@ Your task is to extract all relevant academic dates and events from the syllabus
 3. User Confirmation and Input:
    After presenting the extracted information, ask the user to confirm the accuracy of the dates and events. Invite them to add any additional dates or modify existing ones if necessary.
 4. Google Calendar Integration:
+   Never schedule anything before showing the user what you are going to schedule and getting their confirmation.
    Once the user has confirmed the dates, prepare the information for Google Calendar integration using this format:
    <calendar_api_call>
    Action: [ADD_EVENT/UPDATE_EVENT/DELETE_EVENT]
@@ -114,6 +115,7 @@ Your task is to extract all relevant academic dates and events from the syllabus
    End_Time: [HH:MM] (if applicable)
    Description: [Brief description of the event]
    </calendar_api_call>
+   Ensure that you are using the primary calendar to put the events in
 5. Study Session Creation:
    Based on the extracted dates and user's existing commitments (if provided), create a study schedule following these guidelines:
    - Allocate more study time for subjects with higher weightage or upcoming deadlines
@@ -129,6 +131,8 @@ Throughout the interaction:
 - Maintain a supportive and empathetic tone. Acknowledge the challenges of academic life and offer encouragement.
 - Prioritize user privacy. Do not share or store any personal or academic information outside of the immediate interaction.
 - If you need any clarification or additional information from the user, ask politely and clearly.
+- If you need to know the current date or time, use the {getCurrentDate} tool.
+- If you need to create events for the user, use the {createCalendarEvent} tool. Then respond saying it worked!
 After completing these steps, thank the user for using SyllabusSync and invite them to reach out if they need any further assistance or modifications to their schedule.
 Remember to wrap your thought process in <analysis> tags to show your reasoning process for complex decisions or analyses throughout the task. In your analysis:
 1. Identify and list all types of events mentioned in the syllabus.
@@ -136,7 +140,7 @@ Remember to wrap your thought process in <analysis> tags to show your reasoning 
 3. Prioritize events based on their importance or weight.`;
 
 
-if (syllabusText.length > 5000) {
+if (syllabusText.length > 20000) {
   // If the text is too long, summarize it
   // finalSyllabusText = await summarizeText(syllabusText);
   console.log('Syl text is TOO long')
@@ -148,7 +152,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
     model: customModel,
     system: systemPrompt,
     messages: coreMessages,
-    maxSteps: 15,
+    maxSteps: 50,
     tools: {
       getWeather: {
         description: "Get the current weather at a location",
@@ -180,6 +184,55 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
             return allEvents;
           } catch (error) {
             console.error("Error in getCalendarEvents tool:", error);
+            throw error;
+          }
+        },
+      },
+      getCurrentDate: {
+        description: "Get the current date and time in ISO format",
+        parameters: z.object({}),
+        execute: async () => {
+          const currentDate = new Date().toISOString();
+          return { currentDate };
+        },
+      },
+      createCalendarEvent: {
+        description: "Creates an event in the user's Google Calendar",
+        parameters: z.object({
+          uid: z.string().describe("The user ID"),
+          calendarId: z.string().describe("The calendar ID"),
+          summary: z.string().describe("Event summary or title"),
+          description: z.string().optional().describe("Event description"),
+          location: z.string().optional().describe("Event location"),
+          startDateTime: z.string().describe("Event start date and time in ISO format"),
+          endDateTime: z.string().describe("Event end date and time in ISO format"),
+        }),
+        execute: async (args) => {
+          try {
+            const {
+              uid: requestedUid,
+              calendarId,
+              summary,
+              description = "",
+              location = "",
+              startDateTime,
+              endDateTime,
+            } = args;
+  
+            // Use the createCalendarEvent function
+            await createCalendarEvent(
+              summary,
+              description,
+              location,
+              startDateTime,
+              endDateTime,
+              calendarId,
+              requestedUid
+            );
+  
+            return { success: true, message: "Event created successfully." };
+          } catch (error) {
+            console.error("Error in createCalendarEvent tool:", error);
             throw error;
           }
         },
