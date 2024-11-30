@@ -15,20 +15,27 @@ interface CalendarEvent {
     recurrence?: string[];
 }
 
+const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+
 // Gets all calendar events from every calendar and returns them as events
 export const fetchAllEventsFromAllCalendars = async (uid: string): Promise<CalendarEvent[]> => {
-    const firebaseUser = auth.currentUser;
-    if (!firebaseUser) {
-        console.error('No Firebase user logged in');
-        return [];
-    }
+    console.log('Hit the fetche events')
+
+    // const firebaseUser = auth.currentUser;
+    // if (!firebaseUser) {
+    //     console.log(firebaseUser)
+    //     console.error('No Firebase user logged in');
+    //     return [];
+    // }
 
     const commonQueryParams = new URLSearchParams({ uid });
     let allEvents: CalendarEvent[] = [];
 
+
     try {
         // Use the Next.js API route for listing user calendars
-        const calendarsResponse = await axios.get(`api/list-user-calendars?${commonQueryParams}`);
+        // const calendarsResponse = await axios.get(`api/list-user-calendars?${commonQueryParams}`);
+        const calendarsResponse = await axios.get(`${baseUrl}/api/list-user-calendars?${commonQueryParams}`);
         const calendars = calendarsResponse.data.items;
 
         for (const calendar of calendars) {
@@ -104,7 +111,7 @@ export const createCalendarEvent = async (
     uid: string
 ): Promise<{ id: string }> => {
     try {
-        const response = await axios.post('/api/create-event', {
+        const response = await axios.post(`${baseUrl}/api/create-event`, {
             summary: title,
             description,
             location,
@@ -128,7 +135,7 @@ export const deleteCalendarEvent = async (
 ): Promise<void> => {
     try {
         console.log('Attempting to delete event:', { eventId, calendarId, uid });
-        await axios.post('api/delete-event', {
+        await axios.post(`${baseUrl}/api/delete-event`, {
                 eventId,
                 calendarId,
                 uid
