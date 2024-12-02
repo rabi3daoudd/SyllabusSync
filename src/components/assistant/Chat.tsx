@@ -121,7 +121,6 @@ export default function ChatBot() {
       you: "You:",
       assistant: "SyllabusSync:",
       extractedInfoTitle: "Extracted Calendar Information:",
-      processingMessage: "Currently processing your request...",
     },
     es: {
       placeholder: "Escribe tu mensaje aquí...",
@@ -297,22 +296,6 @@ export default function ChatBot() {
     body: { calendarId, language, fileContents },
     headers: userId ? { Authorization: `Bearer ${userId}` } : undefined,
   });
-
-  const messagesToDisplay = messages.filter(
-    (message) => message.content.trim() !== ""
-  );
-
-  const lastUserMessageIndex = messagesToDisplay
-  .map((msg, index) => ({ msg, index }))
-  .reverse()
-  .find(({ msg }) => msg.role === "user")?.index;
-
-const assistantMessagesAfterLastUserMessage =
-  lastUserMessageIndex !== undefined
-    ? messagesToDisplay
-        .slice(lastUserMessageIndex + 1)
-        .filter((message) => message.role === "assistant")
-    : [];
 
   const onDrop = (acceptedFiles: File[]) => {
     // Calculate how many more files can be added
@@ -599,7 +582,7 @@ const readPDF = async (file: File): Promise<string> => {
         </CardHeader>
         <CardContent className="flex-grow overflow-hidden p-0">
           <ScrollArea className="h-full p-4">
-            {messagesToDisplay.map((message) => (
+            {messages.map((message) => (
               <div
                 key={message.id}
                 className={`mb-4 p-3 rounded-lg ${
@@ -616,16 +599,6 @@ const readPDF = async (file: File): Promise<string> => {
                 <ReactMarkdown>{message.content}</ReactMarkdown>
               </div>
             ))}
-            {isLoading && assistantMessagesAfterLastUserMessage.length === 0 && (
-              <div className="mb-4 p-3 rounded-lg bg-[#A5F8F1] text-black">
-                <strong className="block mb-1">
-                  {translations[language].assistant}
-                </strong>
-                <ReactMarkdown>
-                   Currently processing your request...
-                </ReactMarkdown>
-              </div>
-            )}
           </ScrollArea>
         </CardContent>
         {extractedInfo && (
