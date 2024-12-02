@@ -93,7 +93,7 @@ const data = {
   ],
   tools: [
     { title: "Calculator", url: "/tools/calculator" },
-    { title: "Notepad", url: "#" },
+    { title: "Notepad", url: "/tools/notepad" },
   ],
   navSecondary: [
     {
