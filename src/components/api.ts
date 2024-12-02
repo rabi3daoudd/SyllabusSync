@@ -79,37 +79,35 @@ export const fetchAllEventsFromAllCalendars = async (
       }
 
                 const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`${baseUrl}/api/list-events?${queryParams}`);
-                const calendarEvents = eventsResponse.data.items.flatMap((event: ApiEvent) => {
-                    const baseEvent: CalendarEvent = {
-                        id: event.id,
-                        title: event.summary,
+                const calendarEvents = eventsResponse.data.items.flatMap(
+                  (event: ApiEvent) => {
+                    const baseEvent = {
+                      id: event.id,
+                      title: event.summary,
+                      description: event.description || "",
+                      location: event.location || "",
+                      start: new Date(event.start.dateTime || event.start.date || ''),
+                      end: new Date(event.end.dateTime || event.end.date || ''),
+                      allDay: !event.start.dateTime,
+                      googleEventId: event.id,
+                      calendarId: calendar.id,
+                      extendedProps: {
                         description: event.description || "",
-                    location: event.location || "",
-                    start: new Date(event.start.dateTime),
-                    end: new Date(event.end.dateTime),
-                    allDay: false,
-                    googleEventId: event.id,
-                    calendarId: calendar.id,
-                    recurrence: event.recurrence || [],
-                };
-
-                if (event.recurrence && event.recurrence.length > 0) {
-                    // Parse the RRULE
-                    const rule = RRule.fromString(event.recurrence[0]);
-                    // Define the range for recurrence expansion
-                    const until = new Date('2024-12-11T23:59:59'); // Set your desired end date
-                    const occurrenceDates = rule.between(baseEvent.start, until, true);
-
-                    // Create individual events for each occurrence
-                    return occurrenceDates.map(date => ({
-                        ...baseEvent,
-                        start: date,
-                        end: new Date(date.getTime() + (baseEvent.end.getTime() - baseEvent.start.getTime())),
-                    }));
-                } else {
+                        location: event.location || "",
+                        recurrence: event.recurrence || [],
+                        isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
+                      }
+                    };
+          
+                    console.log('Transformed event:', {
+                      title: baseEvent.title,
+                      recurrence: event.recurrence,
+                      isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
+                    });
+          
                     return [baseEvent];
-                }
-            });
+                  }
+                );
 
       allEvents = [...allEvents, ...calendarEvents];
     }
