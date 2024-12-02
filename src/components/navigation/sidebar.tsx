@@ -11,6 +11,7 @@ import {
   Sparkles,
   Wrench,
   Calendar,
+  ListChecks,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -83,12 +84,17 @@ const data = {
     {
       title: "Tasks",
       url: "/tasks",
-      icon: ChevronRight,
+      icon: ListChecks,
     },
     {
       title: "Calendar",
       url: "/calendar",
       icon: Calendar,
+    },
+    {
+      title: "ChatBot",
+      url: "/chat",
+      icon: Sparkles,
     },
   ],
   tools: [
