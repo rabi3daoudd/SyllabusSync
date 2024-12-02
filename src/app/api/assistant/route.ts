@@ -1,7 +1,7 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars } from "@/components/api";
+import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars, createTask } from "@/components/api";
 
 export async function POST(request: Request) {
   
@@ -138,8 +138,14 @@ After completing these steps, thank the user for using SyllabusSync and invite t
 Remember to wrap your thought process in <analysis> tags to show your reasoning process for complex decisions or analyses throughout the task. In your analysis:
 1. Identify and list all types of events mentioned in the syllabus.
 2. Note any potential conflicts or overlaps between syllabus events and existing user commitments.
-3. Prioritize events based on their importance or weight.`;
-
+3. Prioritize events based on their importance or weight.
+You can also help users manage their tasks:
+1. Create tasks for assignments, projects, or study sessions using the {createTask} tool
+2. Set appropriate priorities (low, medium, high) based on due dates and importance
+3. Add class labels to tasks to organize them by course
+4. Set due dates to help users track deadlines
+5. Set initial status as "todo" for new tasks
+`;
 
 if (syllabusText.length > 20000) {
   // If the text is too long, summarize it
@@ -307,6 +313,45 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
             return { success: true, message: "Event deleted successfully." };
           } catch (error) {
             console.error("Error in deleteCalendarEvent tool:", error);
+            throw error;
+          }
+        },
+      },
+      createTask: {
+        description: "Creates a task for the user",
+        parameters: z.object({
+          uid: z.string().describe("The user ID"),
+          title: z.string().describe("Task title"),
+          status: z.string().describe("Task status (todo, in progress, done)"),
+          priority: z.string().describe("Task priority (low, medium, high)"),
+          label: z.string().optional().describe("Task label (class name)"),
+          dueDate: z.string().optional().describe("Due date in ISO format"),
+        }),
+        execute: async ({ uid: requestedUid, title, status, priority, label, dueDate }) => {
+          try {
+            // Verify the user is authenticated via the Bearer token
+            const authHeader = request.headers.get('authorization');
+            if (!authHeader || !authHeader.startsWith("Bearer ")) {
+              throw new Error("Unauthorized");
+            }
+            const tokenUid = authHeader.split("Bearer ")[1];
+            
+            // Verify the requested UID matches the token UID
+            if (tokenUid !== requestedUid) {
+              throw new Error("User ID mismatch");
+            }
+
+            const result = await createTask(
+              title,
+              status as "todo" | "in progress" | "done",
+              priority as "low" | "medium" | "high",
+              requestedUid,
+              label,
+              dueDate
+            );
+            return { success: true, message: "Task created successfully.", taskId: result.id };
+          } catch (error) {
+            console.error("Error in createTask tool:", error);
             throw error;
           }
         },

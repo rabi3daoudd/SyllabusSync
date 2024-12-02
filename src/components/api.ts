@@ -256,3 +256,44 @@ export const createRecurringEvent = async (
     throw error;
   }
 };
+
+export const createTask = async (
+  title: string,
+  status: "todo" | "in progress" | "done",
+  priority: "low" | "medium" | "high",
+  uid: string,
+  label?: string,
+  dueDate?: string
+): Promise<{ id: string }> => {
+  try {
+    const taskId = `TASK-${Date.now()}`;
+    const newTask = {
+      id: taskId,
+      title,
+      status,
+      priority,
+      ...(label ? { label } : {}),
+      ...(dueDate ? { dueDate } : {}),
+    };
+
+    // Make an API call to a new endpoint that will handle the task creation
+    const response = await fetch(`${baseUrl}/api/create-task`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${uid}`,
+      },
+      body: JSON.stringify(newTask),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create task');
+    }
+
+    const data = await response.json();
+    return { id: data.taskId };
+  } catch (error) {
+    console.error("Error creating task:", error);
+    throw error;
+  }
+};
