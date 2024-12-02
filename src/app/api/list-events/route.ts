@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
       maxResults: 1000,
       singleEvents: true,
       orderBy: "startTime",
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
 
     return NextResponse.json(events.data, { status: 200 });
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error) {
       console.error("Error fetching events:", error.message);
       return NextResponse.json(
-        { error: "Internal Server Error" },
+        { error: error.message },
         { status: 500 }
       );
     } else {

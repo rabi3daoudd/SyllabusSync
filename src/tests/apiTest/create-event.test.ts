@@ -20,8 +20,9 @@ import { google } from "googleapis";
 
 describe("POST /api/create-event", () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
+
   it("should create an event successfully with valid input", async () => {
     (getRefreshToken as jest.Mock).mockResolvedValue("mockRefreshToken");
 
@@ -35,8 +36,14 @@ describe("POST /api/create-event", () => {
       summary: "Mock Event",
       description: "This is a mock event.",
       location: "Mock Location",
-      start: { dateTime: "2023-01-01T10:00:00Z" },
-      end: { dateTime: "2023-01-01T11:00:00Z" },
+      start: { 
+        dateTime: "2023-01-01T10:00:00Z",
+        timeZone: "UTC"
+      },
+      end: { 
+        dateTime: "2023-01-01T11:00:00Z",
+        timeZone: "UTC"
+      },
     };
 
     const mockInsert = jest.fn().mockResolvedValue({ data: mockEventData });
@@ -53,7 +60,7 @@ describe("POST /api/create-event", () => {
       description: "This is a mock event.",
       location: "Mock Location",
       startDateTime: "2023-01-01T10:00:00Z",
-      endDateTime: "2023-01-01T11:00:00.000Z",
+      endDateTime: "2023-01-01T11:00:00Z",
       calendarId: "primary",
       uid: "123",
     };
@@ -64,7 +71,6 @@ describe("POST /api/create-event", () => {
     });
 
     const response = await POST(req);
-
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual(mockEventData);
@@ -75,8 +81,14 @@ describe("POST /api/create-event", () => {
         summary: "Mock Event",
         description: "This is a mock event.",
         location: "Mock Location",
-        start: { dateTime: "2023-01-01T10:00:00.000Z" },
-        end: { dateTime: "2023-01-01T11:00:00.000Z" },
+        start: { 
+          dateTime: "2023-01-01T10:00:00.000Z",
+          timeZone: "UTC"
+        },
+        end: { 
+          dateTime: "2023-01-01T11:00:00.000Z",
+          timeZone: "UTC"
+        },
       },
     });
   });
@@ -98,7 +110,6 @@ describe("POST /api/create-event", () => {
     });
 
     const response = await POST(req);
-
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data).toEqual({ message: "User ID is missing" });
@@ -116,7 +127,6 @@ describe("POST /api/create-event", () => {
     });
 
     const response = await POST(req);
-
     expect(response.status).toBe(500);
     expect(getRefreshToken).not.toHaveBeenCalled();
     expect(google.calendar).not.toHaveBeenCalled();
@@ -144,10 +154,9 @@ describe("POST /api/create-event", () => {
     });
 
     const response = await POST(req);
-
     expect(response.status).toBe(500);
     const data = await response.json();
-    expect(data).toEqual({ error: "Internal Server Error" });
+    expect(data).toEqual({ error: "Failed to get token" });
     expect(getRefreshToken).toHaveBeenCalledWith("123");
     expect(google.calendar).not.toHaveBeenCalled();
   });
@@ -186,10 +195,9 @@ describe("POST /api/create-event", () => {
     });
 
     const response = await POST(req);
-
     expect(response.status).toBe(500);
     const data = await response.json();
-    expect(data).toEqual({ error: "Internal Server Error" });
+    expect(data).toEqual({ error: "Google API Error" });
     expect(getRefreshToken).toHaveBeenCalledWith("123");
     expect(mockInsert).toHaveBeenCalledWith({
       calendarId: "primary",
@@ -197,8 +205,14 @@ describe("POST /api/create-event", () => {
         summary: "Mock Event",
         description: "This is a mock event.",
         location: "Mock Location",
-        start: { dateTime: "2023-01-01T10:00:00.000Z" },
-        end: { dateTime: "2023-01-01T11:00:00.000Z" },
+        start: { 
+          dateTime: "2023-01-01T10:00:00.000Z",
+          timeZone: "UTC"
+        },
+        end: { 
+          dateTime: "2023-01-01T11:00:00.000Z",
+          timeZone: "UTC"
+        },
       },
     });
   });
