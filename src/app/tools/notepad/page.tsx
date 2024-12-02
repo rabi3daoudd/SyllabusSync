@@ -1,74 +1,151 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Sidebar from "./components/sidebar"
+import { onAuthStateChanged } from "firebase/auth"
+import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { useRouter } from "next/navigation"
+import { z } from "zod"
+import { auth, db } from "@/firebase-config"
+
 import NoteEditor from "./components/note-editor"
+import Sidebar from "./components/sidebar"
 
-export interface Note {
-  id: string
-  title: string
-  content: string
-}
+// Define the Note schema
+const noteSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  content: z.string(),
+  createdAt: z.number(),
+  updatedAt: z.number()
+})
 
-export default function NoteTakingApp() {
+export type Note = z.infer<typeof noteSchema>
+
+export default function NotePadPage() {
   const [notes, setNotes] = useState<Note[]>([])
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  
+  const router = useRouter()
 
   useEffect(() => {
-    const savedNotes = localStorage.getItem('notes')
-    if (savedNotes) {
-      setNotes(JSON.parse(savedNotes))
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, "users", user.uid)
+          const userDocSnap = await getDoc(userDocRef)
+
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data()
+            const validatedNotes = z
+              .array(noteSchema)
+              .parse(userData.notes || [])
+            setNotes(validatedNotes)
+          } else {
+            console.error("No user document found!")
+          }
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            setError(error)
+          } else {
+            setError(new Error("An error occurred while fetching notes"))
+          }
+          console.error("Failed to fetch notes:", error)
+        } finally {
+          setLoading(false)
+        }
+      } else {
+        router.push("/login")
+      }
+    })
+
+    return unsubscribe
   }, [])
 
-  useEffect(() => {
-    localStorage.setItem('notes', JSON.stringify(notes))
-  }, [notes])
+  const handleCreateNote = async (newNote: Note) => {
+    try {
+      const user = auth.currentUser
+      if (!user) return
 
-  const addNote = () => {
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: "Untitled Note",
-      content: ""
-    }
-    setNotes([...notes, newNote])
-    setSelectedNoteId(newNote.id)
-  }
+      const updatedNotes = [...notes, newNote]
+      setNotes(updatedNotes)
 
-  const updateNote = (updatedNote: Note) => {
-    setNotes(notes.map(note => note.id === updatedNote.id ? updatedNote : note))
-  }
-
-  const deleteNote = (id: string) => {
-    setNotes(notes.filter(note => note.id !== id))
-    if (selectedNoteId === id) {
-      setSelectedNoteId(notes.length > 1 ? notes[0].id : null)
+      const userDocRef = doc(db, "users", user.uid)
+      await updateDoc(userDocRef, {
+        notes: updatedNotes,
+      })
+    } catch (error) {
+      console.error("Error creating note:", error)
     }
   }
 
-  const selectedNote = notes.find(note => note.id === selectedNoteId)
+  const handleUpdateNote = async (updatedNote: Note) => {
+    try {
+      const user = auth.currentUser
+      if (!user) return
+
+      const updatedNotes = notes.map((note) => 
+        note.id === updatedNote.id ? updatedNote : note
+      )
+      setNotes(updatedNotes)
+
+      const userDocRef = doc(db, "users", user.uid)
+      await updateDoc(userDocRef, {
+        notes: updatedNotes,
+      })
+    } catch (error) {
+      console.error("Error updating note:", error)
+    }
+  }
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      const user = auth.currentUser
+      if (!user) return
+
+      const updatedNotes = notes.filter((note) => note.id !== noteId)
+      setNotes(updatedNotes)
+
+      const userDocRef = doc(db, "users", user.uid)
+      await updateDoc(userDocRef, {
+        notes: updatedNotes,
+      })
+
+      if (selectedNote?.id === noteId) {
+        setSelectedNote(null)
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error)
+    }
+  }
+
+  const handleSelectNote = (noteId: string) => {
+    const note = notes.find(n => n.id === noteId) || null;
+    setSelectedNote(note);
+  };
+
+  if (loading) {
+    return <div>Loading notes...</div>
+  }
+
+  if (error) {
+    return <div>Failed to load notes</div>
+  }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar
+    <div className="flex h-screen">
+      <Sidebar 
         notes={notes}
-        selectedNoteId={selectedNoteId}
-        onSelectNote={setSelectedNoteId}
-        onAddNote={addNote}
-        onDeleteNote={deleteNote}
+        selectedNoteId={selectedNote?.id || null}
+        onSelectNote={handleSelectNote}
+        onCreateNote={handleCreateNote}
+        onDeleteNote={handleDeleteNote}
       />
-      <main className="flex-1 p-6">
-        {selectedNote ? (
-          <NoteEditor
-            note={selectedNote}
-            onUpdateNote={updateNote}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Select a note or create a new one
-          </div>
-        )}
-      </main>
+      <NoteEditor
+        note={selectedNote}
+        onUpdateNote={handleUpdateNote}
+      />
     </div>
   )
 }

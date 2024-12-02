@@ -9,16 +9,16 @@ interface SidebarProps {
   notes: Note[]
   selectedNoteId: string | null
   onSelectNote: (id: string) => void
-  onAddNote: () => void
   onDeleteNote: (id: string) => void
+  onCreateNote: (note: Note) => Promise<void>
 }
 
 export default function Sidebar({
   notes,
   selectedNoteId,
   onSelectNote,
-  onAddNote,
-  onDeleteNote
+  onDeleteNote,
+  onCreateNote
 }: SidebarProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -28,8 +28,8 @@ export default function Sidebar({
 
   return (
     <div className="w-64 border-r bg-muted/50 flex flex-col h-screen">
-      <div className="px-6 py-4 border-b">
-        <h2 className="text-lg font-semibold mb-2">Notes</h2>
+      <div className="px-6 pt-8 pb-4 border-b">
+        <h2 className="text-lg font-semibold mb-2 mt-2">Notes</h2>
         <div className="relative">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -68,7 +68,16 @@ export default function Sidebar({
         ))}
       </ScrollArea>
       <div className="p-4 border-t">
-        <Button onClick={onAddNote} className="w-full">
+        <Button 
+          onClick={() => onCreateNote({
+            id: crypto.randomUUID(),
+            title: "New Note",
+            content: "",
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          })} 
+          className="w-full"
+        >
           <PlusCircle className="h-4 w-4 mr-2" />
           New Note
         </Button>

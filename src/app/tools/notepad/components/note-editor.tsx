@@ -10,7 +10,7 @@ import { Note } from "../page"
 import { cn } from "@/lib/utils"
 
 interface NoteEditorProps {
-  note: Note
+  note: Note | null
   onUpdateNote: (note: Note) => void
 }
 
@@ -20,6 +20,8 @@ interface HistoryItem {
 }
 
 export default function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
+  if (!note) return <div className="flex-1 p-4">Select a note to edit</div>;
+  
   const [localNote, setLocalNote] = useState(note)
   const [history, setHistory] = useState<HistoryItem[]>([{ content: note.content, cursorPosition: 0 }])
   const [historyIndex, setHistoryIndex] = useState(0)
