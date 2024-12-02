@@ -79,7 +79,7 @@ export const fetchAllEventsFromAllCalendars = async (
       }
 
       const eventsResponse = await axios.get<{ items: ApiEvent[] }>(
-        `api/list-events?${queryParams}`
+        `${baseUrl}/api/list-events?${queryParams}`
       );
       const calendarEvents = eventsResponse.data.items.flatMap(
         (event: ApiEvent) => {
@@ -184,23 +184,23 @@ export const updateCalendarEvent = async (
   endDateTime: string,
   uid: string
 ): Promise<{ id: string }> => {
-  try {
-    const response = await axios.post("/api/update-event", {
-      eventId,
-      calendarId,
-      summary,
-      description,
-      location,
-      startDateTime,
-      endDateTime,
-      uid,
-    });
-    console.log("Event updated successfully");
-    return response.data;
-  } catch (error) {
-    console.error("Failed to update calendar event:", error);
-    throw error;
-  }
+    try {
+        const response = await axios.post(`${baseUrl}/api/update-event`, {
+            eventId,
+            calendarId,
+            summary,
+            description,
+            location,
+            startDateTime,
+            endDateTime,
+            uid,
+        });
+        console.log('Event updated successfully');
+        return response.data;
+    } catch (error) {
+        console.error('Failed to update calendar event:', error);
+        throw error;
+    }
 };
 
 export const createRecurringEvent = async (
