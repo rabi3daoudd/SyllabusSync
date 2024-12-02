@@ -1,17 +1,22 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import type {
+import interactionPlugin, {
   EventDragStopArg,
   EventResizeDoneArg,
 } from "@fullcalendar/interaction";
 import scrollGridPlugin from "@fullcalendar/scrollgrid";
 import rrulePlugin from "@fullcalendar/rrule";
-import { RRule } from "rrule";
+import { Frequency } from "rrule";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,23 +28,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth } from "@/firebase-config";
+import { onAuthStateChanged, User } from "firebase/auth";
 import {
-  fetchAllEventsFromAllCalendars,
-  createCalendarEvent,
-  deleteCalendarEvent,
-  updateCalendarEvent,
-} from "@/components/api";
-import { onAuthStateChanged } from "firebase/auth";
-import {
-  Calendar as CalendarIcon,
   MapPin,
   Pencil,
   Trash2,
   ExternalLink,
+  Repeat,
   RefreshCcw,
   PlusCircle,
-  X,
-  Repeat,
+  Clock,
+  Loader2,
 } from "lucide-react";
 import "@/styles/calendar.css";
 import { format } from "date-fns";
@@ -57,6 +56,13 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import {
+  createCalendarEvent,
+  deleteCalendarEvent,
+  updateCalendarEvent,
+  createRecurringEvent,
+  fetchAllEventsFromAllCalendars,
+} from "@/components/api";
 
 interface CalendarEvent {
   id: string;
@@ -69,6 +75,21 @@ interface CalendarEvent {
   googleEventId: string;
   calendarId: string;
   recurrence?: string[];
+  extendedProps?: {
+    isRecurring?: boolean;
+  };
+}
+interface EventContentArg {
+  event: {
+    title: string;
+    extendedProps: {
+      location?: string;
+      description?: string;
+      recurrence?: string[];
+      isRecurring: boolean;
+    };
+  };
+  timeText: string;
 }
 
 export default function Calendar() {
@@ -89,6 +110,11 @@ export default function Calendar() {
     endHour: "12",
     endMinute: "00",
     endAmPm: "PM",
+    isRecurring: false,
+    recurrenceFrequency: "DAILY" as keyof typeof Frequency,
+    recurrenceInterval: 1,
+    recurrenceCount: 1 as number | undefined,
+    recurrenceUntil: undefined as Date | undefined,
   });
   const [calendarView] = useState("timeGridWeek");
   const calendarRef = useRef<FullCalendar>(null);
@@ -103,6 +129,9 @@ export default function Calendar() {
   const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(
     null
   );
+
+  // Add loading state
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -127,7 +156,8 @@ export default function Calendar() {
 
   const handleSelect = useCallback((selectInfo: DateSelectArg) => {
     const { start, end } = selectInfo;
-    setNewEvent({
+    setNewEvent((prev) => ({
+      ...prev,
       title: "",
       description: "",
       startDate: start,
@@ -138,7 +168,10 @@ export default function Calendar() {
       endHour: format(end, "h"),
       endMinute: format(end, "mm"),
       endAmPm: format(end, "a").toUpperCase(),
-    });
+      isRecurring: false,
+      recurrenceCount: 1,
+      recurrenceUntil: undefined,
+    }));
     setIsAddModalOpen(true);
     setSelectInfo(selectInfo);
   }, []);
@@ -154,6 +187,8 @@ export default function Calendar() {
   const handleAddEvent = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+      setIsAddingEvent(true);
+
       const {
         title,
         description,
@@ -165,68 +200,83 @@ export default function Calendar() {
         endHour,
         endMinute,
         endAmPm,
+        isRecurring,
+        recurrenceFrequency,
+        recurrenceInterval,
+        recurrenceCount,
+        recurrenceUntil,
       } = newEvent;
 
-      // Add debug logging
-      console.log("Creating event with title:", title);
-
-      // Validate required fields
       if (!title || !startDate || !endDate) {
         toast({
           title: "Validation Error",
           description: "Title, start date, and end date are required",
           variant: "destructive",
         });
+        setIsAddingEvent(false);
         return;
       }
 
-      // Construct start and end Date objects
       const start = new Date(startDate);
-      start.setHours(parseInt(startHour) + (startAmPm === "PM" ? 12 : 0));
-      start.setMinutes(parseInt(startMinute));
+      start.setHours(
+        parseInt(startHour) +
+          (startAmPm === "PM" && startHour !== "12" ? 12 : 0),
+        parseInt(startMinute)
+      );
 
       const end = new Date(endDate);
-      end.setHours(parseInt(endHour) + (endAmPm === "PM" ? 12 : 0));
-      end.setMinutes(parseInt(endMinute));
+      end.setHours(
+        parseInt(endHour) + (endAmPm === "PM" && endHour !== "12" ? 12 : 0),
+        parseInt(endMinute)
+      );
 
       try {
         const user = auth.currentUser;
         if (user) {
-          const createdEvent = await createCalendarEvent(
-            title.trim(), // Ensure title is trimmed
-            description,
-            "",
-            start.toISOString(),
-            end.toISOString(),
-            "primary",
-            user.uid
-          );
+          let createdEvent;
 
-          console.log("Created event response:", createdEvent);
+          if (isRecurring) {
+            createdEvent = await createRecurringEvent(
+              title.trim(),
+              description,
+              "",
+              start.toISOString(),
+              end.toISOString(),
+              "primary",
+              user.uid,
+              {
+                frequency: recurrenceFrequency,
+                interval: recurrenceInterval,
+                count: recurrenceCount,
+                until: recurrenceUntil,
+              }
+            );
+          } else {
+            createdEvent = await createCalendarEvent(
+              title.trim(),
+              description,
+              "",
+              start.toISOString(),
+              end.toISOString(),
+              "primary",
+              user.uid
+            );
+          }
 
           if (!createdEvent.id) {
             throw new Error("Event ID is missing from the creation response.");
           }
 
-          const newCalendarEvent: CalendarEvent = {
-            id: createdEvent.id,
-            title: title.trim(), // Ensure title is set and trimmed
-            description,
-            location: "",
-            start,
-            end,
-            allDay: false,
-            googleEventId: createdEvent.id,
-            calendarId: "primary",
-          };
+          // Refresh events after creation
+          const updatedEvents = await fetchAllEventsFromAllCalendars(user.uid);
+          setEvents(updatedEvents);
 
-          console.log("New calendar event object:", newCalendarEvent);
-
-          setEvents((prevEvents) => [...prevEvents, newCalendarEvent]);
           cleanupAfterEventCreation();
           toast({
             title: "Event Created",
-            description: "Your event has been successfully created.",
+            description: isRecurring
+              ? "Your recurring event has been successfully created."
+              : "Your event has been successfully created.",
           });
         }
       } catch (error) {
@@ -236,6 +286,8 @@ export default function Calendar() {
           description: "Failed to create event. Please try again.",
           variant: "destructive",
         });
+      } finally {
+        setIsAddingEvent(false);
       }
     },
     [newEvent, cleanupAfterEventCreation, toast]
@@ -249,8 +301,10 @@ export default function Calendar() {
       location: clickInfo.event.extendedProps.location || "",
       start: clickInfo.event.start || new Date(),
       end: clickInfo.event.end || new Date(),
-      googleEventId: clickInfo.event.id,
-      calendarId: clickInfo.event.extendedProps.calendarId || "primary",
+      allDay: clickInfo.event.allDay,
+      googleEventId: clickInfo.event.extendedProps.googleEventId,
+      calendarId: clickInfo.event.extendedProps.calendarId,
+      recurrence: clickInfo.event.extendedProps.recurrence,
     };
     setSelectedEvent(event);
     setIsViewModalOpen(true);
@@ -328,19 +382,19 @@ export default function Calendar() {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user) {
         console.log("Authenticated user found, fetching events...");
         const fetchedEvents = await fetchAllEventsFromAllCalendars(user.uid);
         setEvents(fetchedEvents);
       } else {
-        console.log("No authenticated user found.");
+        console.log("No authenticated user found");
+        setEvents([]);
       }
     });
 
     return () => unsubscribe();
   }, []);
-
 
   const handleEditInputChange = (
     e: React.ChangeEvent<
@@ -504,6 +558,39 @@ export default function Calendar() {
     }
   }, [selectedEvent]);
 
+  // Transform events for calendar display
+  const transformedEvents = useMemo(() => {
+    return events.map(event => {
+        const hasRecurrence = event.recurrence && event.recurrence.length > 0;
+        console.log('Processing event:', {
+            title: event.title,
+            recurrence: event.recurrence,
+            hasRecurrence,
+            extendedProps: {
+                isRecurring: hasRecurrence
+            }
+        });
+        
+        return {
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            location: event.location,
+            start: event.start,
+            end: event.end,
+            allDay: event.allDay,
+            extendedProps: {
+                googleEventId: event.googleEventId,
+                calendarId: event.calendarId,
+                description: event.description,
+                location: event.location,
+                isRecurring: hasRecurrence,
+                recurrence: event.recurrence
+            }
+        };
+    });
+}, [events]);
+
   return (
     <div className="w-full h-screen flex flex-col p-4">
       <div className="flex justify-between items-center p-4 bg-background border-b">
@@ -564,17 +651,7 @@ export default function Calendar() {
           selectMirror={true}
           dayMaxEvents={true}
           weekends={true}
-          events={events.map((event) => ({
-            ...event,
-            rrule:
-              event.recurrence && event.recurrence.length > 0
-                ? {
-                    ...RRule.parseString(event.recurrence[0]),
-                    dtstart: event.start,
-                  }
-                : undefined,
-            location: event.location,
-          }))}
+          events={transformedEvents}
           eventClick={handleEventClick}
           eventContent={renderEventContent}
           select={handleSelect}
@@ -659,11 +736,13 @@ export default function Calendar() {
                 <DatePickerWithPresets
                   date={newEvent.startDate}
                   onChange={(date) => {
-                    console.log(
-                      "DatePickerWithPresets Start Date Change:",
-                      date
-                    );
-                    date && handleStartDateChange(date);
+                    if (date) {
+                      console.log(
+                        "DatePickerWithPresets Start Date Change:",
+                        date
+                      );
+                      handleStartDateChange(date);
+                    }
                   }}
                 />
                 {/* Start Time Selects */}
@@ -722,8 +801,13 @@ export default function Calendar() {
                 <DatePickerWithPresets
                   date={newEvent.endDate}
                   onChange={(date) => {
-                    console.log("DatePickerWithPresets End Date Change:", date);
-                    date && handleEndDateChange(date);
+                    if (date) {
+                      console.log(
+                        "DatePickerWithPresets End Date Change:",
+                        date
+                      );
+                      handleEndDateChange(date);
+                    }
                   }}
                 />
                 {/* End Time Selects */}
@@ -773,9 +857,118 @@ export default function Calendar() {
               </div>
             </div>
 
+            <div className="space-y-4 py-4">
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="isRecurring">Recurring Event</Label>
+                <input
+                  type="checkbox"
+                  id="isRecurring"
+                  checked={newEvent.isRecurring}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, isRecurring: e.target.checked })
+                  }
+                  className="h-4 w-4"
+                />
+              </div>
+
+              {newEvent.isRecurring && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="recurrenceFrequency">Frequency</Label>
+                      <select
+                        id="recurrenceFrequency"
+                        value={newEvent.recurrenceFrequency}
+                        onChange={(e) =>
+                          setNewEvent({
+                            ...newEvent,
+                            recurrenceFrequency: e.target
+                              .value as keyof typeof Frequency,
+                          })
+                        }
+                        className="w-full rounded-md border p-2"
+                      >
+                        {Object.keys(Frequency)
+                          .filter((k) => isNaN(Number(k)))
+                          .map((freq) => (
+                            <option key={freq} value={freq}>
+                              {freq.charAt(0) + freq.slice(1).toLowerCase()}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="recurrenceInterval">Interval</Label>
+                      <Input
+                        id="recurrenceInterval"
+                        type="number"
+                        min="1"
+                        value={newEvent.recurrenceInterval}
+                        onChange={(e) =>
+                          setNewEvent({
+                            ...newEvent,
+                            recurrenceInterval: Math.max(
+                              1,
+                              parseInt(e.target.value) || 1
+                            ),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="recurrenceCount">
+                        Number of Occurrences
+                      </Label>
+                      <Input
+                        id="recurrenceCount"
+                        type="number"
+                        min="1"
+                        value={newEvent.recurrenceCount || ""}
+                        onChange={(e) => {
+                          const count = e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined;
+                          setNewEvent({
+                            ...newEvent,
+                            recurrenceCount: count,
+                            recurrenceUntil: undefined,
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="recurrenceUntil">End Date</Label>
+                      <DatePickerWithPresets
+                        date={newEvent.recurrenceUntil || newEvent.endDate}
+                        onChange={(date) =>
+                          setNewEvent({
+                            ...newEvent,
+                            recurrenceUntil: date,
+                            recurrenceCount: undefined,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Submit Button */}
-            <Button type="submit" className="w-full">
-              Add Event
+            <Button type="submit" className="w-full" disabled={isAddingEvent}>
+              {isAddingEvent ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Event...
+                </>
+              ) : (
+                "Add Event"
+              )}
             </Button>
           </form>
         </DialogContent>
@@ -783,94 +976,84 @@ export default function Calendar() {
 
       {/* View Event Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="sm:max-w-[425px] p-0 [&>button]:hidden">
-          <div className="w-full rounded-lg bg-background p-4">
-            {/* Tools row at the top with absolute positioning */}
-            <div className="absolute top-4 right-4 flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={openEditModal}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleDeleteEvent}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setIsViewModalOpen(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Content with top margin to clear the buttons */}
-            <div className="mt-8 flex items-start gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{selectedEvent?.title}</h3>
-                  {selectedEvent?.googleEventId && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => {
-                        const eid = btoa(
-                          `${selectedEvent.googleEventId} ${selectedEvent.calendarId}`
-                        );
-                        const url = `https://calendar.google.com/calendar/event?eid=${eid}`;
-                        window.open(url, "_blank");
-                      }}
-                      aria-label="View in Google Calendar"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {selectedEvent?.start.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}{" "}
-                  ·{" "}
-                  {selectedEvent?.start.toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}{" "}
-                  –{" "}
-                  {selectedEvent?.end.toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-3">
+        <DialogContent className="sm:max-w-[425px]">
+          <div className="absolute right-12 top-[6px] flex items-center gap-1">
+            <button
+              className="h-9 w-9 rounded-full hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center"
+              onClick={() => {
+                openEditModal();
+              }}
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Edit</span>
+            </button>
+            <button
+              className="h-9 w-9 rounded-full hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center"
+              onClick={() => {
+                handleDeleteEvent();
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Delete</span>
+            </button>
+            <button
+              className="h-9 w-9 rounded-full hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center"
+              onClick={() => {
+                if (selectedEvent?.googleEventId && selectedEvent?.calendarId) {
+                  const eid = btoa(
+                    `${selectedEvent.googleEventId} ${selectedEvent.calendarId}`
+                  );
+                  window.open(
+                    `https://calendar.google.com/calendar/event?eid=${eid}`,
+                    "_blank"
+                  );
+                }
+              }}
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">Open in Google Calendar</span>
+            </button>
+          </div>
+          <div className="pt-6">
+            <DialogTitle className="text-lg font-semibold">
+              {selectedEvent?.title}
+            </DialogTitle>
+            <div className="space-y-4 mt-4">
               {selectedEvent?.description && (
-                <div className="flex items-start gap-2">
-                  <CalendarIcon className="mt-1 h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm">{selectedEvent.description}</p>
+                <div>
+                  <Label>Description</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEvent.description}
+                  </p>
                 </div>
               )}
               {selectedEvent?.location && (
-                <div className="flex items-start gap-2">
-                  <MapPin className="mt-1 h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm">{selectedEvent.location}</p>
+                <div className="flex gap-2">
+                  <MapPin className="h-4 w-4 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">
+                    {selectedEvent.location}
+                  </span>
                 </div>
               )}
+              <div className="flex gap-2">
+                <Clock className="h-4 w-4 mt-0.5" />
+                <div className="text-sm text-muted-foreground">
+                  {format(selectedEvent?.start || new Date(), "PPP")}{" "}
+                  {format(selectedEvent?.start || new Date(), "p")}
+                  {" - "}
+                  {format(selectedEvent?.end || new Date(), "p")}
+                </div>
+              </div>
+              {selectedEvent?.recurrence &&
+                Array.isArray(selectedEvent.recurrence) &&
+                selectedEvent.recurrence.length > 0 && (
+                  <div className="flex gap-2">
+                    <Repeat className="h-4 w-4 mt-0.5" />
+                    <span className="text-sm text-muted-foreground">
+                      This is a recurring event
+                    </span>
+                  </div>
+                )}
             </div>
           </div>
         </DialogContent>
@@ -1131,32 +1314,34 @@ export default function Calendar() {
     </div>
   );
 }
+function renderEventContent(eventInfo: EventContentArg) {
+  const { event, timeText } = eventInfo;
+  const { title, extendedProps } = event;
+  const { location, isRecurring } = extendedProps;
 
-function renderEventContent(eventInfo: {
-  event: {
-    title: string;
-    extendedProps: { location?: string; rrule?: string };
-  };
-  timeText: string;
-}) {
+  console.log('Rendering event:', {
+    title,
+    recurrence: extendedProps.recurrence,
+    isRecurring
+  });
+  
   return (
-    <div className="flex flex-col gap-1 p-2 text-primary-foreground">
-      <div className="text-sm font-medium truncate">
-        {eventInfo.event.title}
+    <div className="flex flex-col gap-1 p-1">
+      <div className="flex items-center gap-1">
+        <div className="flex-grow font-medium text-sm truncate dark:text-slate-100">
+          {title}
+          {isRecurring && (
+            <Repeat className="inline-block ml-1 h-3 w-3 text-muted-foreground dark:text-slate-400" />
+          )}
+        </div>
       </div>
-      <div className="text-xs opacity-90 flex flex-col">
-        <span>{eventInfo.timeText}</span>
-        {eventInfo.event.extendedProps.location && (
-          <span className="flex items-center gap-1">
+      <div className="text-xs text-muted-foreground dark:text-slate-300">
+        <div>{timeText}</div>
+        {location && (
+          <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />
-            {eventInfo.event.extendedProps.location}
-          </span>
-        )}
-        {eventInfo.event.extendedProps.rrule && (
-          <span className="flex items-center gap-1">
-            <Repeat className="h-3 w-3" />
-            Recurring Event
-          </span>
+            <span className="truncate">{location}</span>
+          </div>
         )}
       </div>
     </div>
