@@ -78,38 +78,36 @@ export const fetchAllEventsFromAllCalendars = async (
         recurrence?: string[];
       }
 
-      const eventsResponse = await axios.get<{ items: ApiEvent[] }>(
-        `${baseUrl}/api/list-events?${queryParams}`
-      );
-      const calendarEvents = eventsResponse.data.items.flatMap(
-        (event: ApiEvent) => {
-          const baseEvent = {
-            id: event.id,
-            title: event.summary,
-            description: event.description || "",
-            location: event.location || "",
-            start: new Date(event.start.dateTime || event.start.date || ''),
-            end: new Date(event.end.dateTime || event.end.date || ''),
-            allDay: !event.start.dateTime,
-            googleEventId: event.id,
-            calendarId: calendar.id,
-            extendedProps: {
-              description: event.description || "",
-              location: event.location || "",
-              recurrence: event.recurrence || [],
-              isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
-            }
-          };
-
-          console.log('Transformed event:', {
-            title: baseEvent.title,
-            recurrence: event.recurrence,
-            isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
-          });
-
-          return [baseEvent];
-        }
-      );
+                const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`${baseUrl}/api/list-events?${queryParams}`);
+                const calendarEvents = eventsResponse.data.items.flatMap(
+                  (event: ApiEvent) => {
+                    const baseEvent = {
+                      id: event.id,
+                      title: event.summary,
+                      description: event.description || "",
+                      location: event.location || "",
+                      start: new Date(event.start.dateTime || event.start.date || ''),
+                      end: new Date(event.end.dateTime || event.end.date || ''),
+                      allDay: !event.start.dateTime,
+                      googleEventId: event.id,
+                      calendarId: calendar.id,
+                      extendedProps: {
+                        description: event.description || "",
+                        location: event.location || "",
+                        recurrence: event.recurrence || [],
+                        isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
+                      }
+                    };
+          
+                    console.log('Transformed event:', {
+                      title: baseEvent.title,
+                      recurrence: event.recurrence,
+                      isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
+                    });
+          
+                    return [baseEvent];
+                  }
+                );
 
       allEvents = [...allEvents, ...calendarEvents];
     }
@@ -255,6 +253,47 @@ export const createRecurringEvent = async (
     return response.data;
   } catch (error) {
     console.error("Failed to create recurring calendar event:", error);
+    throw error;
+  }
+};
+
+export const createTask = async (
+  title: string,
+  status: "todo" | "in progress" | "done",
+  priority: "low" | "medium" | "high",
+  uid: string,
+  label?: string,
+  dueDate?: string
+): Promise<{ id: string }> => {
+  try {
+    const taskId = `TASK-${Date.now()}`;
+    const newTask = {
+      id: taskId,
+      title,
+      status,
+      priority,
+      ...(label ? { label } : {}),
+      ...(dueDate ? { dueDate } : {}),
+    };
+
+    // Make an API call to a new endpoint that will handle the task creation
+    const response = await fetch(`${baseUrl}/api/create-task`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${uid}`,
+      },
+      body: JSON.stringify(newTask),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create task');
+    }
+
+    const data = await response.json();
+    return { id: data.taskId };
+  } catch (error) {
+    console.error("Error creating task:", error);
     throw error;
   }
 };

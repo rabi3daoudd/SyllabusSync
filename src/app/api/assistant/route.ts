@@ -1,7 +1,7 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { createCalendarEvent, fetchAllEventsFromAllCalendars } from "@/components/api";
+import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars, createTask } from "@/components/api";
 
 export async function POST(request: Request) {
   
@@ -108,6 +108,7 @@ Your task is to extract all relevant academic dates and events from the syllabus
    Once the user has confirmed the dates, prepare the information for Google Calendar integration using this format:
    <calendar_api_call>
    Action: [ADD_EVENT/UPDATE_EVENT/DELETE_EVENT]
+   Event_Id: [Event ID if updating or deleting]
    Event_Title: [Title of the event]
    Start_Date: [YYYY-MM-DD]
    Start_Time: [HH:MM] (if applicable)
@@ -131,14 +132,20 @@ Throughout the interaction:
 - Maintain a supportive and empathetic tone. Acknowledge the challenges of academic life and offer encouragement.
 - Prioritize user privacy. Do not share or store any personal or academic information outside of the immediate interaction.
 - If you need any clarification or additional information from the user, ask politely and clearly.
-- If you need to know the current date or time, use the {getCurrentDate} tool.
-- If you need to create events for the user, use the {createCalendarEvent} tool. Then respond saying it worked!
+- If you need to know the current date or time, use the {getCurrentDate} tool. This is needed when the user asks for events they have the day of.
+- If you need to create, update, or delete events for the user, use the appropriate tool ({createCalendarEvent}, {updateCalendarEvent}, or {deleteCalendarEvent}). Then respond saying it worked!
 After completing these steps, thank the user for using SyllabusSync and invite them to reach out if they need any further assistance or modifications to their schedule.
 Remember to wrap your thought process in <analysis> tags to show your reasoning process for complex decisions or analyses throughout the task. In your analysis:
 1. Identify and list all types of events mentioned in the syllabus.
 2. Note any potential conflicts or overlaps between syllabus events and existing user commitments.
-3. Prioritize events based on their importance or weight.`;
-
+3. Prioritize events based on their importance or weight.
+You can also help users manage their tasks:
+1. Create tasks for assignments, projects, or study sessions using the {createTask} tool
+2. Set appropriate priorities (low, medium, high) based on due dates and importance
+3. Add class labels to tasks to organize them by course
+4. Set due dates to help users track deadlines
+5. Set initial status as "todo" for new tasks
+`;
 
 if (syllabusText.length > 20000) {
   // If the text is too long, summarize it
@@ -237,19 +244,145 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
           }
         },
       },
+      updateCalendarEvent: {
+        description: "Updates an event in the user's Google Calendar",
+        parameters: z.object({
+          uid: z.string().describe("The user ID"),
+          calendarId: z.string().describe("The calendar ID"),
+          eventId: z.string().describe("The event ID"),
+          summary: z.string().describe("Event summary or title"),
+          description: z
+            .string()
+            .optional()
+            .describe("Event description"),
+          location: z.string().optional().describe("Event location"),
+          startDateTime: z
+            .string()
+            .describe("Event start date and time in ISO format"),
+          endDateTime: z
+            .string()
+            .describe("Event end date and time in ISO format"),
+        }),
+        execute: async (args) => {
+          try {
+            const {
+              uid: requestedUid,
+              calendarId,
+              eventId,
+              summary,
+              description = "",
+              location = "",
+              startDateTime,
+              endDateTime,
+            } = args;
+
+            // Use the updateCalendarEvent function
+            const response = await updateCalendarEvent(
+              eventId,
+              calendarId,
+              summary,
+              description,
+              location,
+              startDateTime,
+              endDateTime,
+              requestedUid
+            );
+
+            return {
+              success: true,
+              message: "Event updated successfully.",
+              id: response.id,
+            };
+          } catch (error) {
+            console.error("Error in updateCalendarEvent tool:", error);
+            throw error;
+          }
+        },
+      },
+      deleteCalendarEvent: {
+        description: "Deletes an event from the user's Google Calendar",
+        parameters: z.object({
+          uid: z.string().describe("The user ID"),
+          calendarId: z.string().describe("The calendar ID"),
+          eventId: z.string().describe("The event ID"),
+        }),
+        execute: async ({ uid: requestedUid, calendarId, eventId }) => {
+          try {
+            // Use the deleteCalendarEvent function
+            await deleteCalendarEvent(eventId, calendarId, requestedUid);
+            return { success: true, message: "Event deleted successfully." };
+          } catch (error) {
+            console.error("Error in deleteCalendarEvent tool:", error);
+            throw error;
+          }
+        },
+      },
+      createTask: {
+        description: "Creates a task for the user",
+        parameters: z.object({
+          uid: z.string().describe("The user ID"),
+          title: z.string().describe("Task title"),
+          status: z.string().describe("Task status (todo, in progress, done)"),
+          priority: z.string().describe("Task priority (low, medium, high)"),
+          label: z.string().optional().describe("Task label (class name)"),
+          dueDate: z.string().optional().describe("Due date in ISO format"),
+        }),
+        execute: async ({ uid: requestedUid, title, status, priority, label, dueDate }) => {
+          try {
+            // Verify the user is authenticated via the Bearer token
+            const authHeader = request.headers.get('authorization');
+            if (!authHeader || !authHeader.startsWith("Bearer ")) {
+              throw new Error("Unauthorized");
+            }
+            const tokenUid = authHeader.split("Bearer ")[1];
+            
+            // Verify the requested UID matches the token UID
+            if (tokenUid !== requestedUid) {
+              throw new Error("User ID mismatch");
+            }
+
+            const result = await createTask(
+              title,
+              status as "todo" | "in progress" | "done",
+              priority as "low" | "medium" | "high",
+              requestedUid,
+              label,
+              dueDate
+            );
+            return { success: true, message: "Task created successfully.", taskId: result.id };
+          } catch (error) {
+            console.error("Error in createTask tool:", error);
+            throw error;
+          }
+        },
+      },
     },
     experimental_telemetry: {
       isEnabled: true,
       functionId: "stream-text",
     },
     onStepFinish: ({
-                     text,
-                     toolCalls,
-                     toolResults,
-                     finishReason,
-                     usage,
-                   }) => {
+      text,
+      toolCalls,
+      toolResults,
+      finishReason,
+      usage,
+    }) => {
       // Log tool calls
+      if (text && text.trim() !== "") {
+        sendMessageToUser({
+          role: "assistant",
+          content: text,
+          id: "",
+        });
+      } else if (finishReason === "tool-calls" && !text) {
+        // If no text was generated and a tool is about to be called, inform the user
+        sendMessageToUser({
+          role: "assistant",
+          content: "Currently processing your request...",
+          id: "",
+        });
+      }
       if (toolCalls?.length) {
         toolCalls.forEach((toolCall) => {
           const toolNotification: Message = {
