@@ -92,10 +92,8 @@ const data = {
     },
   ],
   tools: [
-    { title: "Calculator", url: "#" },
+    { title: "Calculator", url: "/tools/calculator" },
     { title: "Notepad", url: "#" },
-    { title: "Calendar", url: "#" },
-    { title: "File Manager", url: "#" },
   ],
   navSecondary: [
     {
