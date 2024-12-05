@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { RRule, Frequency } from "rrule";
 
 interface CalendarEvent {
@@ -40,6 +40,32 @@ const getBaseUrl = () => {
 
 const baseUrl = getBaseUrl();
 
+// Retry logic with exponential backoff
+async function retryRequest<T>(
+  requestFn: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error as Error;
+      if (error instanceof AxiosError && error.response?.status === 429) {
+        const delay = initialDelay * Math.pow(2, attempt);
+        console.log(`Rate limited. Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  
+  throw lastError;
+}
+
 // Gets all calendar events from every calendar and returns them as events
 export const fetchAllEventsFromAllCalendars = async (
   uid: string
@@ -59,13 +85,15 @@ export const fetchAllEventsFromAllCalendars = async (
   try {
     // Use the Next.js API route for listing user calendars
     // const calendarsResponse = await axios.get(`api/list-user-calendars?${commonQueryParams}`);
-    const calendarsResponse = await axios.get(
-      `${baseUrl}/api/list-user-calendars?${commonQueryParams}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${uid}`,
+    const calendarsResponse = await retryRequest(() => 
+      axios.get(
+        `${baseUrl}/api/list-user-calendars?${commonQueryParams}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${uid}`,
+          }
         }
-      }
+      )
     );
     const calendars = calendarsResponse.data.items;
 
@@ -93,11 +121,16 @@ export const fetchAllEventsFromAllCalendars = async (
         recurrence?: string[];
       }
 
-                const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`${baseUrl}/api/list-events?${queryParams}`, {
-                  headers: {
-                    'Authorization': `Bearer ${uid}`,
-                  }
-                });
+                const eventsResponse = await retryRequest(() =>
+                  axios.get<{ items: ApiEvent[] }>(
+                    `${baseUrl}/api/list-events?${queryParams}`,
+                    {
+                      headers: {
+                        'Authorization': `Bearer ${uid}`,
+                      }
+                    }
+                  )
+                );
                 const calendarEvents = eventsResponse.data.items.flatMap(
                   (event: ApiEvent) => {
                     const baseEvent = {
@@ -147,20 +180,26 @@ export const createCalendarEvent = async (
   uid: string
 ): Promise<{ id: string }> => {
   try {
-    const response = await axios.post(`${baseUrl}/api/create-event`, {
-      summary: title,
-      description,
-      location,
-      startDateTime,
-      endDateTime,
-      calendarId,
-      uid,
-    }, {
-      headers: {
-        'Authorization': `Bearer ${uid}`,
-        'Content-Type': 'application/json',
-      }
-    });
+    const response = await retryRequest(() =>
+      axios.post(`${baseUrl}/api/create-event`,
+        {
+          summary: title,
+          description,
+          location,
+          startDateTime,
+          endDateTime,
+          calendarId,
+          uid,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${uid}`,
+            'Content-Type': 'application/json',
+          }
+        }
+      )
+    );
+    
     console.log("Event created successfully:", response.data);
     return response.data;
   } catch (error) {
