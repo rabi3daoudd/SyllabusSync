@@ -67,20 +67,11 @@ const baseUrl = getBaseUrl();
 // }
 
 // Helper function to get auth headers
-async function getAuthHeaders(uid: string) {
-  try {
-    // First, get a fresh access token using the stored refresh token
-    const tokenResponse = await axios.post(`${baseUrl}/api/refresh-token`, { uid });
-    const { access_token } = tokenResponse.data;
-
-    return {
-      'Authorization': `Bearer ${access_token}`,
-      'Content-Type': 'application/json'
-    };
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-    throw error;
-  }
+function getAuthHeaders(uid: string) {
+  return {
+    'Authorization': `Bearer ${uid}`,
+    'Content-Type': 'application/json'
+  };
 }
 
 // Gets all calendar events from every calendar and returns them as events
@@ -93,7 +84,7 @@ export const fetchAllEventsFromAllCalendars = async (
 
   try {
     // Get auth headers first
-    const headers = await getAuthHeaders(uid);
+    const headers = getAuthHeaders(uid);
 
     // Use the Next.js API route for listing user calendars
     const calendarsResponse = await axios.get(
@@ -131,7 +122,7 @@ export const createCalendarEvent = async (
   uid: string
 ): Promise<{ id: string }> => {
   try {
-    const headers = await getAuthHeaders(uid);
+    const headers = getAuthHeaders(uid);
     const response = await axios.post(
       `${baseUrl}/api/create-event`,
       {
