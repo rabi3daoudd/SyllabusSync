@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import { clientId, clientSecret } from '../../config/config';
+import { clientId, clientSecret, getOAuthRedirectUrl } from '../../config/config';
 import { db } from "@/lib/firebaseAdmin";
 
 // Initialize Google OAuth2 client with application credentials
@@ -8,7 +8,7 @@ import { db } from "@/lib/firebaseAdmin";
 const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
-    'http://localhost:3000'  // Callback URL for OAuth flow
+    getOAuthRedirectUrl()
 );
 
 /**

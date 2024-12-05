@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { getRefreshToken } from "../../../lib/firebaseHelper";
-import { clientId, clientSecret } from "../../config/config";
+import { clientId, clientSecret, getOAuthRedirectUrl } from "../../config/config";
 
 const oauth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
-  "http://localhost:3000"
+  getOAuthRedirectUrl()
 );
 
 export async function POST(req: NextRequest) {
