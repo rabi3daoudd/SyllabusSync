@@ -3,6 +3,7 @@ import { google } from "googleapis";
 import { getRefreshToken } from "../../../lib/firebaseHelper";
 import { clientId, clientSecret } from "../../config/config";
 
+// Initialize OAuth2 client for Google Calendar API authentication
 const oauth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
@@ -11,6 +12,7 @@ const oauth2Client = new google.auth.OAuth2(
 
 export async function POST(req: NextRequest) {
   try {
+    // Parse request body to extract event details
     const body = await req.json();
     const {
       summary,
@@ -24,6 +26,7 @@ export async function POST(req: NextRequest) {
       timeZone,
     } = body;
 
+    // Validate required user ID
     if (!uid) {
       return NextResponse.json(
         { message: "User ID is missing" },
@@ -31,11 +34,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Authenticate with Google Calendar using user's refresh token
     const refreshToken = await getRefreshToken(uid);
     oauth2Client.setCredentials({ refresh_token: refreshToken });
 
+    // Initialize Google Calendar service
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
+    // Construct the event object according to Google Calendar API specifications
     const eventBody: {
       summary: string;
       description?: string;
@@ -57,24 +63,30 @@ export async function POST(req: NextRequest) {
       },
     };
 
+    // Add recurrence rules if provided (for repeating events)
     if (recurrence && Array.isArray(recurrence) && recurrence.length > 0) {
       console.log('Adding recurrence rule to event:', recurrence);
       eventBody.recurrence = recurrence;
     }
 
+    // Debug log for event creation details
     console.log(
       "Creating event with body:",
       JSON.stringify(eventBody, null, 2)
     );
 
+    // Make API call to create the event in Google Calendar
     const eventResponse = await calendar.events.insert({
-      calendarId: calendarId || "primary",
+      calendarId: calendarId || "primary", // Use primary calendar if none specified
       requestBody: eventBody,
     });
 
+    // Return successful response with created event data
     console.log('Event created with response:', eventResponse.data);
     return NextResponse.json(eventResponse.data, { status: 200 });
+
   } catch (error: unknown) {
+    // Error handling and logging
     console.error("Full error details:", error);
 
     if (error instanceof Error) {
