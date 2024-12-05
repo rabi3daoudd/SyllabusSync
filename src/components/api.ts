@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { RRule, Frequency } from "rrule";
 
 interface CalendarEvent {
