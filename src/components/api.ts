@@ -28,7 +28,17 @@ interface RecurrenceOptions {
   byMonthDay?: number[];
 }
 
-const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+const getBaseUrl = () => {
+  // Check if we're in the browser
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  // For server-side (including chatbot tools)
+  return process.env.BASE_URL || 'http://localhost:3000';
+};
+
+const baseUrl = getBaseUrl();
+
 
 // Gets all calendar events from every calendar and returns them as events
 export const fetchAllEventsFromAllCalendars = async (
