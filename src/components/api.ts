@@ -28,13 +28,23 @@ interface RecurrenceOptions {
   byMonthDay?: number[];
 }
 
-const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+// Get base URL from environment or determine dynamically
+const getBaseUrl = () => {
+  // Check if we're in the browser
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  // For server-side (including chatbot tools)
+  return process.env.BASE_URL || 'http://localhost:3000';
+};
+
+const baseUrl = getBaseUrl();
 
 // Gets all calendar events from every calendar and returns them as events
 export const fetchAllEventsFromAllCalendars = async (
   uid: string
 ): Promise<CalendarEvent[]> => {
-  console.log("Hit the fetche events");
+  console.log("Hit the fetch events with baseUrl:", baseUrl);
 
   // const firebaseUser = auth.currentUser;
   // if (!firebaseUser) {
@@ -50,7 +60,12 @@ export const fetchAllEventsFromAllCalendars = async (
     // Use the Next.js API route for listing user calendars
     // const calendarsResponse = await axios.get(`api/list-user-calendars?${commonQueryParams}`);
     const calendarsResponse = await axios.get(
-      `${baseUrl}/api/list-user-calendars?${commonQueryParams}`
+      `${baseUrl}/api/list-user-calendars?${commonQueryParams}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${uid}`,
+        }
+      }
     );
     const calendars = calendarsResponse.data.items;
 
@@ -78,7 +93,11 @@ export const fetchAllEventsFromAllCalendars = async (
         recurrence?: string[];
       }
 
-                const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`${baseUrl}/api/list-events?${queryParams}`);
+                const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`${baseUrl}/api/list-events?${queryParams}`, {
+                  headers: {
+                    'Authorization': `Bearer ${uid}`,
+                  }
+                });
                 const calendarEvents = eventsResponse.data.items.flatMap(
                   (event: ApiEvent) => {
                     const baseEvent = {
@@ -136,6 +155,11 @@ export const createCalendarEvent = async (
       endDateTime,
       calendarId,
       uid,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${uid}`,
+        'Content-Type': 'application/json',
+      }
     });
     console.log("Event created successfully:", response.data);
     return response.data;
@@ -161,7 +185,9 @@ export const deleteCalendarEvent = async (
       },
       {
         headers: {
-          "X-HTTP-Method-Override": "DELETE",
+          'Authorization': `Bearer ${uid}`,
+          'Content-Type': 'application/json',
+          'X-HTTP-Method-Override': 'DELETE',
         },
       }
     );
@@ -182,23 +208,28 @@ export const updateCalendarEvent = async (
   endDateTime: string,
   uid: string
 ): Promise<{ id: string }> => {
-    try {
-        const response = await axios.post(`${baseUrl}/api/update-event`, {
-            eventId,
-            calendarId,
-            summary,
-            description,
-            location,
-            startDateTime,
-            endDateTime,
-            uid,
-        });
-        console.log('Event updated successfully');
-        return response.data;
-    } catch (error) {
-        console.error('Failed to update calendar event:', error);
-        throw error;
-    }
+  try {
+    const response = await axios.post(`${baseUrl}/api/update-event`, {
+      eventId,
+      calendarId,
+      summary,
+      description,
+      location,
+      startDateTime,
+      endDateTime,
+      uid,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${uid}`,
+        'Content-Type': 'application/json',
+      }
+    });
+    console.log('Event updated successfully');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update calendar event:', error);
+    throw error;
+  }
 };
 
 export const createRecurringEvent = async (
