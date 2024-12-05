@@ -1,7 +1,8 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars, createTask } from "@/components/api";
+import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, createTask, CalendarEvent } from "@/components/api";
+import axios from "axios";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -189,17 +190,51 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
         },
       },
       getCalendarEvents: {
-        description:
-            "Fetches all events from all calendars for a specific user",
+        description: "Fetches all events from all calendars for a specific user",
         parameters: z.object({
           uid: z.string().describe("The user ID"),
         }),
         execute: async ({ uid: requestedUid }) => {
           try {
-            // Fetch all events from all calendars
-            const allEvents = await fetchAllEventsFromAllCalendars(
-                requestedUid
+            // Get the base URL dynamically
+            const baseUrl = process.env.VERCEL_URL 
+              ? `https://${process.env.VERCEL_URL}`
+              : process.env.BASE_URL || 'http://localhost:3000';
+
+            // First get the list of calendars
+            const calendarsResponse = await axios.get(
+              `${baseUrl}/api/list-user-calendars`,
+              {
+                params: { uid: requestedUid },
+                headers: {
+                  'Authorization': `Bearer ${requestedUid}`,
+                }
+              }
             );
+
+            const calendars = calendarsResponse.data.items || [];
+            let allEvents: CalendarEvent[] = [];
+
+            // Then get events for each calendar
+            for (const calendar of calendars) {
+              const eventsResponse = await axios.get(
+                `${baseUrl}/api/list-events`,
+                {
+                  params: { 
+                    uid: requestedUid,
+                    calendarId: calendar.id || 'primary'
+                  },
+                  headers: {
+                    'Authorization': `Bearer ${requestedUid}`,
+                  }
+                }
+              );
+              
+              if (eventsResponse.data.items) {
+                allEvents = [...allEvents, ...eventsResponse.data.items];
+              }
+            }
+
             return allEvents;
           } catch (error) {
             console.error("Error in getCalendarEvents tool:", error);

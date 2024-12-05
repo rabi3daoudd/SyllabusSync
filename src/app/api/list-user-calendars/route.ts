@@ -16,38 +16,42 @@ export async function GET(req: NextRequest) {
     const { searchParams } = req.nextUrl;
     const uid = searchParams.get("uid");
 
-    if (!uid) {
+    // Check for Authorization header
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { message: "User ID is missing" },
-        { status: 400 }
+        { error: "Missing or invalid authorization header" },
+        { status: 401 }
+      );
+    }
+
+    const tokenUid = authHeader.split("Bearer ")[1];
+    if (!uid || uid !== tokenUid) {
+      return NextResponse.json(
+        { error: "User ID mismatch" },
+        { status: 403 }
       );
     }
 
     const refreshToken = await getRefreshToken(uid);
+    if (!refreshToken) {
+      return NextResponse.json(
+        { error: "No refresh token found for user" },
+        { status: 401 }
+      );
+    }
+
     oauth2Client.setCredentials({ refresh_token: refreshToken });
 
-    const calendar = google.calendar({ version: "v3" });
-
-    // Retrieve the user's calendars
-    const calendarList = await calendar.calendarList.list({
-      auth: oauth2Client,
-      maxResults: 10,
-    });
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+    const calendarList = await calendar.calendarList.list();
 
     return NextResponse.json(calendarList.data, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error fetching user calendars:", error.message);
-      return NextResponse.json(
-        { error: "Internal Server Error" },
-        { status: 500 }
-      );
-    } else {
-      console.error("Unexpected error:", error);
-      return NextResponse.json(
-        { error: "Unknown Internal Server Error" },
-        { status: 500 }
-      );
-    }
+    console.error("Error fetching calendar list:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error occurred" },
+      { status: 500 }
+    );
   }
 }

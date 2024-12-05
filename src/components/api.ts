@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { RRule, Frequency } from "rrule";
 
-interface CalendarEvent {
+export interface CalendarEvent {
   id: string;
   title: string;
   description: string;
@@ -72,19 +72,11 @@ export const fetchAllEventsFromAllCalendars = async (
 ): Promise<CalendarEvent[]> => {
   console.log("Hit the fetch events with baseUrl:", baseUrl);
 
-  // const firebaseUser = auth.currentUser;
-  // if (!firebaseUser) {
-  //     console.log(firebaseUser)
-  //     console.error('No Firebase user logged in');
-  //     return [];
-  // }
-
   const commonQueryParams = new URLSearchParams({ uid });
   let allEvents: CalendarEvent[] = [];
 
   try {
     // Use the Next.js API route for listing user calendars
-    // const calendarsResponse = await axios.get(`api/list-user-calendars?${commonQueryParams}`);
     const calendarsResponse = await retryRequest(() => 
       axios.get(
         `${baseUrl}/api/list-user-calendars?${commonQueryParams}`,
@@ -165,7 +157,7 @@ export const fetchAllEventsFromAllCalendars = async (
     }
   } catch (error) {
     console.error("Failed to fetch calendar events:", error);
-    return [];
+    throw error;
   }
   return allEvents;
 };
