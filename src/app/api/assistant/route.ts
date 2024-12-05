@@ -3,6 +3,16 @@ import { z } from "zod";
 import { customModel } from "@/ai/index";
 import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars, createTask } from "@/components/api";
 
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
+export function GET(request: Request) {
+  console.log(request)
+  return new Response('Vercel', {
+    status:200,
+  })
+}
+
 export async function POST(request: Request) {
   
   // Get the Authorization header
@@ -10,6 +20,8 @@ export async function POST(request: Request) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return new Response("Unauthorized", { status: 401 });
   }
+
+
 
   // Extract the UID from the Bearer token
   const uid = authHeader.split("Bearer ")[1];
