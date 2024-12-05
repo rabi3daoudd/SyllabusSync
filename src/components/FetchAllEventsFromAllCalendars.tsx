@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Button } from "../components/ui/button";
 import { auth } from '../firebase-config';
 
+const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+
 interface CalendarEvent {
     id: string;
     summary: string;
@@ -32,15 +34,18 @@ const FetchAllEventsFromAllCalendars = () => {
 
         const commonQueryParams = new URLSearchParams({ uid: firebaseUser.uid });
 
+
+
+
         try {
-            const calendarsResponse = await axios.get(`http://localhost:3001/api/list-user-calendars?${commonQueryParams}`);
+            const calendarsResponse = await axios.get(`${baseUrl}/api/list-user-calendars?${commonQueryParams}`);
             const calendars = calendarsResponse.data.items;
 
             for (const calendar of calendars) {
                 const queryParams = new URLSearchParams(commonQueryParams);
                 queryParams.set('calendarId', calendar.id || 'primary');
 
-                const eventsResponse = await axios.get(`http://localhost:3001/api/list-events?${queryParams}`);
+                const eventsResponse = await axios.get(`${baseUrl}/api/list-events?${queryParams}`);
                 const events: CalendarEvent[] = eventsResponse.data.items;
                 events.forEach(event => {
                     console.log(`Event: ${event.summary} from Calendar: ${calendar.summary}`);
