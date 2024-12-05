@@ -17,6 +17,17 @@ interface CalendarEvent {
     };
 }
 
+const getBaseUrl = () => {
+    // Check if we're in the browser
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    // For server-side (including chatbot tools)
+    return process.env.BASE_URL || 'http://localhost:3000';
+  };
+  
+  const baseUrl = getBaseUrl();
+
 const FetchAllEventsFromAllCalendars = () => {
     const [loading, setLoading] = useState(false);
 
@@ -33,14 +44,14 @@ const FetchAllEventsFromAllCalendars = () => {
         const commonQueryParams = new URLSearchParams({ uid: firebaseUser.uid });
 
         try {
-            const calendarsResponse = await axios.get(`http://localhost:3001/api/list-user-calendars?${commonQueryParams}`);
+            const calendarsResponse = await axios.get(`${baseUrl}/api/list-user-calendars?${commonQueryParams}`);
             const calendars = calendarsResponse.data.items;
 
             for (const calendar of calendars) {
                 const queryParams = new URLSearchParams(commonQueryParams);
                 queryParams.set('calendarId', calendar.id || 'primary');
 
-                const eventsResponse = await axios.get(`http://localhost:3001/api/list-events?${queryParams}`);
+                const eventsResponse = await axios.get(`${baseUrl}/api/list-events?${queryParams}`);
                 const events: CalendarEvent[] = eventsResponse.data.items;
                 events.forEach(event => {
                     console.log(`Event: ${event.summary} from Calendar: ${calendar.summary}`);
