@@ -1,12 +1,18 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars, createTask } from "@/components/api";
+import {
+  createCalendarEvent,
+  createRecurringEvent,
+  deleteCalendarEvent,
+  updateCalendarEvent,
+  fetchAllEventsFromAllCalendars,
+  createTask,
+} from "@/components/api";
 
 export async function POST(request: Request) {
-  
   // Get the Authorization header
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return new Response("Unauthorized", { status: 401 });
   }
@@ -18,25 +24,24 @@ export async function POST(request: Request) {
   }
 
   const languageInstructions = {
-    en: 'All your responses should be in English.',
-    es: 'Todas tus respuestas deben estar en Español.',
-    fr: 'Toutes vos réponses doivent être en Français.',
-    de: 'Alle deine Antworten sollten auf Deutsch sein.',
-    it: 'Le tue risposte dovrebbero essere in Italiano.',
-    zh: '你的所有回复都应该用中文。',
-    ja: 'あなたのすべての回答は日本語である必要があります。',
-    ru: 'Все ваши ответы должны быть на русском языке.',
-    ar: 'يجب أن تكون جميع إجاباتك باللغة العربية.',
-    pt: 'Todas as suas respostas devem ser em Português.',
-    hi: 'आपके सभी उत्तर हिंदी में होने चाहिए।',
-    ko: '모든 답변은 한국어로 작성해야 합니다.',
-    tr: 'Tüm yanıtlarınız Türkçe olmalıdır.',
-    nl: 'Al je antwoorden moeten in het Nederlands zijn.',
-    pl: 'Wszystkie twoje odpowiedzi powinny być po polsku.',
-    sv: 'Alla dina svar ska vara på Svenska.',
+    en: "All your responses should be in English.",
+    es: "Todas tus respuestas deben estar en Español.",
+    fr: "Toutes vos réponses doivent être en Français.",
+    de: "Alle deine Antworten sollten auf Deutsch sein.",
+    it: "Le tue risposte dovrebbero essere in Italiano.",
+    zh: "你的所有回复都应该用中文。",
+    ja: "あなたのすべての回答は日本語である必要があります。",
+    ru: "Все ваши ответы должны быть на русском языке.",
+    ar: "يجب أن تكون جميع إجاباتك باللغة العربية.",
+    pt: "Todas as suas respostas devem ser em Português.",
+    hi: "आपके सभी उत्तर हिंदी में होने चाहिए।",
+    ko: "모든 답변은 한국어로 작성해야 합니다.",
+    tr: "Tüm yanıtlarınız Türkçe olmalıdır.",
+    nl: "Al je antwoorden moeten in het Nederlands zijn.",
+    pl: "Wszystkie twoje odpowiedzi powinny być po polsku.",
+    sv: "Alla dina svar ska vara på Svenska.",
     // Add more languages as needed
-  }
-
+  };
 
   // Define the type for the language keys
   type LanguageKey = keyof typeof languageInstructions;
@@ -53,8 +58,6 @@ export async function POST(request: Request) {
   } = await request.json();
 
   const syllabusText = fileContents ? fileContents.join("\n") : "";
-  
-
 
   const coreMessages = convertToCoreMessages(messages);
   const baseUrl = process.env.BASE_URL;
@@ -65,8 +68,8 @@ export async function POST(request: Request) {
 
   // Get the language instruction or default to English
   const languageInstruction =
-      languageInstructions[language] || languageInstructions['en'];
-  
+    languageInstructions[language] || languageInstructions["en"];
+
   const systemPromptTemplate = `${languageInstruction}
 
 You are SyllabusSync, an AI assistant specialized in helping university students manage their academic schedules. Your primary function is to extract key dates from course syllabi and integrate them with Google Calendar. Follow these instructions carefully to assist students effectively.
@@ -117,6 +120,23 @@ Your task is to extract all relevant academic dates and events from the syllabus
    Description: [Brief description of the event]
    </calendar_api_call>
    Ensure that you are using the primary calendar to put the events in
+   
+   You can also create recurring events using the {createRecurringCalendarEvent} tool. this is how you call it:
+   <calendar_api_call>
+Action: ADD_EVENT
+Event_Title: Weekly Team Meeting
+Start_Date: 2024-03-20
+Start_Time: 14:00
+End_Date: 2024-03-20
+End_Time: 15:00
+Description: Regular team sync-up meeting
+Recurrence_Options: {
+  frequency: "WEEKLY",
+  interval: 1,
+  byWeekday: [1],  // Tuesday
+  until: "2024-12-31T23:59:59Z"
+}
+</calendar_api_call>
 5. Study Session Creation:
    Based on the extracted dates and user's existing commitments (if provided), create a study schedule following these guidelines:
    - Allocate more study time for subjects with higher weightage or upcoming deadlines
@@ -147,13 +167,16 @@ You can also help users manage their tasks:
 5. Set initial status as "todo" for new tasks
 `;
 
-if (syllabusText.length > 20000) {
-  // If the text is too long, summarize it
-  // finalSyllabusText = await summarizeText(syllabusText);
-  console.log('Syl text is TOO long')
-}
+  if (syllabusText.length > 20000) {
+    // If the text is too long, summarize it
+    // finalSyllabusText = await summarizeText(syllabusText);
+    console.log("Syl text is TOO long");
+  }
 
-const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusText);
+  const systemPrompt = systemPromptTemplate.replace(
+    "{{SYLLABUS_TEXT}}",
+    syllabusText
+  );
 
   const result = await streamText({
     model: customModel,
@@ -169,7 +192,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
         }),
         execute: async ({ latitude, longitude }) => {
           const response = await fetch(
-              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
           );
 
           const weatherData = await response.json();
@@ -178,7 +201,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
       },
       getCalendarEvents: {
         description:
-            "Fetches all events from all calendars for a specific user",
+          "Fetches all events from all calendars for a specific user",
         parameters: z.object({
           uid: z.string().describe("The user ID"),
         }),
@@ -186,7 +209,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
           try {
             // Fetch all events from all calendars
             const allEvents = await fetchAllEventsFromAllCalendars(
-                requestedUid
+              requestedUid
             );
             return allEvents;
           } catch (error) {
@@ -211,8 +234,12 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
           summary: z.string().describe("Event summary or title"),
           description: z.string().optional().describe("Event description"),
           location: z.string().optional().describe("Event location"),
-          startDateTime: z.string().describe("Event start date and time in ISO format"),
-          endDateTime: z.string().describe("Event end date and time in ISO format"),
+          startDateTime: z
+            .string()
+            .describe("Event start date and time in ISO format"),
+          endDateTime: z
+            .string()
+            .describe("Event end date and time in ISO format"),
         }),
         execute: async (args) => {
           try {
@@ -225,7 +252,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
               startDateTime,
               endDateTime,
             } = args;
-  
+
             // Use the createCalendarEvent function
             await createCalendarEvent(
               summary,
@@ -236,10 +263,88 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
               calendarId,
               requestedUid
             );
-  
+
             return { success: true, message: "Event created successfully." };
           } catch (error) {
             console.error("Error in createCalendarEvent tool:", error);
+            throw error;
+          }
+        },
+      },
+      createRecurringCalendarEvent: {
+        description: "Creates a recurring event in the user's Google Calendar",
+        parameters: z.object({
+          uid: z.string().describe("The user ID"),
+          calendarId: z.string().describe("The calendar ID"),
+          summary: z.string().describe("Event summary or title"),
+          description: z.string().optional().describe("Event description"),
+          location: z.string().optional().describe("Event location"),
+          startDateTime: z
+            .string()
+            .describe("Event start date and time in ISO format"),
+          endDateTime: z
+            .string()
+            .describe("Event end date and time in ISO format"),
+          recurrenceOptions: z
+            .object({
+              frequency: z
+                .enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"])
+                .describe("Recurrence frequency"),
+              interval: z
+                .number()
+                .optional()
+                .describe("Interval between recurrences"),
+              until: z
+                .string()
+                .optional()
+                .describe("Date until which the event repeats in ISO format"),
+              count: z
+                .number()
+                .optional()
+                .describe("Number of times the event occurs"),
+              byWeekday: z
+                .array(z.number())
+                .optional()
+                .describe(
+                  "Days of the week the event occurs (0 for Monday, 6 for Sunday)"
+                ),
+              byMonthDay: z
+                .array(z.number())
+                .optional()
+                .describe("Days of the month the event occurs"),
+            })
+            .describe("Recurrence options"),
+        }),
+        execute: async (args) => {
+          try {
+            const {
+              uid: requestedUid,
+              calendarId,
+              summary,
+              description = "",
+              location = "",
+              startDateTime,
+              endDateTime,
+              recurrenceOptions,
+            } = args;
+
+            await createRecurringEvent(
+              summary,
+              description,
+              location,
+              startDateTime,
+              endDateTime,
+              calendarId,
+              requestedUid,
+              recurrenceOptions
+            );
+
+            return {
+              success: true,
+              message: "Recurring event created successfully.",
+            };
+          } catch (error) {
+            console.error("Error in createRecurringEvent tool:", error);
             throw error;
           }
         },
@@ -251,10 +356,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
           calendarId: z.string().describe("The calendar ID"),
           eventId: z.string().describe("The event ID"),
           summary: z.string().describe("Event summary or title"),
-          description: z
-            .string()
-            .optional()
-            .describe("Event description"),
+          description: z.string().optional().describe("Event description"),
           location: z.string().optional().describe("Event location"),
           startDateTime: z
             .string()
@@ -327,15 +429,22 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
           label: z.string().optional().describe("Task label (class name)"),
           dueDate: z.string().optional().describe("Due date in ISO format"),
         }),
-        execute: async ({ uid: requestedUid, title, status, priority, label, dueDate }) => {
+        execute: async ({
+          uid: requestedUid,
+          title,
+          status,
+          priority,
+          label,
+          dueDate,
+        }) => {
           try {
             // Verify the user is authenticated via the Bearer token
-            const authHeader = request.headers.get('authorization');
+            const authHeader = request.headers.get("authorization");
             if (!authHeader || !authHeader.startsWith("Bearer ")) {
               throw new Error("Unauthorized");
             }
             const tokenUid = authHeader.split("Bearer ")[1];
-            
+
             // Verify the requested UID matches the token UID
             if (tokenUid !== requestedUid) {
               throw new Error("User ID mismatch");
@@ -349,7 +458,11 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
               label,
               dueDate
             );
-            return { success: true, message: "Task created successfully.", taskId: result.id };
+            return {
+              success: true,
+              message: "Task created successfully.",
+              taskId: result.id,
+            };
           } catch (error) {
             console.error("Error in createTask tool:", error);
             throw error;
@@ -361,13 +474,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
       isEnabled: true,
       functionId: "stream-text",
     },
-    onStepFinish: ({
-      text,
-      toolCalls,
-      toolResults,
-      finishReason,
-      usage,
-    }) => {
+    onStepFinish: ({ text, toolCalls, toolResults, finishReason, usage }) => {
       // Log tool calls
       if (text && text.trim() !== "") {
         sendMessageToUser({
@@ -388,7 +495,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
           const toolNotification: Message = {
             role: "system",
             content: `🔧 **Tool Called:** ${
-                toolCall.toolName
+              toolCall.toolName
             }\n**Arguments:** ${JSON.stringify(toolCall.args, null, 2)}`,
             id: "",
           };
