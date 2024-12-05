@@ -41,30 +41,30 @@ const getBaseUrl = () => {
 const baseUrl = getBaseUrl();
 
 // Retry logic with exponential backoff
-async function retryRequest<T>(
-  requestFn: () => Promise<T>,
-  maxRetries: number = 3,
-  initialDelay: number = 1000
-): Promise<T> {
-  let lastError: Error | null = null;
+// async function retryRequest<T>(
+//   requestFn: () => Promise<T>,
+//   maxRetries: number = 3,
+//   initialDelay: number = 1000
+// ): Promise<T> {
+//   let lastError: Error | null = null;
   
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await requestFn();
-    } catch (error) {
-      lastError = error as Error;
-      if (error instanceof AxiosError && error.response?.status === 429) {
-        const delay = initialDelay * Math.pow(2, attempt);
-        console.log(`Rate limited. Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      throw error;
-    }
-  }
+//   for (let attempt = 0; attempt < maxRetries; attempt++) {
+//     try {
+//       return await requestFn();
+//     } catch (error) {
+//       lastError = error as Error;
+//       if (error instanceof AxiosError && error.response?.status === 429) {
+//         const delay = initialDelay * Math.pow(2, attempt);
+//         console.log(`Rate limited. Retrying in ${delay}ms...`);
+//         await new Promise(resolve => setTimeout(resolve, delay));
+//         continue;
+//       }
+//       throw error;
+//     }
+//   }
   
-  throw lastError;
-}
+//   throw lastError;
+// }
 
 // Helper function to get auth headers
 async function getAuthHeaders(uid: string) {
