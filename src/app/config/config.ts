@@ -19,6 +19,11 @@ export function getOAuthRedirectUrl() {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
   if (process.env.BASE_URL) {
     return process.env.BASE_URL;
   }
