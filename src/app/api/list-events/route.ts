@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const oauth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
-  "http://localhost:3000"
+  "postmessage"
 );
 
 export async function GET(req: NextRequest) {

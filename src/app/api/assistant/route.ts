@@ -4,70 +4,76 @@ import { customModel } from "@/ai/index";
 import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars, createTask } from "@/components/api";
 
 export async function POST(request: Request) {
-  
-  // Get the Authorization header
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  try {
+    // Get the Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response("Unauthorized", { status: 401 });
+    }
 
-  // Extract the UID from the Bearer token
-  const uid = authHeader.split("Bearer ")[1];
-  if (!uid) {
-    return new Response("Invalid authorization token", { status: 401 });
-  }
+    // Extract the UID from the Bearer token
+    const uid = authHeader.split("Bearer ")[1];
+    if (!uid) {
+      return new Response("Invalid authorization token", { status: 401 });
+    }
 
-  const languageInstructions = {
-    en: 'All your responses should be in English.',
-    es: 'Todas tus respuestas deben estar en Español.',
-    fr: 'Toutes vos réponses doivent être en Français.',
-    de: 'Alle deine Antworten sollten auf Deutsch sein.',
-    it: 'Le tue risposte dovrebbero essere in Italiano.',
-    zh: '你的所有回复都应该用中文。',
-    ja: 'あなたのすべての回答は日本語である必要があります。',
-    ru: 'Все ваши ответы должны быть на русском языке.',
-    ar: 'يجب أن تكون جميع إجاباتك باللغة العربية.',
-    pt: 'Todas as suas respostas devem ser em Português.',
-    hi: 'आपके सभी उत्तर हिंदी में होने चाहिए।',
-    ko: '모든 답변은 한국어로 작성해야 합니다.',
-    tr: 'Tüm yanıtlarınız Türkçe olmalıdır.',
-    nl: 'Al je antwoorden moeten in het Nederlands zijn.',
-    pl: 'Wszystkie twoje odpowiedzi powinny być po polsku.',
-    sv: 'Alla dina svar ska vara på Svenska.',
-    // Add more languages as needed
-  }
+    // Add rate limiting headers
+    const response = new Response();
+    response.headers.set('X-RateLimit-Limit', '100');
+    response.headers.set('X-RateLimit-Remaining', '99');
+    response.headers.set('X-RateLimit-Reset', '60');
 
-
-  // Define the type for the language keys
-  type LanguageKey = keyof typeof languageInstructions;
-
-  // Extract messages, language, calendarId and more from the request body
-  const {
-    messages,
-    language,
-    fileContents,
-  }: {
-    messages: Array<Message>;
-    language: LanguageKey;
-    fileContents: string[];
-  } = await request.json();
-
-  const syllabusText = fileContents ? fileContents.join("\n") : "";
-  
+    const languageInstructions = {
+      en: 'All your responses should be in English.',
+      es: 'Todas tus respuestas deben estar en Español.',
+      fr: 'Toutes vos réponses doivent être en Français.',
+      de: 'Alle deine Antworten sollten auf Deutsch sein.',
+      it: 'Le tue risposte dovrebbero essere in Italiano.',
+      zh: '你的所有回复都应该用中文。',
+      ja: 'あなたのすべての回答は日本語である必要があります。',
+      ru: 'Все ваши ответы должны быть на русском языке.',
+      ar: 'يجب أن تكون جميع إجاباتك باللغة العربية.',
+      pt: 'Todas as suas respostas devem ser em Português.',
+      hi: 'आपके सभी उत्तर हिंदी में होने चाहिए।',
+      ko: '모든 답변은 한국어로 작성해야 합니다.',
+      tr: 'Tüm yanıtlarınız Türkçe olmalıdır.',
+      nl: 'Al je antwoorden moeten in het Nederlands zijn.',
+      pl: 'Wszystkie twoje odpowiedzi powinny być po polsku.',
+      sv: 'Alla dina svar ska vara på Svenska.',
+      // Add more languages as needed
+    }
 
 
-  const coreMessages = convertToCoreMessages(messages);
-  const baseUrl = process.env.BASE_URL;
+    // Define the type for the language keys
+    type LanguageKey = keyof typeof languageInstructions;
 
-  if (!baseUrl) {
-    throw new Error("Base URL is not defined in environment variables.");
-  }
+    // Extract messages, language, calendarId and more from the request body
+    const {
+      messages,
+      language,
+      fileContents,
+    }: {
+      messages: Array<Message>;
+      language: LanguageKey;
+      fileContents: string[];
+    } = await request.json();
 
-  // Get the language instruction or default to English
-  const languageInstruction =
-      languageInstructions[language] || languageInstructions['en'];
-  
-  const systemPromptTemplate = `${languageInstruction}
+    const syllabusText = fileContents ? fileContents.join("\n") : "";
+    
+
+
+    const coreMessages = convertToCoreMessages(messages);
+    const baseUrl = process.env.BASE_URL;
+
+    if (!baseUrl) {
+      throw new Error("Base URL is not defined in environment variables.");
+    }
+
+    // Get the language instruction or default to English
+    const languageInstruction =
+        languageInstructions[language] || languageInstructions['en'];
+    
+    const systemPromptTemplate = `${languageInstruction}
 
 You are SyllabusSync, an AI assistant specialized in helping university students manage their academic schedules. Your primary function is to extract key dates from course syllabi and integrate them with Google Calendar. Follow these instructions carefully to assist students effectively.
 
@@ -155,268 +161,289 @@ if (syllabusText.length > 20000) {
 
 const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusText);
 
-  const result = await streamText({
-    model: customModel,
-    system: systemPrompt,
-    messages: coreMessages,
-    maxSteps: 50,
-    tools: {
-      getWeather: {
-        description: "Get the current weather at a location",
-        parameters: z.object({
-          latitude: z.number(),
-          longitude: z.number(),
-        }),
-        execute: async ({ latitude, longitude }) => {
-          const response = await fetch(
-              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
-          );
+    const result = await streamText({
+      model: customModel,
+      system: systemPrompt,
+      messages: coreMessages,
+      maxSteps: 50,
+      tools: {
+        getWeather: {
+          description: "Get the current weather at a location",
+          parameters: z.object({
+            latitude: z.number(),
+            longitude: z.number(),
+          }),
+          execute: async ({ latitude, longitude }) => {
+            const response = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
+            );
 
-          const weatherData = await response.json();
-          return weatherData;
+            const weatherData = await response.json();
+            return weatherData;
+          },
         },
-      },
-      getCalendarEvents: {
-        description:
-            "Fetches all events from all calendars for a specific user",
-        parameters: z.object({
-          uid: z.string().describe("The user ID"),
-        }),
-        execute: async ({ uid: requestedUid }) => {
-          try {
-            // Fetch all events from all calendars
-            const allEvents = await fetchAllEventsFromAllCalendars(
+        getCalendarEvents: {
+          description: "Fetches all events from all calendars for a specific user",
+          parameters: z.object({
+            uid: z.string().describe("The user ID"),
+          }),
+          execute: async ({ uid: requestedUid }) => {
+            try {
+              // Add retry logic for calendar events fetch
+              let retries = 3;
+              let lastError;
+              
+              while (retries > 0) {
+                try {
+                  const allEvents = await fetchAllEventsFromAllCalendars(requestedUid);
+                  return allEvents;
+                } catch (error) {
+                  lastError = error;
+                  retries--;
+                  if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                  }
+                }
+              }
+              
+              throw lastError;
+            } catch (error) {
+              console.error("Error in getCalendarEvents tool:", error);
+              throw error;
+            }
+          },
+        },
+        getCurrentDate: {
+          description: "Get the current date and time in ISO format",
+          parameters: z.object({}),
+          execute: async () => {
+            const currentDate = new Date().toISOString();
+            return { currentDate };
+          },
+        },
+        createCalendarEvent: {
+          description: "Creates an event in the user's Google Calendar",
+          parameters: z.object({
+            uid: z.string().describe("The user ID"),
+            calendarId: z.string().describe("The calendar ID"),
+            summary: z.string().describe("Event summary or title"),
+            description: z.string().optional().describe("Event description"),
+            location: z.string().optional().describe("Event location"),
+            startDateTime: z.string().describe("Event start date and time in ISO format"),
+            endDateTime: z.string().describe("Event end date and time in ISO format"),
+          }),
+          execute: async (args) => {
+            try {
+              const {
+                uid: requestedUid,
+                calendarId,
+                summary,
+                description = "",
+                location = "",
+                startDateTime,
+                endDateTime,
+              } = args;
+    
+              // Use the createCalendarEvent function
+              await createCalendarEvent(
+                summary,
+                description,
+                location,
+                startDateTime,
+                endDateTime,
+                calendarId,
                 requestedUid
-            );
-            return allEvents;
-          } catch (error) {
-            console.error("Error in getCalendarEvents tool:", error);
-            throw error;
-          }
+              );
+    
+              return { success: true, message: "Event created successfully." };
+            } catch (error) {
+              console.error("Error in createCalendarEvent tool:", error);
+              throw error;
+            }
+          },
         },
-      },
-      getCurrentDate: {
-        description: "Get the current date and time in ISO format",
-        parameters: z.object({}),
-        execute: async () => {
-          const currentDate = new Date().toISOString();
-          return { currentDate };
-        },
-      },
-      createCalendarEvent: {
-        description: "Creates an event in the user's Google Calendar",
-        parameters: z.object({
-          uid: z.string().describe("The user ID"),
-          calendarId: z.string().describe("The calendar ID"),
-          summary: z.string().describe("Event summary or title"),
-          description: z.string().optional().describe("Event description"),
-          location: z.string().optional().describe("Event location"),
-          startDateTime: z.string().describe("Event start date and time in ISO format"),
-          endDateTime: z.string().describe("Event end date and time in ISO format"),
-        }),
-        execute: async (args) => {
-          try {
-            const {
-              uid: requestedUid,
-              calendarId,
-              summary,
-              description = "",
-              location = "",
-              startDateTime,
-              endDateTime,
-            } = args;
-  
-            // Use the createCalendarEvent function
-            await createCalendarEvent(
-              summary,
-              description,
-              location,
-              startDateTime,
-              endDateTime,
-              calendarId,
-              requestedUid
-            );
-  
-            return { success: true, message: "Event created successfully." };
-          } catch (error) {
-            console.error("Error in createCalendarEvent tool:", error);
-            throw error;
-          }
-        },
-      },
-      updateCalendarEvent: {
-        description: "Updates an event in the user's Google Calendar",
-        parameters: z.object({
-          uid: z.string().describe("The user ID"),
-          calendarId: z.string().describe("The calendar ID"),
-          eventId: z.string().describe("The event ID"),
-          summary: z.string().describe("Event summary or title"),
-          description: z
-            .string()
-            .optional()
-            .describe("Event description"),
-          location: z.string().optional().describe("Event location"),
-          startDateTime: z
-            .string()
-            .describe("Event start date and time in ISO format"),
-          endDateTime: z
-            .string()
-            .describe("Event end date and time in ISO format"),
-        }),
-        execute: async (args) => {
-          try {
-            const {
-              uid: requestedUid,
-              calendarId,
-              eventId,
-              summary,
-              description = "",
-              location = "",
-              startDateTime,
-              endDateTime,
-            } = args;
+        updateCalendarEvent: {
+          description: "Updates an event in the user's Google Calendar",
+          parameters: z.object({
+            uid: z.string().describe("The user ID"),
+            calendarId: z.string().describe("The calendar ID"),
+            eventId: z.string().describe("The event ID"),
+            summary: z.string().describe("Event summary or title"),
+            description: z
+              .string()
+              .optional()
+              .describe("Event description"),
+            location: z.string().optional().describe("Event location"),
+            startDateTime: z
+              .string()
+              .describe("Event start date and time in ISO format"),
+            endDateTime: z
+              .string()
+              .describe("Event end date and time in ISO format"),
+          }),
+          execute: async (args) => {
+            try {
+              const {
+                uid: requestedUid,
+                calendarId,
+                eventId,
+                summary,
+                description = "",
+                location = "",
+                startDateTime,
+                endDateTime,
+              } = args;
 
-            // Use the updateCalendarEvent function
-            const response = await updateCalendarEvent(
-              eventId,
-              calendarId,
-              summary,
-              description,
-              location,
-              startDateTime,
-              endDateTime,
-              requestedUid
-            );
+              // Use the updateCalendarEvent function
+              const response = await updateCalendarEvent(
+                eventId,
+                calendarId,
+                summary,
+                description,
+                location,
+                startDateTime,
+                endDateTime,
+                requestedUid
+              );
 
-            return {
-              success: true,
-              message: "Event updated successfully.",
-              id: response.id,
+              return {
+                success: true,
+                message: "Event updated successfully.",
+                id: response.id,
+              };
+            } catch (error) {
+              console.error("Error in updateCalendarEvent tool:", error);
+              throw error;
+            }
+          },
+        },
+        deleteCalendarEvent: {
+          description: "Deletes an event from the user's Google Calendar",
+          parameters: z.object({
+            uid: z.string().describe("The user ID"),
+            calendarId: z.string().describe("The calendar ID"),
+            eventId: z.string().describe("The event ID"),
+          }),
+          execute: async ({ uid: requestedUid, calendarId, eventId }) => {
+            try {
+              // Use the deleteCalendarEvent function
+              await deleteCalendarEvent(eventId, calendarId, requestedUid);
+              return { success: true, message: "Event deleted successfully." };
+            } catch (error) {
+              console.error("Error in deleteCalendarEvent tool:", error);
+              throw error;
+            }
+          },
+        },
+        createTask: {
+          description: "Creates a task for the user",
+          parameters: z.object({
+            uid: z.string().describe("The user ID"),
+            title: z.string().describe("Task title"),
+            status: z.string().describe("Task status (todo, in progress, done)"),
+            priority: z.string().describe("Task priority (low, medium, high)"),
+            label: z.string().optional().describe("Task label (class name)"),
+            dueDate: z.string().optional().describe("Due date in ISO format"),
+          }),
+          execute: async ({ uid: requestedUid, title, status, priority, label, dueDate }) => {
+            try {
+              // Verify the user is authenticated via the Bearer token
+              const authHeader = request.headers.get('authorization');
+              if (!authHeader || !authHeader.startsWith("Bearer ")) {
+                throw new Error("Unauthorized");
+              }
+              const tokenUid = authHeader.split("Bearer ")[1];
+              
+              // Verify the requested UID matches the token UID
+              if (tokenUid !== requestedUid) {
+                throw new Error("User ID mismatch");
+              }
+
+              const result = await createTask(
+                title,
+                status as "todo" | "in progress" | "done",
+                priority as "low" | "medium" | "high",
+                requestedUid,
+                label,
+                dueDate
+              );
+              return { success: true, message: "Task created successfully.", taskId: result.id };
+            } catch (error) {
+              console.error("Error in createTask tool:", error);
+              throw error;
+            }
+          },
+        },
+      },
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: "stream-text",
+      },
+      onStepFinish: ({
+        text,
+        toolCalls,
+        toolResults,
+        finishReason,
+        usage,
+      }) => {
+        // Log tool calls
+        if (text && text.trim() !== "") {
+          sendMessageToUser({
+            role: "assistant",
+            content: text,
+            id: "",
+          });
+        } else if (finishReason === "tool-calls" && !text) {
+          // If no text was generated and a tool is about to be called, inform the user
+          sendMessageToUser({
+            role: "assistant",
+            content: "Currently processing your request...",
+            id: "",
+          });
+        }
+        if (toolCalls?.length) {
+          toolCalls.forEach((toolCall) => {
+            const toolNotification: Message = {
+              role: "system",
+              content: `🔧 **Tool Called:** ${
+                  toolCall.toolName
+              }\n**Arguments:** ${JSON.stringify(toolCall.args, null, 2)}`,
+              id: "",
             };
-          } catch (error) {
-            console.error("Error in updateCalendarEvent tool:", error);
-            throw error;
-          }
-        },
+            sendMessageToUser(toolNotification);
+          });
+        }
+
+        // Log tool results
+        if (toolResults?.length) {
+          toolResults.forEach((toolResult) => {
+            const toolResultMessage: Message = {
+              role: "system",
+              content: `✅ **Tool Completed:** ${toolResult.toolName}`,
+              id: "",
+            };
+            sendMessageToUser(toolResultMessage);
+          });
+        }
+
+        // Log debugging information
+        console.log("--- Step Finished ---");
+        console.log("Generated Text:", text);
+        console.log("Finish Reason:", finishReason);
+        console.log("Usage:", usage);
       },
-      deleteCalendarEvent: {
-        description: "Deletes an event from the user's Google Calendar",
-        parameters: z.object({
-          uid: z.string().describe("The user ID"),
-          calendarId: z.string().describe("The calendar ID"),
-          eventId: z.string().describe("The event ID"),
-        }),
-        execute: async ({ uid: requestedUid, calendarId, eventId }) => {
-          try {
-            // Use the deleteCalendarEvent function
-            await deleteCalendarEvent(eventId, calendarId, requestedUid);
-            return { success: true, message: "Event deleted successfully." };
-          } catch (error) {
-            console.error("Error in deleteCalendarEvent tool:", error);
-            throw error;
-          }
-        },
+    });
+
+    return result.toDataStreamResponse({});
+  } catch (error) {
+    console.error("Error in assistant route:", error);
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
       },
-      createTask: {
-        description: "Creates a task for the user",
-        parameters: z.object({
-          uid: z.string().describe("The user ID"),
-          title: z.string().describe("Task title"),
-          status: z.string().describe("Task status (todo, in progress, done)"),
-          priority: z.string().describe("Task priority (low, medium, high)"),
-          label: z.string().optional().describe("Task label (class name)"),
-          dueDate: z.string().optional().describe("Due date in ISO format"),
-        }),
-        execute: async ({ uid: requestedUid, title, status, priority, label, dueDate }) => {
-          try {
-            // Verify the user is authenticated via the Bearer token
-            const authHeader = request.headers.get('authorization');
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-              throw new Error("Unauthorized");
-            }
-            const tokenUid = authHeader.split("Bearer ")[1];
-            
-            // Verify the requested UID matches the token UID
-            if (tokenUid !== requestedUid) {
-              throw new Error("User ID mismatch");
-            }
-
-            const result = await createTask(
-              title,
-              status as "todo" | "in progress" | "done",
-              priority as "low" | "medium" | "high",
-              requestedUid,
-              label,
-              dueDate
-            );
-            return { success: true, message: "Task created successfully.", taskId: result.id };
-          } catch (error) {
-            console.error("Error in createTask tool:", error);
-            throw error;
-          }
-        },
-      },
-    },
-    experimental_telemetry: {
-      isEnabled: true,
-      functionId: "stream-text",
-    },
-    onStepFinish: ({
-      text,
-      toolCalls,
-      toolResults,
-      finishReason,
-      usage,
-    }) => {
-      // Log tool calls
-      if (text && text.trim() !== "") {
-        sendMessageToUser({
-          role: "assistant",
-          content: text,
-          id: "",
-        });
-      } else if (finishReason === "tool-calls" && !text) {
-        // If no text was generated and a tool is about to be called, inform the user
-        sendMessageToUser({
-          role: "assistant",
-          content: "Currently processing your request...",
-          id: "",
-        });
-      }
-      if (toolCalls?.length) {
-        toolCalls.forEach((toolCall) => {
-          const toolNotification: Message = {
-            role: "system",
-            content: `🔧 **Tool Called:** ${
-                toolCall.toolName
-            }\n**Arguments:** ${JSON.stringify(toolCall.args, null, 2)}`,
-            id: "",
-          };
-          sendMessageToUser(toolNotification);
-        });
-      }
-
-      // Log tool results
-      if (toolResults?.length) {
-        toolResults.forEach((toolResult) => {
-          const toolResultMessage: Message = {
-            role: "system",
-            content: `✅ **Tool Completed:** ${toolResult.toolName}`,
-            id: "",
-          };
-          sendMessageToUser(toolResultMessage);
-        });
-      }
-
-      // Log debugging information
-      console.log("--- Step Finished ---");
-      console.log("Generated Text:", text);
-      console.log("Finish Reason:", finishReason);
-      console.log("Usage:", usage);
-    },
-  });
-
-  return result.toDataStreamResponse({});
+    });
+  }
 }
 
 function sendMessageToUser(message: Message) {
