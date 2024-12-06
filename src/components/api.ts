@@ -28,6 +28,16 @@ interface RecurrenceOptions {
   byMonthDay?: number[];
 }
 
+interface GoogleCalendarEvent {
+  id: string;
+  summary?: string;
+  description?: string;
+  location?: string;
+  start?: { dateTime?: string; date?: string };
+  end?: { dateTime?: string; date?: string };
+  recurrence?: string[];
+}
+
 // Get base URL from environment or determine dynamically
 const getBaseUrl = () => {
   // Check if we're in the browser
@@ -80,15 +90,11 @@ export const fetchAllEventsFromAllCalendars = async (
 ): Promise<CalendarEvent[]> => {
   console.log("Hit the fetch events with baseUrl:", baseUrl);
 
-  const commonQueryParams = new URLSearchParams({ uid });
+  const headers = getAuthHeaders(uid);
 
   try {
-    // Get auth headers first
-    const headers = getAuthHeaders(uid);
-
-    // Use the Next.js API route for listing user calendars
     const calendarsResponse = await axios.get(
-      `${baseUrl}/api/list-user-calendars?${commonQueryParams}`,
+      `${baseUrl}/api/list-user-calendars`,
       { headers }
     );
     
@@ -101,7 +107,25 @@ export const fetchAllEventsFromAllCalendars = async (
         { headers }
       );
 
-      const calendarEvents = eventsResponse.data.items || [];
+      // Transform the events to the correct format
+      const calendarEvents = (eventsResponse.data.items || []).map((event: GoogleCalendarEvent) => ({
+        id: event.id,
+        title: event.summary || '',
+        description: event.description || '',
+        location: event.location || '',
+        start: new Date(event.start?.dateTime || event.start?.date || ''),
+        end: new Date(event.end?.dateTime || event.end?.date || ''),
+        allDay: !event.start?.dateTime,
+        googleEventId: event.id,
+        calendarId: calendar.id,
+        extendedProps: {
+          description: event.description || '',
+          location: event.location || '',
+          recurrence: event.recurrence || [],
+          isRecurring: Boolean(event.recurrence?.length)
+        }
+      }));
+
       allEvents = [...allEvents, ...calendarEvents];
     }
 
