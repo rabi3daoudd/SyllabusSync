@@ -5,21 +5,10 @@ import { clientId, clientSecret } from "../../config/config";
 
 export const dynamic = "force-dynamic";
 
-const getBaseUrl = () => {
-  // Check if we're in the browser
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  // For server-side (including chatbot tools)
-  return process.env.BASE_URL || 'http://localhost:3000';
-};
-
-const baseUrl = getBaseUrl();
-
 const oauth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
-  baseUrl
+  "postmessage"
 );
 
 export async function GET(req: NextRequest) {
@@ -34,6 +23,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    console.log('inside the GET, about to get refresh token');
+
     const refreshToken = await getRefreshToken(uid);
     oauth2Client.setCredentials({ refresh_token: refreshToken });
 
@@ -44,6 +35,8 @@ export async function GET(req: NextRequest) {
       auth: oauth2Client,
       maxResults: 10,
     });
+
+    console.log('inside the GET, got calendar list');
 
     return NextResponse.json(calendarList.data, { status: 200 });
   } catch (error) {

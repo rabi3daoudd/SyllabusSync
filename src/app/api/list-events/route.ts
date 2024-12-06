@@ -5,21 +5,10 @@ import { clientId, clientSecret } from "../../config/config";
 
 export const dynamic = "force-dynamic";
 
-const getBaseUrl = () => {
-  // Check if we're in the browser
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  // For server-side (including chatbot tools)
-  return process.env.BASE_URL || 'http://localhost:3000';
-};
-
-const baseUrl = getBaseUrl();
-
 const oauth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
-  baseUrl
+  "postmessage"
 );
 
 export async function GET(req: NextRequest) {
