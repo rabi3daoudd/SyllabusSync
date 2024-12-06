@@ -3,11 +3,21 @@ import { google } from "googleapis";
 import { getRefreshToken } from "../../../lib/firebaseHelper";
 import { clientId, clientSecret } from "../../config/config";
 
-// Initialize OAuth2 client for Google Calendar API authentication
+const getBaseUrl = () => {
+  // Check if we're in the browser
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  // For server-side (including chatbot tools)
+  return process.env.BASE_URL || 'http://localhost:3000';
+};
+
+const baseUrl = getBaseUrl();
+
 const oauth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
-  "http://localhost:3000"
+  baseUrl
 );
 
 export async function POST(req: NextRequest) {

@@ -5,11 +5,22 @@ import { db } from "@/lib/firebaseAdmin";
 
 // Initialize Google OAuth2 client with application credentials
 // This is used for handling the OAuth flow with Google Calendar
-const oauth2Client = new google.auth.OAuth2(
+const getBaseUrl = () => {
+    // Check if we're in the browser
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    // For server-side (including chatbot tools)
+    return process.env.BASE_URL || 'http://localhost:3000';
+  };
+  
+  const baseUrl = getBaseUrl();
+  
+  const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
-    'http://localhost:3000'  // Callback URL for OAuth flow
-);
+    baseUrl
+  );
 
 /**
  * POST endpoint to handle Google Calendar OAuth token creation and storage
