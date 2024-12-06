@@ -1,8 +1,7 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, createTask, fetchAllEventsFromAllCalendars, CalendarEvent } from "@/components/api";
-import axios from "axios";
+import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, createTask, fetchAllEventsFromAllCalendars } from "@/components/api";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
