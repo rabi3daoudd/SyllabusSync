@@ -1,7 +1,17 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, fetchAllEventsFromAllCalendars, createTask } from "@/components/api";
+import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, createTask, fetchAllEventsFromAllCalendars } from "@/components/api";
+
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
+export function GET(request: Request) {
+  console.log(request)
+  return new Response('Vercel', {
+    status:200,
+  })
+}
 
 export async function POST(request: Request) {
   
@@ -10,6 +20,8 @@ export async function POST(request: Request) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return new Response("Unauthorized", { status: 401 });
   }
+
+
 
   // Extract the UID from the Bearer token
   const uid = authHeader.split("Bearer ")[1];
@@ -177,18 +189,13 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
         },
       },
       getCalendarEvents: {
-        description:
-            "Fetches all events from all calendars for a specific user",
+        description: "Fetches all events from all calendars for a specific user",
         parameters: z.object({
           uid: z.string().describe("The user ID"),
         }),
         execute: async ({ uid: requestedUid }) => {
           try {
-            // Fetch all events from all calendars
-            const allEvents = await fetchAllEventsFromAllCalendars(
-                requestedUid
-            );
-            return allEvents;
+            return await fetchAllEventsFromAllCalendars(requestedUid);
           } catch (error) {
             console.error("Error in getCalendarEvents tool:", error);
             throw error;

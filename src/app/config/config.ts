@@ -14,6 +14,22 @@ dotenv.config({ path: envPath });
 export const clientId = process.env.CLIENT_ID!;
 export const clientSecret = process.env.CLIENT_SECRET!;
 
+// Get the correct OAuth redirect URL based on environment
+export function getOAuthRedirectUrl() {
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
+  return 'http://localhost:3000';
+}
+
 const serviceAccountString = process.env.FIREBASE_ADMINSDK!;
 
 const decodedServiceAccountString = decodeURIComponent(serviceAccountString);
