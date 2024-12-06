@@ -45,15 +45,25 @@ export async function GET(req: NextRequest) {
     oauth2Client.setCredentials({ refresh_token: refreshToken });
 
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-    const events = await calendar.events.list({
-      calendarId,
-      maxResults: 1000,
-      singleEvents: true,
-      orderBy: "startTime",
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    });
+    
+    try {
+      const events = await calendar.events.list({
+        calendarId,
+        maxResults: 1000,
+        singleEvents: true,
+        orderBy: "startTime",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
+      
+      return NextResponse.json(events.data, { status: 200 });
+    } catch (calendarError) {
+      // Handle specific calendar errors (like invalid calendar ID)
+      console.error("Calendar API error:", calendarError);
+      
+      // Return empty items array for invalid calendars instead of error
+      return NextResponse.json({ items: [] }, { status: 200 });
+    }
 
-    return NextResponse.json(events.data, { status: 200 });
   } catch (error) {
     console.error("Error fetching events:", error);
     return NextResponse.json(
