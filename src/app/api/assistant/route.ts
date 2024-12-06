@@ -1,7 +1,7 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { customModel } from "@/ai/index";
-import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, createTask, CalendarEvent } from "@/components/api";
+import { createCalendarEvent, deleteCalendarEvent, updateCalendarEvent, createTask, fetchAllEventsFromAllCalendars, CalendarEvent } from "@/components/api";
 import axios from "axios";
 
 export const maxDuration = 60;
@@ -196,46 +196,7 @@ const systemPrompt = systemPromptTemplate.replace("{{SYLLABUS_TEXT}}", syllabusT
         }),
         execute: async ({ uid: requestedUid }) => {
           try {
-            // Get the base URL dynamically
-            const baseUrl = process.env.VERCEL_URL 
-              ? `https://${process.env.VERCEL_URL}`
-              : process.env.BASE_URL || 'http://localhost:3000';
-
-            // First get the list of calendars
-            const calendarsResponse = await axios.get(
-              `${baseUrl}/api/list-user-calendars`,
-              {
-                params: { uid: requestedUid },
-                headers: {
-                  'Authorization': `Bearer ${requestedUid}`,
-                }
-              }
-            );
-
-            const calendars = calendarsResponse.data.items || [];
-            let allEvents: CalendarEvent[] = [];
-
-            // Then get events for each calendar
-            for (const calendar of calendars) {
-              const eventsResponse = await axios.get(
-                `${baseUrl}/api/list-events`,
-                {
-                  params: { 
-                    uid: requestedUid,
-                    calendarId: calendar.id || 'primary'
-                  },
-                  headers: {
-                    'Authorization': `Bearer ${requestedUid}`,
-                  }
-                }
-              );
-              
-              if (eventsResponse.data.items) {
-                allEvents = [...allEvents, ...eventsResponse.data.items];
-              }
-            }
-
-            return allEvents;
+            return await fetchAllEventsFromAllCalendars(requestedUid);
           } catch (error) {
             console.error("Error in getCalendarEvents tool:", error);
             throw error;
