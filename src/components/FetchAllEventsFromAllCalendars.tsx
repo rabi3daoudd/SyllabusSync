@@ -59,7 +59,7 @@ const FetchAllEventsFromAllCalendars = () => {
             }
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
-                console.error('Failed to fetch calendar events:', error.response?.data || error.message);
+                console.error('All, Failed to fetch calendar events:', error.response?.data || error.message);
             } else {
                 console.error('An unexpected error occurred:', error);
             }

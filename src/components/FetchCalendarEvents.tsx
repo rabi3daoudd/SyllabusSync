@@ -30,7 +30,7 @@ const FetchCalendarEvents = () => {
                 console.log('Calendar events fetched:', response.data);
             })
             .catch(error => {
-                console.error('Failed to fetch calendar events:', error.response?.data || error.message);
+                console.error('fetch calender events: Failed to fetch calendar events:', error.response?.data || error.message);
             });
     };
 

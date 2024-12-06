@@ -122,7 +122,7 @@ export const fetchAllEventsFromAllCalendars = async (
       allEvents = [...allEvents, ...calendarEvents];
     }
   } catch (error) {
-    console.error("Failed to fetch calendar events:", error);
+    console.error("api: Failed to fetch calendar events:", error);
     return [];
   }
   return allEvents;
