@@ -28,6 +28,24 @@ interface RecurrenceOptions {
   byMonthDay?: number[];
 }
 
+interface ApiEvent {
+  id: string;
+  summary: string;
+  description?: string;
+  location?: string;
+  start: {
+    dateTime?: string;
+    date?: string;
+    timeZone?: string;
+  };
+  end: {
+    dateTime?: string;
+    date?: string;
+    timeZone?: string;
+  };
+  recurrence?: string[];
+}
+
 const getBaseUrl = () => {
   // Check if we're in the browser
   if (typeof window !== 'undefined') {
@@ -44,88 +62,70 @@ const baseUrl = getBaseUrl();
 export const fetchAllEventsFromAllCalendars = async (
   uid: string
 ): Promise<CalendarEvent[]> => {
-  console.log("Hit the fetche events");
-
-  // const firebaseUser = auth.currentUser;
-  // if (!firebaseUser) {
-  //     console.log(firebaseUser)
-  //     console.error('No Firebase user logged in');
-  //     return [];
-  // }
-
-  const commonQueryParams = new URLSearchParams({ uid });
-  let allEvents: CalendarEvent[] = [];
+  console.log("Hit the fetch events");
 
   try {
-    // Use the Next.js API route for listing user calendars
-    // const calendarsResponse = await axios.get(`api/list-user-calendars?${commonQueryParams}`);
+    const commonQueryParams = new URLSearchParams({ uid });
+    // Add authorization header to the request
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${uid}`
+      }
+    };
+
     const calendarsResponse = await axios.get(
-      `${baseUrl}/api/list-user-calendars?${commonQueryParams}`
+      `${baseUrl}/api/list-user-calendars?${commonQueryParams}`,
+      config
     );
     const calendars = calendarsResponse.data.items;
+    let allEvents: CalendarEvent[] = [];
 
     for (const calendar of calendars) {
       const queryParams = new URLSearchParams(commonQueryParams);
       queryParams.set("calendarId", calendar.id || "primary");
 
-      // Start of Selection
-      // Use the Next.js API route for listing events
-      interface ApiEvent {
-        id: string;
-        summary: string;
-        description?: string;
-        location?: string;
-        start: {
-          dateTime?: string;
-          date?: string;
-          timeZone?: string;
-        };
-        end: {
-          dateTime?: string;
-          date?: string;
-          timeZone?: string;
-        };
-        recurrence?: string[];
-      }
-
-                const eventsResponse = await axios.get<{ items: ApiEvent[] }>(`${baseUrl}/api/list-events?${queryParams}`);
-                const calendarEvents = eventsResponse.data.items.flatMap(
-                  (event: ApiEvent) => {
-                    const baseEvent = {
-                      id: event.id,
-                      title: event.summary,
-                      description: event.description || "",
-                      location: event.location || "",
-                      start: new Date(event.start.dateTime || event.start.date || ''),
-                      end: new Date(event.end.dateTime || event.end.date || ''),
-                      allDay: !event.start.dateTime,
-                      googleEventId: event.id,
-                      calendarId: calendar.id,
-                      extendedProps: {
-                        description: event.description || "",
-                        location: event.location || "",
-                        recurrence: event.recurrence || [],
-                        isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
-                      }
-                    };
+      const eventsResponse = await axios.get(
+        `${baseUrl}/api/list-events?${queryParams}`,
+        config
+      );
+      const calendarEvents = eventsResponse.data.items.flatMap(
+        (event: ApiEvent) => {
+          const baseEvent = {
+            id: event.id,
+            title: event.summary,
+            description: event.description || "",
+            location: event.location || "",
+            start: new Date(event.start.dateTime || event.start.date || ''),
+            end: new Date(event.end.dateTime || event.end.date || ''),
+            allDay: !event.start.dateTime,
+            googleEventId: event.id,
+            calendarId: calendar.id,
+            extendedProps: {
+              description: event.description || "",
+              location: event.location || "",
+              recurrence: event.recurrence || [],
+              isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
+            }
+          };
           
-                    console.log('Transformed event:', {
-                      title: baseEvent.title,
-                      recurrence: event.recurrence,
-                      isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
-                    });
+          console.log('Transformed event:', {
+            title: baseEvent.title,
+            recurrence: event.recurrence,
+            isRecurring: Boolean(event.recurrence && event.recurrence.length > 0)
+          });
           
-                    return [baseEvent];
-                  }
-                );
+          return [baseEvent];
+        }
+      );
 
       allEvents = [...allEvents, ...calendarEvents];
     }
+    
+    return allEvents;
   } catch (error) {
     console.error("api: Failed to fetch calendar events:", error);
     return [];
   }
-  return allEvents;
 };
 
 export const createCalendarEvent = async (
