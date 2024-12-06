@@ -58,7 +58,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import { auth, db } from "../../firebase-config";
@@ -469,7 +468,7 @@ export function SidebarNavigation({ children }: SidebarNavigationProps) {
       </Sidebar>
       <SidebarInset>
         <header className="flex h-16 sticky top-0 shrink-0 items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
+          {/* <SidebarTrigger className="-ml-1" /> */}
         </header>
         <main className="flex-grow overflow-auto">{children}</main>
       </SidebarInset>

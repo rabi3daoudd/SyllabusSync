@@ -20,7 +20,7 @@ export function LayoutClient({ children }: LayoutClientProps) {
   const pathname = usePathname();
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/signup'];
+  const publicRoutes = ["/", "/login", "/signup"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   useEffect(() => {
@@ -28,10 +28,10 @@ export function LayoutClient({ children }: LayoutClientProps) {
       setIsAuthenticated(!!user);
       setIsLoading(false);
 
-      if (user && pathname === '/') {
-        router.push('/dashboard');
+      if (user && pathname === "/") {
+        router.push("/dashboard");
       } else if (!user && !publicRoutes.includes(pathname)) {
-        router.push('/login');
+        router.push("/login");
       }
     });
 

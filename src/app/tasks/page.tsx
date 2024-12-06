@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import { CreateTask } from "@/components/CreateTask";
 import { columns } from "@/components/datatable/columns";
@@ -14,7 +14,12 @@ import { taskSchema } from "./../../data/schema";
 
 import "../globals.css";
 import { Button } from "@/components/ui/button";
-
+import { motion } from "framer-motion";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 interface UserClass {
   name: string;
@@ -27,6 +32,29 @@ type TaskPageProps = {
 };
 type Task = z.infer<typeof taskSchema>;
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
 function TaskPage() {
   const [tasks, setTasks] = useState<TaskPageProps["tasks"]>([]);
   const [userClasses, setUserClasses] = useState<string[]>([]);
@@ -34,8 +62,6 @@ function TaskPage() {
   const [error, setError] = useState<Error | null>(null);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
 
   const router = useRouter();
 
@@ -108,20 +134,21 @@ function TaskPage() {
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setDrawerMode("edit");
-    setIsDrawerOpen(true);
   };
 
   const handleUpdateTask = async (updatedTask: Task) => {
-    const updatedTasks = tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task));
+    const updatedTasks = tasks.map((task) =>
+      task.id === updatedTask.id ? updatedTask : task
+    );
     setTasks(updatedTasks);
-  
+
     try {
       const user = auth.currentUser;
       if (!user) {
         console.error("No user logged in!");
         return;
       }
-  
+
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
         tasks: updatedTasks,
@@ -130,18 +157,6 @@ function TaskPage() {
       console.error("Error updating task: ", error);
     }
   };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-    setEditingTask(undefined);
-    setDrawerMode("create");
-  };
-
-  const handleOpenCreateTask = () => {
-    setEditingTask(undefined);
-    setDrawerMode("create");
-    setIsDrawerOpen(true);
-};
 
   const handleDeleteTask = async (taskToDelete: Task) => {
     try {
@@ -173,41 +188,59 @@ function TaskPage() {
   }
 
   return (
-    <>
-      <div className="flex justify-center w-4/5 mx-auto z-40">
-        <div className="flex-1 flex-col space-y-8 p-8 md:flex z-40">
-          <div className="flex items-center justify-between space-y-2">
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight">
-                Welcome back!
-              </h2>
-              <p className="text-muted-foreground">
-                Here&apos;s a list of your tasks!
-              </p>
-            </div>
-              <Button onClick={handleOpenCreateTask}>
-                Create a Task
-            </Button>
+    <motion.div
+      className="flex justify-center w-4/5 mx-auto z-40"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        className="flex-1 flex-col space-y-8 p-8 md:flex z-40"
+        variants={containerVariants}
+      >
+        <motion.div
+          className="flex items-center justify-between space-y-2"
+          variants={itemVariants}
+        >
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
+            <p className="text-muted-foreground">
+              Here's a list of your tasks!
+            </p>
           </div>
-          <CreateTask
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="default" className="px-4 py-2">
+                Create a Task
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full max-w-md p-4">
+              <CreateTask
                 onNewTask={handleNewTask}
                 onUpdateTask={handleUpdateTask}
                 userClasses={userClasses}
                 task={editingTask}
                 mode={drawerMode}
-                isOpen={isDrawerOpen}
-                onClose={handleCloseDrawer}
+                onClose={() => setEditingTask(undefined)}
               />
-           <DataTable 
-              data={tasks} 
-              columns={columns} 
-              userClasses={userClasses} 
-              onDelete={handleDeleteTask}  
-              onEdit={handleEditTask}  
-              onStatusChange={handleStatusChange} />
-        </div>
-      </div>
-    </>
+            </PopoverContent>
+          </Popover>
+        </motion.div>
+
+        <motion.div variants={containerVariants}>
+          <motion.div variants={itemVariants}>
+            <DataTable
+              data={tasks}
+              columns={columns}
+              userClasses={userClasses}
+              onDelete={handleDeleteTask}
+              onEdit={handleEditTask}
+              onStatusChange={handleStatusChange}
+            />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }
 

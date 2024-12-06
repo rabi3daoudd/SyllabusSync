@@ -83,12 +83,10 @@ describe('CreateTask Component', () => {
         onUpdateTask={jest.fn()}
         userClasses={mockUserClasses}
         mode="create"
-        isOpen={true}
         onClose={jest.fn()}
       />
     );
 
-    expect(screen.getByText('Enter the Task Information')).toBeInTheDocument();
     expect(screen.getByLabelText('Task Title')).toBeInTheDocument();
     expect(screen.getByLabelText('Status')).toBeInTheDocument();
     expect(screen.getByLabelText('Priority')).toBeInTheDocument();
@@ -113,12 +111,10 @@ describe('CreateTask Component', () => {
         userClasses={mockUserClasses}
         task={task}
         mode="edit"
-        isOpen={true}
         onClose={jest.fn()}
       />
     );
 
-    expect(screen.getByText('Edit Task')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test Task')).toBeInTheDocument();
     expect(screen.getByLabelText('Status')).toHaveValue('in progress');
     expect(screen.getByLabelText('Priority')).toHaveValue('high');
@@ -151,7 +147,6 @@ describe('CreateTask Component', () => {
         onUpdateTask={jest.fn()}
         userClasses={mockUserClasses}
         mode="create"
-        isOpen={true}
         onClose={mockOnClose}
       />
     );
@@ -236,7 +231,6 @@ describe('CreateTask Component', () => {
         userClasses={mockUserClasses}
         task={task}
         mode="edit"
-        isOpen={true}
         onClose={mockOnClose}
       />
     );
@@ -280,7 +274,6 @@ describe('CreateTask Component', () => {
         onUpdateTask={jest.fn()}
         userClasses={mockUserClasses}
         mode="create"
-        isOpen={true}
         onClose={mockOnClose}
       />
     );
