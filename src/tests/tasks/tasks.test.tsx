@@ -43,6 +43,18 @@ jest.mock('../../firebase-config', () => ({
   db: jest.fn(),
 }));
 
+jest.mock('@/components/datatable/data-table', () => ({
+  DataTable: ({ data }: { data: any[] }) => (
+    <div>
+      {data.map((task) => (
+        <div key={task.id}>
+          <span>{task.title}</span>
+        </div>
+      ))}
+    </div>
+  ),
+}));
+
 describe('TaskPage Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -121,14 +133,14 @@ describe('TaskPage Component', () => {
   });
   test('creates a new task and adds it to the task list', async () => {
     const createTaskSpy = jest.spyOn(CreateTaskModule, 'CreateTask').mockImplementation(({ onNewTask }) => {
-        onNewTask({
-          id: 'TASK-3',
-          title: 'New Test Task',
-          status: 'todo',
-          priority: 'low',
-        });
-        return null;
+      onNewTask({
+        id: 'TASK-3',
+        title: 'New Test Task',
+        status: 'todo',
+        priority: 'low',
       });
+      return null;
+    });
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       setTimeout(() => {
         callback(mockUser);
@@ -146,28 +158,33 @@ describe('TaskPage Component', () => {
 
     (updateDoc as jest.Mock).mockResolvedValueOnce(undefined);
 
-    const mockCreateTask = jest.fn(({ onNewTask }) => {
-      onNewTask({
-        id: 'TASK-3',
-        title: 'New Test Task',
-        status: 'todo',
-        priority: 'low',
-      });
-      return null;
-    });
-    jest.spyOn(CreateTaskModule, 'CreateTask').mockImplementation(mockCreateTask);
-
     await act(async () => {
-        render(<TaskPage />);
-      });
-    
-      await waitFor(() => {
-        expect(screen.getByText('Welcome back!')).toBeInTheDocument();
-      });
-    
-      // Verify that the tasks state in TaskPage has been updated
+      render(<TaskPage />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Welcome back!')).toBeInTheDocument();
+    });
+
+    // Wait for the new task to be added to the list
+    await waitFor(() => {
       expect(screen.getByText('New Test Task')).toBeInTheDocument();
-      createTaskSpy.mockRestore();
+    });
+
+    // Verify that updateDoc was called with the correct data
+    expect(updateDoc).toHaveBeenCalled();
+    const updateDocCalls = (updateDoc as jest.Mock).mock.calls;
+    const lastCall = updateDocCalls[updateDocCalls.length - 1];
+    const [docRef, data] = lastCall;
+
+    expect(data.tasks).toContainEqual({
+      id: 'TASK-3',
+      title: 'New Test Task',
+      status: 'todo',
+      priority: 'low',
+    });
+
+    createTaskSpy.mockRestore();
   });
 
   test('deletes a task and removes it from the task list', async () => {
@@ -285,71 +302,79 @@ describe('TaskPage Component', () => {
   });
   
   test('updates a task when it is edited', async () => {
-    const createTaskSpy = jest.spyOn(CreateTaskModule, 'CreateTask').mockImplementation(({ onUpdateTask }) => {
-      // Simulate updating the first task
-      onUpdateTask({
-        id: 'TASK-1',
-        title: 'Updated Test Task 1',
-        status: 'in progress',
-        priority: 'high',
-      });
-      return null;
-    });
-  
+    const mockOnUpdateTask = jest.fn();
+    const mockOnClose = jest.fn();
+
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       setTimeout(() => {
         callback(mockUser);
       }, 0);
       return jest.fn();
     });
-  
+
     (getDoc as jest.Mock).mockResolvedValueOnce({
       exists: () => true,
       data: () => ({
-        tasks: mockTasks,
+        tasks: [
+          {
+            id: 'TASK-1',
+            title: 'Test Task 1',
+            status: 'todo',
+            priority: 'low',
+          },
+        ],
         classes: [],
       }),
     });
-  
+
     (updateDoc as jest.Mock).mockResolvedValue(undefined);
-  
+
     await act(async () => {
       render(<TaskPage />);
     });
-  
+
     await waitFor(() => {
-      expect(screen.getByText('Welcome back!')).toBeInTheDocument();
+      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
     });
-  
-    // Verify that the updated task is in the task list
-    expect(screen.getByText('Updated Test Task 1')).toBeInTheDocument();
-  
-    // Get the last call to updateDoc
+
+    // Simulate editing the task
+    const dataTableSpy = jest.spyOn(DataTableModule, 'DataTable').mockImplementation(({ onEdit, data }) => {
+      // Simulate clicking the edit button
+      onEdit({
+        id: 'TASK-1',
+        title: 'Updated Test Task 1',
+        status: 'in progress',
+        priority: 'high',
+      });
+      return (
+        <div>
+          {data.map((task: any) => (
+            <div key={task.id}>
+              <span>{task.title}</span>
+            </div>
+          ))}
+        </div>
+      );
+    });
+
+    // Wait for the updated task to appear
+    await waitFor(() => {
+      expect(screen.getByText('Updated Test Task 1')).toBeInTheDocument();
+    });
+
+    // Verify that updateDoc was called with the correct data
     const updateDocCalls = (updateDoc as jest.Mock).mock.calls;
     const lastCall = updateDocCalls[updateDocCalls.length - 1];
-    expect(lastCall).toBeDefined();
     const [docRef, data] = lastCall;
-    console.log(docRef)
-  
-    // Verify that updateDoc was called with the updated task
-    expect(data).toEqual({
-      tasks: [
-        {
-          id: 'TASK-1',
-          title: 'Updated Test Task 1',
-          status: 'in progress',
-          priority: 'high',
-        },
-        {
-          id: 'TASK-2',
-          title: 'Test Task 2',
-          status: 'in progress',
-          priority: 'high',
-        },
-      ],
+
+    expect(data.tasks).toContainEqual({
+      id: 'TASK-1',
+      title: 'Updated Test Task 1',
+      status: 'in progress',
+      priority: 'high',
     });
-  
-    createTaskSpy.mockRestore();
+
+    dataTableSpy.mockRestore();
   });
 
   test('renders error state when fetching tasks fails', async () => {
