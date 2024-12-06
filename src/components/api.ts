@@ -65,11 +65,14 @@ export const fetchAllEventsFromAllCalendars = async (
   console.log("Hit the fetch events");
 
   try {
+    // Get the refresh token first
+    const tokenResponse = await axios.get(`${baseUrl}/api/get-refresh-token?uid=${uid}`);
+    const refreshToken = tokenResponse.data.refreshToken;
+
     const commonQueryParams = new URLSearchParams({ uid });
-    // Add authorization header to the request
     const config = {
       headers: {
-        'Authorization': `Bearer ${uid}`
+        'Authorization': `Bearer ${refreshToken}`
       }
     };
 
