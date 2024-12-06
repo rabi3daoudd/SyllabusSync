@@ -39,16 +39,10 @@ To embark on your journey with SyllabusSync, follow these steps:
    npm install
    npm run dev
    ```
-3. Open another terminal, navigate to the backend, install dependencies, and run it:
-   ```bash
-   cd backend
-   npm install
-   npm run dev
-   ```
 
-4. Some environment variables are necessary to run the project smoothly. Please reach out to rmura096@uottawac.ca to get the required .env configurations.
+3. Some environment variables are necessary to run the project smoothly. Please reach out to rmura096@uottawa.ca to get the required .env configurations.
 
-5. Visit `http://localhost:3000` in your browser to start using SyllabusSync.
+4. Visit `http://localhost:3000` in your browser to start using SyllabusSync.
 
 ## Documentation and Resources
 
